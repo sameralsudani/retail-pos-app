@@ -1,0 +1,355 @@
+import React, { useState } from 'react';
+import { Search, Filter, Eye, Printer, Calendar, User, Package, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useStore } from '../contexts/StoreContext';
+import Header from './Header';
+import Sidebar from './Sidebar';
+import { Transaction } from '../types';
+
+
+const OrdersPage: React.FC = () => {
+  const { t } = useLanguage();
+  const { transactions } = useStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedOrder, setSelectedOrder] = useState<Transaction | null>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
+
+  // Convert transactions to orders format
+  const orders = transactions.map(transaction => ({
+    ...transaction,
+    customerName: transaction.customer?.name || 'Walk-in Customer',
+    customerEmail: transaction.customer?.email || '',
+    status: 'completed' as const,
+    orderDate: transaction.timestamp
+  }));
+
+  const filteredOrders = orders.filter(transaction => {
+    const matchesSearch = 
+      transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'pending':
+        return <Clock className="h-4 w-4" />;
+      case 'cancelled':
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const totalOrders = orders.length;
+  const completedOrders = orders.length; // All transactions are completed
+  const pendingOrders = 0; // No pending orders in transaction history
+  const totalRevenue = orders
+    .reduce((sum, transaction) => sum + transaction.total, 0);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        onMenuClick={() => setShowSidebar(true)} 
+        title={t('orders.title')}
+      />
+
+      <div className="p-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">{t('orders.stats.total')}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">{t('orders.stats.completed')}</p>
+                <p className="text-2xl font-bold text-gray-900">{completedOrders}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">{t('orders.stats.pending')}</p>
+                <p className="text-2xl font-bold text-gray-900">{pendingOrders}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <DollarSign className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">{t('orders.stats.revenue')}</p>
+                <p className="text-2xl font-bold text-gray-900">${totalRevenue.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
+            <div className="flex-1 max-w-md relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder={t('orders.search.placeholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-5 w-5 text-gray-400" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">{t('orders.filter.all')}</option>
+                  <option value="completed">{t('orders.filter.completed')}</option>
+                  <option value="pending">{t('orders.filter.pending')}</option>
+                  <option value="cancelled">{t('orders.filter.cancelled')}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Orders Table */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.order')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.customer')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.items')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.total')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.status')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.date')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('orders.table.actions')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredOrders.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{transaction.id}</div>
+                      <div className="text-sm text-gray-500">{transaction.cashier}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            <User className="h-4 w-4 text-gray-500" />
+                          </div>
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">{transaction.customerName}</div>
+                          <div className="text-sm text-gray-500">{transaction.customerEmail}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {transaction.items.length} {t('orders.table.items.count')}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {transaction.items.slice(0, 2).map(item => item.product.name).join(', ')}
+                        {transaction.items.length > 2 && '...'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">${transaction.total.toFixed(2)}</div>
+                      <div className="text-sm text-gray-500 capitalize">{transaction.paymentMethod}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                        {getStatusIcon(transaction.status)}
+                        <span className="capitalize">{t(`orders.status.${transaction.status}`)}</span>
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div>{transaction.orderDate.toLocaleDateString()}</div>
+                      <div>{transaction.orderDate.toLocaleTimeString()}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setSelectedOrder(transaction)}
+                          className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                          title={t('orders.actions.view')}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => alert(t('orders.actions.print.success'))}
+                          className="text-gray-600 hover:text-gray-900 p-1 hover:bg-gray-50 rounded"
+                          title={t('orders.actions.print')}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-12">
+              <Package className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">{t('orders.empty.title')}</h3>
+              <p className="mt-1 text-sm text-gray-500">{t('orders.empty.subtitle')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">{t('orders.detail.title')}</h2>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Order Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">{t('orders.detail.order.id')}</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.id}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">{t('orders.detail.status')}</label>
+                  <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedOrder.status)} mt-1`}>
+                    {getStatusIcon(selectedOrder.status)}
+                    <span className="capitalize">{t(`orders.status.${selectedOrder.status}`)}</span>
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">{t('orders.detail.customer')}</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.customerName}</p>
+                  <p className="text-sm text-gray-500">{selectedOrder.customerEmail}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">{t('orders.detail.date')}</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.orderDate.toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* Items */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">{t('orders.detail.items')}</h3>
+                <div className="space-y-3">
+                  {selectedOrder.items.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-gray-900">{item.product.name}</p>
+                        <p className="text-sm text-gray-500">{item.quantity} × ${item.product.price.toFixed(2)}</p>
+                      </div>
+                      <p className="font-medium text-gray-900">${(item.quantity * item.product.price).toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Total */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex justify-between items-center text-lg font-bold">
+                  <span>{t('orders.detail.total')}</span>
+                  <span className="text-blue-600">${selectedOrder.total.toFixed(2)}</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {t('orders.detail.payment.method')}: <span className="capitalize">{selectedOrder.paymentMethod}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                {t('orders.detail.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={showSidebar} 
+        onClose={() => setShowSidebar(false)}
+      />
+    </div>
+  );
+};
+
+export default OrdersPage;

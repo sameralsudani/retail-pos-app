@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RTL Support */
+.rtl {
+  direction: rtl;
+}
+
+.rtl .space-x-2 > * + * {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+.rtl .space-x-4 > * + * {
+  margin-left: 0;
+  margin-right: 1rem;
+}
+
+/* Fix for RTL spacing in flex containers */
+.rtl .flex.items-center.space-x-2 > * + *,
+.rtl .flex.items-center.space-x-4 > * + * {
+  margin-left: 0;
+}
+
+.rtl .flex.items-center.space-x-2 > * + * {
+  margin-right: 0.5rem;
+}
+
+.rtl .flex.items-center.space-x-4 > * + * {
+  margin-right: 1rem;
+}
