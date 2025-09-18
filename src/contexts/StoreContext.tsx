@@ -144,7 +144,10 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   // API Integration Functions
   const loadProducts = async () => {
     try {
+      console.log('Loading products from API...');
       const response = await productsAPI.getAll();
+      console.log('Products API response:', response);
+      
       if (response.success) {
         const products = response.data.map(product => ({
           id: product._id,
@@ -156,7 +159,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           image: product.image,
           description: product.description
         }));
+        console.log('Processed products:', products.length);
         setState(prev => ({ ...prev, products }));
+      } else {
+        console.error('Failed to load products:', response);
+        setError('Failed to load products');
       }
     } catch (error) {
       console.error('Error loading products:', error);
@@ -324,6 +331,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const completeTransaction = async (paymentMethod: string, amountPaid: number) => {
     try {
+      console.log('Starting transaction with cart items:', state.cartItems);
+      console.log('Customer:', state.currentCustomer);
+      
       const subtotal = getCartSubtotal();
       const tax = getCartTax();
       const total = getCartTotal();
@@ -340,7 +350,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         discount: 0
       };
 
+      console.log('Transaction data being sent:', JSON.stringify(transactionData, null, 2));
+
       const response = await transactionsAPI.create(transactionData);
+      
+      console.log('Transaction API response:', response);
       
       if (response.success) {
         const transaction: Transaction = {
@@ -367,10 +381,13 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
         // Reload products to update stock levels
         await loadProducts();
+      } else {
+        console.error('Transaction failed:', response);
+        setError(response.message || 'Transaction failed');
       }
     } catch (error) {
       console.error('Error completing transaction:', error);
-      setError('Failed to complete transaction');
+      setError(error.message || 'Failed to complete transaction');
     }
   };
 

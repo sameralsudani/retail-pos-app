@@ -132,8 +132,11 @@ router.post('/', protect, [
   body('customer').optional().isMongoId().withMessage('Invalid customer ID')
 ], async (req, res) => {
   try {
+    console.log('Transaction request body:', JSON.stringify(req.body, null, 2));
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -151,6 +154,7 @@ router.post('/', protect, [
       const product = await Product.findById(item.product);
       
       if (!product) {
+        console.log(`Product not found: ${item.product}`);
         return res.status(404).json({
           success: false,
           message: `Product not found: ${item.product}`
@@ -158,6 +162,7 @@ router.post('/', protect, [
       }
 
       if (product.stock < item.quantity) {
+        console.log(`Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`);
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
@@ -233,12 +238,14 @@ router.post('/', protect, [
       .populate('cashier', 'name employeeId')
       .populate('items.product', 'name sku');
 
+    console.log('Transaction created successfully:', populatedTransaction._id);
     res.status(201).json({
       success: true,
       message: 'Transaction completed successfully',
       data: populatedTransaction
     });
   } catch (error) {
+    console.error('Transaction creation error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
