@@ -26,10 +26,15 @@ const LoginPage = () => {
     setError('');
     setIsSubmitting(true);
 
-    const result = await login(formData.email, formData.password);
-    
-    if (!result.success) {
-      setError(result.error || 'Login failed');
+    try {
+      const result = await login(formData.email, formData.password);
+      
+      if (!result.success) {
+        setError(result.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Login failed. Please try again.');
     }
     
     setIsSubmitting(false);

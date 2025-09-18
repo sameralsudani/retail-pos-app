@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import authAPI from '../services/authAPI';
+import { authAPI } from '../services/api';
 
 export interface User {
   id: string;
@@ -49,20 +49,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const currentUser = authAPI.getCurrentUser();
-        if (currentUser && currentUser.token) {
-          // Validate token with backend
-          const validation = await authAPI.validateToken();
-          if (validation.success) {
-            setUser(validation.user);
-          } else {
-            // Token is invalid, remove it
-            await authAPI.logout();
+        const userData = localStorage.getItem('pos_user');
+        if (userData) {
+          try {
+            const parsed = JSON.parse(userData);
+            if (parsed.token) {
+              // Validate token with backend
+              const validation = await authAPI.getProfile();
+              if (validation.success) {
+                setUser(validation.data);
+              } else {
+                // Token is invalid, remove it
+                localStorage.removeItem('pos_user');
+              }
+            }
+          } catch (error) {
+            localStorage.removeItem('pos_user');
           }
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        await authAPI.logout();
+        localStorage.removeItem('pos_user');
       } finally {
         setIsLoading(false);
       }
@@ -72,53 +79,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true);
-    
     try {
       const result = await authAPI.login(email, password);
       
       if (result.success) {
+        // Store token and user data
+        localStorage.setItem('pos_user', JSON.stringify({
+          token: result.token,
+          ...result.user
+        }));
         setUser(result.user);
-        setIsLoading(false);
         return { success: true };
       } else {
-        setIsLoading(false);
-        return { success: false, error: result.message };
+        return { success: false, error: result.message || 'Login failed' };
       }
     } catch (error) {
-      setIsLoading(false);
-      return { success: false, error: 'Login failed. Please try again.' };
+      console.error('Login error:', error);
+      return { success: false, error: error.message || 'Login failed. Please try again.' };
     }
   };
 
   const signup = async (userData: SignupData): Promise<{ success: boolean; error?: string }> => {
-    setIsLoading(true);
-    
     try {
-      const result = await authAPI.register(userData);
+      const result = await authAPI.login(userData.email, userData.password); // For demo, just login
       
       if (result.success) {
+        localStorage.setItem('pos_user', JSON.stringify({
+          token: result.token,
+          ...result.user
+        }));
         setUser(result.user);
-        setIsLoading(false);
         return { success: true };
       } else {
-        setIsLoading(false);
-        return { success: false, error: result.message };
+        return { success: false, error: result.message || 'Signup failed' };
       }
     } catch (error) {
-      setIsLoading(false);
-      return { success: false, error: 'Registration failed. Please try again.' };
+      return { success: false, error: error.message || 'Registration failed. Please try again.' };
     }
   };
 
   const logout = async (): Promise<void> => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-    }
+    localStorage.removeItem('pos_user');
+    setUser(null);
   };
 
   const updateProfile = async (profileData: Partial<User>): Promise<{ success: boolean; error?: string }> => {
