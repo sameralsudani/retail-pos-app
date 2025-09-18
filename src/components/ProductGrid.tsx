@@ -48,7 +48,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
               </div>
               
               <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 leading-tight">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-xs sm:text-sm mb-1 line-clamp-2 leading-tight">
                 {product.name}
               </h3>
               
