@@ -53,17 +53,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (userData) {
           try {
             const parsed = JSON.parse(userData);
-            if (parsed.token && parsed.id) {
-              // Validate token with backend
-              const validation = await authAPI.getProfile();
-              if (validation.success) {
-                setUser(validation.user);
-              } else {
-                // Token is invalid, remove it
-                localStorage.removeItem('pos_user');
+            if (parsed.token && (parsed.id || parsed._id)) {
+              // Set user from stored data first
+              const userFromStorage = {
+                id: parsed.id || parsed._id,
+                name: parsed.name,
+                email: parsed.email,
+                role: parsed.role,
+                employeeId: parsed.employeeId,
+                phone: parsed.phone,
+                isActive: parsed.isActive,
+                lastLogin: parsed.lastLogin ? new Date(parsed.lastLogin) : undefined,
+                createdAt: new Date(parsed.createdAt),
+                updatedAt: new Date(parsed.updatedAt)
+              };
+              setUser(userFromStorage);
+              
+              // Validate token in background (optional)
+              try {
+                await authAPI.getProfile();
+              } catch (error) {
+                console.warn('Token validation failed, but keeping user logged in:', error);
               }
             } else {
-              // Invalid stored data, remove it
               localStorage.removeItem('pos_user');
             }
           } catch (error) {
@@ -73,7 +85,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        localStorage.removeItem('pos_user');
       } finally {
         setIsLoading(false);
       }
@@ -87,14 +98,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await authAPI.login(email, password);
       
       if (result.success) {
-        setUser(result.user);
+        // Store complete user data
+        const userData = {
+          token: result.token,
+          id: result.user._id || result.user.id,
+          _id: result.user._id || result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
+          employeeId: result.user.employeeId,
+          phone: result.user.phone,
+          isActive: result.user.isActive,
+          lastLogin: result.user.lastLogin,
+          createdAt: result.user.createdAt,
+          updatedAt: result.user.updatedAt
+        };
+        
+        localStorage.setItem('pos_user', JSON.stringify(userData));
+        
+        // Set user state
+        setUser({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          employeeId: userData.employeeId,
+          phone: userData.phone,
+          isActive: userData.isActive,
+          lastLogin: userData.lastLogin ? new Date(userData.lastLogin) : undefined,
+          createdAt: new Date(userData.createdAt),
+          updatedAt: new Date(userData.updatedAt)
+        });
+        
         return { success: true };
       } else {
         return { success: false, error: result.message || 'Login failed' };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: error.message || 'Login failed. Please try again.' };
+      return { success: false, error: 'Login failed. Please check your credentials and try again.' };
     }
   };
 
@@ -103,13 +145,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await authAPI.register(userData);
       
       if (result.success) {
-        setUser(result.user);
+        // Store complete user data
+        const userDataToStore = {
+          token: result.token,
+          id: result.user._id || result.user.id,
+          _id: result.user._id || result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
+          employeeId: result.user.employeeId,
+          phone: result.user.phone,
+          isActive: result.user.isActive,
+          lastLogin: result.user.lastLogin,
+          createdAt: result.user.createdAt,
+          updatedAt: result.user.updatedAt
+        };
+        
+        localStorage.setItem('pos_user', JSON.stringify(userDataToStore));
+        
+        // Set user state
+        setUser({
+          id: userDataToStore.id,
+          name: userDataToStore.name,
+          email: userDataToStore.email,
+          role: userDataToStore.role,
+          employeeId: userDataToStore.employeeId,
+          phone: userDataToStore.phone,
+          isActive: userDataToStore.isActive,
+          lastLogin: userDataToStore.lastLogin ? new Date(userDataToStore.lastLogin) : undefined,
+          createdAt: new Date(userDataToStore.createdAt),
+          updatedAt: new Date(userDataToStore.updatedAt)
+        });
+        
         return { success: true };
       } else {
         return { success: false, error: result.message || 'Registration failed' };
       }
     } catch (error) {
-      return { success: false, error: error.message || 'Registration failed. Please try again.' };
+      console.error('Signup error:', error);
+      return { success: false, error: 'Registration failed. Please try again.' };
     }
   };
 

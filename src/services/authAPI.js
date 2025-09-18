@@ -76,17 +76,30 @@ export const authAPI = {
   // Login user
   login: async (email, password) => {
     try {
-      const response = await authRequest('/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.success) {
-        setAuthToken(response.token, response.user);
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Login failed'
+        };
       }
 
-      return response;
+      if (data.success) {
+        setAuthToken(data.token, data.user);
+      }
+
+      return data;
     } catch (error) {
+      console.error('Login API error:', error);
       return {
         success: false,
         message: error.message || 'Login failed'
@@ -97,17 +110,30 @@ export const authAPI = {
   // Register user
   register: async (userData) => {
     try {
-      const response = await authRequest('/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(userData),
       });
 
-      if (response.success) {
-        setAuthToken(response.token, response.user);
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Registration failed'
+        };
       }
 
-      return response;
+      if (data.success) {
+        setAuthToken(data.token, data.user);
+      }
+
+      return data;
     } catch (error) {
+      console.error('Register API error:', error);
       return {
         success: false,
         message: error.message || 'Registration failed'
@@ -118,12 +144,33 @@ export const authAPI = {
   // Get current user profile
   getProfile: async () => {
     try {
-      const response = await authRequest('/auth/me');
-      return {
-        success: response.success,
-        user: response.user
-      };
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'No token found'
+        };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Failed to get profile'
+        };
+      }
+
+      return data;
     } catch (error) {
+      console.error('Get profile API error:', error);
       return {
         success: false,
         message: error.message || 'Failed to get profile'
