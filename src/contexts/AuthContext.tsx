@@ -53,17 +53,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (userData) {
           try {
             const parsed = JSON.parse(userData);
-            if (parsed.token) {
+            if (parsed.token && parsed.id) {
               // Validate token with backend
               const validation = await authAPI.getProfile();
               if (validation.success) {
-                setUser(validation.data);
+                setUser(validation.user);
               } else {
                 // Token is invalid, remove it
                 localStorage.removeItem('pos_user');
               }
+            } else {
+              // Invalid stored data, remove it
+              localStorage.removeItem('pos_user');
             }
           } catch (error) {
+            console.error('Error parsing stored user data:', error);
             localStorage.removeItem('pos_user');
           }
         }
@@ -83,11 +87,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await authAPI.login(email, password);
       
       if (result.success) {
-        // Store token and user data
-        localStorage.setItem('pos_user', JSON.stringify({
-          token: result.token,
-          ...result.user
-        }));
         setUser(result.user);
         return { success: true };
       } else {
@@ -104,10 +103,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await authAPI.register(userData);
       
       if (result.success) {
-        localStorage.setItem('pos_user', JSON.stringify({
-          token: result.token,
-          ...result.user
-        }));
         setUser(result.user);
         return { success: true };
       } else {

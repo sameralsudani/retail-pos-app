@@ -17,7 +17,19 @@ const getAuthToken = () => {
 
 // Set auth token in localStorage
 const setAuthToken = (token, user) => {
-  const userData = { token, ...user };
+  const userData = { 
+    token, 
+    id: user._id || user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    employeeId: user.employeeId,
+    phone: user.phone,
+    isActive: user.isActive,
+    lastLogin: user.lastLogin,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
+  };
   localStorage.setItem('pos_user', JSON.stringify(userData));
 };
 
@@ -106,7 +118,11 @@ export const authAPI = {
   // Get current user profile
   getProfile: async () => {
     try {
-      return await authRequest('/auth/me');
+      const response = await authRequest('/auth/me');
+      return {
+        success: response.success,
+        user: response.user
+      };
     } catch (error) {
       return {
         success: false,
@@ -204,7 +220,15 @@ export const authAPI = {
   // Check if user is authenticated
   isAuthenticated: () => {
     const token = getAuthToken();
-    return !!token;
+    const userData = localStorage.getItem('pos_user');
+    if (!token || !userData) return false;
+    
+    try {
+      const parsed = JSON.parse(userData);
+      return !!(token && parsed.id);
+    } catch (error) {
+      return false;
+    }
   },
 
   // Get current user from localStorage
@@ -213,7 +237,9 @@ export const authAPI = {
     if (userData) {
       try {
         const parsed = JSON.parse(userData);
-        return parsed;
+        // Return user data without token for security
+        const { token, ...user } = parsed;
+        return user;
       } catch (error) {
         console.error('Error parsing user data:', error);
         removeAuthToken();

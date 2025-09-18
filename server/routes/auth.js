@@ -61,7 +61,18 @@ router.post('/register', [
       success: true,
       message: 'User registered successfully',
       token,
-      user
+      user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        employeeId: user.employeeId,
+        phone: user.phone,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
     });
   } catch (error) {
     res.status(500).json({
@@ -131,7 +142,19 @@ router.post('/login', [
       success: true,
       message: 'Login successful',
       token,
-      user
+      user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        employeeId: user.employeeId,
+        phone: user.phone,
+        isActive: user.isActive,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
     });
   } catch (error) {
     res.status(500).json({
