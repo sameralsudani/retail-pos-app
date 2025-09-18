@@ -3,6 +3,7 @@ import { Menu, User, Receipt } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -48,6 +49,7 @@ const Header: React.FC<HeaderProps> = ({
           
           {showActions && (
             <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+              <ThemeToggle />
               <LanguageSwitcher />
               <div className="hidden sm:flex items-center space-x-2 px-3 sm:px-4 py-2 bg-blue-50 text-blue-700 rounded-lg">
                 <User className="h-4 w-4 sm:h-5 sm:w-5" />

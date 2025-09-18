@@ -68,7 +68,7 @@ const POSPage: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Search and Filters */}
-          <div className="p-3 sm:p-4 lg:p-6 bg-white border-b border-gray-200">
+          <div className="p-3 sm:p-4 lg:p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <div className="space-y-4">
               {/* Barcode Scanner */}
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -90,7 +90,7 @@ const POSPage: React.FC = () => {
                         handleBarcodeScanned(barcodeInput);
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg bg-green-50"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg bg-green-50 dark:bg-green-900/20 dark:text-gray-100"
                   />
                 </div>
                 <div className="hidden sm:block text-sm text-gray-500">
@@ -107,7 +107,7 @@ const POSPage: React.FC = () => {
                     placeholder={t('search.product.placeholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                   />
                 </div>
                 
@@ -118,8 +118,8 @@ const POSPage: React.FC = () => {
                       onClick={() => setSelectedCategory(category)}
                       className={`px-3 sm:px-4 py-2 rounded-lg font-medium capitalize transition-colors text-sm sm:text-base ${
                         selectedCategory === category
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-blue-600 text-white dark:bg-blue-500'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                     >
                       {category === 'all' ? t('search.category.all') : t(`category.${category}`)}
@@ -137,13 +137,13 @@ const POSPage: React.FC = () => {
         </div>
 
         {/* Cart Sidebar */}
-        <div className="lg:w-96 w-full bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col max-h-[35vh] md:max-h-[40vh] lg:max-h-none">
-          <div className="p-4 sm:p-6 border-b border-gray-200">
+        <div className="lg:w-96 w-full bg-white dark:bg-gray-800 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-700 flex flex-col max-h-[35vh] md:max-h-[40vh] lg:max-h-none">
+          <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('cart.title')}</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">{t('cart.title')}</h2>
               <div className="flex items-center space-x-2">
-                <ShoppingCart className="h-5 w-5 text-gray-600" />
-                <span className="text-sm text-gray-600">{cartItems.length} {t('cart.items')}</span>
+                <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <span className="text-sm text-gray-600 dark:text-gray-400">{cartItems.length} {t('cart.items')}</span>
               </div>
             </div>
           </div>
@@ -156,26 +156,26 @@ const POSPage: React.FC = () => {
           />
 
           {/* Cart Summary and Actions */}
-          <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
+          <div className="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('cart.subtotal')}</span>
-                <span className="text-gray-900">${subtotal.toFixed(2)}</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('cart.subtotal')}</span>
+                <span className="text-gray-900 dark:text-gray-100">${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('cart.tax')}</span>
-                <span className="text-gray-900">${tax.toFixed(2)}</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('cart.tax')}</span>
+                <span className="text-gray-900 dark:text-gray-100">${tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-xl font-bold border-t border-gray-300 pt-3">
+              <div className="flex justify-between text-xl font-bold border-t border-gray-300 dark:border-gray-600 pt-3">
                 <span>{t('cart.total')}</span>
-                <span className="text-blue-600">${total.toFixed(2)}</span>
+                <span className="text-blue-600 dark:text-blue-400">${total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="space-y-3">
               <button
                 onClick={() => setShowCustomerModal(true)}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
               >
                 <User className="h-5 w-5" />
                 <span>{currentCustomer ? currentCustomer.name : t('cart.select.customer')}</span>
@@ -185,7 +185,7 @@ const POSPage: React.FC = () => {
                 <button
                   onClick={() => setShowPaymentModal(true)}
                   disabled={cartItems.length === 0}
-                  className="flex items-center justify-center space-x-2 p-3 sm:p-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium text-sm sm:text-base"
+                  className="flex items-center justify-center space-x-2 p-3 sm:p-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors font-medium text-sm sm:text-base"
                 >
                   <Banknote className="h-6 w-6" />
                   <span>{t('cart.cash.payment')}</span>

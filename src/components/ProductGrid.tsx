@@ -17,7 +17,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 group"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 group"
           >
             <div className="relative aspect-square bg-gray-100">
               <img
@@ -48,14 +48,15 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
               </div>
               
               <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 leading-tight">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-xs sm:text-sm mb-1 line-clamp-2 leading-tight">
                 {product.name}
               </h3>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm sm:text-lg font-bold text-blue-600">
+                <span className="text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400">
                   ${product.price.toFixed(2)}
                 </span>
-                <span className="text-xs text-gray-500 capitalize px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded">
+                <span className="text-xs text-gray-500 dark:text-gray-400 capitalize px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded">
                   {product.category}
                 </span>
               </div>
