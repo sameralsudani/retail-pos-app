@@ -123,34 +123,67 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new transaction
 // @route   POST /api/transactions
 // @access  Private
-router.post('/', protect, [
-  body('items').isArray({ min: 1 }).withMessage('Items array is required and must not be empty'),
-  body('items.*.product').isMongoId().withMessage('Valid product ID is required for each item'),
-  body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
-  body('paymentMethod').isIn(['cash', 'card', 'digital']).withMessage('Invalid payment method'),
-  body('amountPaid').isFloat({ min: 0 }).withMessage('Amount paid must be non-negative'),
-  body('customer').optional().isMongoId().withMessage('Invalid customer ID')
-], async (req, res) => {
+router.post('/', protect, async (req, res) => {
   try {
-    console.log('Transaction request body:', JSON.stringify(req.body, null, 2));
-    
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
+    console.log('=== TRANSACTION REQUEST START ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('User:', req.user ? { id: req.user._id, name: req.user.name } : 'No user');
+
+    const { items, customer, paymentMethod, amountPaid, discount = 0 } = req.body;
+
+    // Basic validation
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: 'Items array is required and must not be empty'
       });
     }
 
-    const { items, customer, paymentMethod, amountPaid, discount = 0 } = req.body;
+    if (!paymentMethod || !['cash', 'card', 'digital'].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid payment method is required (cash, card, or digital)'
+      });
+    }
+
+    if (typeof amountPaid !== 'number' || amountPaid < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount paid must be a non-negative number'
+      });
+    }
+
+    // Validate customer ID if provided
+    if (customer && !mongoose.Types.ObjectId.isValid(customer)) {
+      console.log('Invalid customer ID format:', customer);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid customer ID format'
+      });
+    }
 
     // Validate and process items
     let subtotal = 0;
     const processedItems = [];
 
     for (const item of items) {
+      console.log('Processing item:', item);
+      
+      if (!item.product || !mongoose.Types.ObjectId.isValid(item.product)) {
+        console.log('Invalid product ID:', item.product);
+        return res.status(400).json({
+          success: false,
+          message: `Invalid product ID: ${item.product}`
+        });
+      }
+
+      if (!item.quantity || item.quantity < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Quantity must be at least 1'
+        });
+      }
+
       const product = await Product.findById(item.product);
       
       if (!product) {
@@ -209,7 +242,7 @@ router.post('/', protect, [
     const transaction = await Transaction.create({
       transactionId: generateTransactionId(),
       items: processedItems,
-      customer,
+      customer: customer || undefined,
       cashier: req.user._id,
       subtotal,
       tax,
@@ -238,7 +271,10 @@ router.post('/', protect, [
       .populate('cashier', 'name employeeId')
       .populate('items.product', 'name sku');
 
-    console.log('Transaction created successfully:', populatedTransaction._id);
+    console.log('=== TRANSACTION CREATED SUCCESSFULLY ===');
+    console.log('Transaction ID:', populatedTransaction._id);
+    console.log('=== TRANSACTION REQUEST END ===');
+    
     res.status(201).json({
       success: true,
       message: 'Transaction completed successfully',

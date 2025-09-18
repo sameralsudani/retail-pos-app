@@ -29,20 +29,30 @@ const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
-    console.log(`Making API request to: ${API_BASE_URL}${endpoint}`);
-    console.log('Request config:', config);
+    console.log(`=== API REQUEST ===`);
+    console.log(`URL: ${API_BASE_URL}${endpoint}`);
+    console.log('Method:', config.method || 'GET');
+    console.log('Headers:', config.headers);
+    if (config.body) {
+      console.log('Body:', config.body);
+    }
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     const data = await response.json();
 
-    console.log(`API Response (${response.status}):`, data);
+    console.log(`=== API RESPONSE ===`);
+    console.log(`Status: ${response.status}`);
+    console.log('Data:', data);
+    
     if (!response.ok) {
       throw new Error(data.message || 'API request failed');
     }
 
     return data;
   } catch (error) {
-    console.error('API Request Error:', error);
+    console.error('=== API REQUEST ERROR ===');
+    console.error('Endpoint:', endpoint);
+    console.error('Error:', error);
     throw error;
   }
 };

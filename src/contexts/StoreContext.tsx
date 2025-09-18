@@ -331,12 +331,23 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const completeTransaction = async (paymentMethod: string, amountPaid: number) => {
     try {
-      console.log('Starting transaction with cart items:', state.cartItems);
-      console.log('Customer:', state.currentCustomer);
+      console.log('=== FRONTEND TRANSACTION START ===');
+      console.log('Cart items:', state.cartItems);
+      console.log('Current customer:', state.currentCustomer);
+      console.log('Payment method:', paymentMethod);
+      console.log('Amount paid:', amountPaid);
       
       const subtotal = getCartSubtotal();
       const tax = getCartTax();
       const total = getCartTotal();
+      
+      // Validate cart items have valid product IDs
+      const invalidItems = state.cartItems.filter(item => !item.product.id);
+      if (invalidItems.length > 0) {
+        console.error('Invalid cart items found:', invalidItems);
+        setError('Invalid products in cart. Please refresh and try again.');
+        return;
+      }
       
       // Prepare transaction data for backend
       const transactionData = {
@@ -344,17 +355,19 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           product: item.product.id,
           quantity: item.quantity
         })),
-        customer: state.currentCustomer?.id || null,
+        ...(state.currentCustomer?.id && { customer: state.currentCustomer.id }),
         paymentMethod,
         amountPaid,
         discount: 0
       };
 
-      console.log('Transaction data being sent:', JSON.stringify(transactionData, null, 2));
+      console.log('=== SENDING TRANSACTION DATA ===');
+      console.log(JSON.stringify(transactionData, null, 2));
 
       const response = await transactionsAPI.create(transactionData);
       
-      console.log('Transaction API response:', response);
+      console.log('=== TRANSACTION API RESPONSE ===');
+      console.log(response);
       
       if (response.success) {
         const transaction: Transaction = {
