@@ -63,6 +63,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
           </div>
         ))}
       </div>
+    </div>
   );
 };
 
