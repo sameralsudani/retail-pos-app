@@ -393,7 +393,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const handleBarcodeScanned = async (barcode: string) => {
     try {
+      console.log('Scanning barcode:', barcode);
       const response = await productsAPI.getByBarcode(barcode);
+      console.log('Barcode scan response:', response);
       
       if (response.success) {
         const product = {
@@ -413,6 +415,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         // Show success notification
         showNotification(`Added ${product.name} to cart`, 'success');
       } else {
+        console.log('Product not found for barcode:', barcode);
         showNotification(`Product not found: ${barcode}`, 'error');
       }
     } catch (error) {
