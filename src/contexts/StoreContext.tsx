@@ -1,10 +1,19 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Product, CartItem, Customer, Transaction } from '../types';
-import { products as initialProducts } from '../data/products';
+import { 
+  productsAPI, 
+  categoriesAPI, 
+  customersAPI, 
+  transactionsAPI, 
+  suppliersAPI 
+} from '../services/api';
+import { useAuth } from './AuthContext';
 
 interface StoreState {
   // Products & Inventory
   products: Product[];
+  categories: any[];
+  suppliers: any[];
   
   // Cart Management
   cartItems: CartItem[];
@@ -21,6 +30,10 @@ interface StoreState {
   searchTerm: string;
   selectedCategory: string;
   barcodeInput: string;
+  
+  // Loading States
+  isLoading: boolean;
+  error: string | null;
 }
 
 interface StoreActions {
@@ -28,6 +41,7 @@ interface StoreActions {
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   addProduct: (product: Product) => void;
   removeProduct: (productId: string) => void;
+  loadProducts: () => Promise<void>;
   
   // Cart Actions
   addToCart: (product: Product) => void;
@@ -37,10 +51,18 @@ interface StoreActions {
   
   // Customer Actions
   setCurrentCustomer: (customer: Customer | null) => void;
-  addCustomer: (customer: Customer) => void;
+  addCustomer: (customer: Customer) => Promise<Customer | null>;
+  loadCustomers: () => Promise<void>;
   
   // Transaction Actions
   completeTransaction: (paymentMethod: string, amountPaid: number) => void;
+  loadTransactions: () => Promise<void>;
+  
+  // Category Actions
+  loadCategories: () => Promise<void>;
+  
+  // Supplier Actions
+  loadSuppliers: () => Promise<void>;
   
   // Search & Filter Actions
   setSearchTerm: (term: string) => void;
@@ -53,6 +75,10 @@ interface StoreActions {
   getCartSubtotal: () => number;
   getCartTax: () => number;
   getCartTotal: () => number;
+  
+  // Utility Actions
+  setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
 }
 
 type StoreContextType = StoreState & StoreActions;
@@ -64,39 +90,165 @@ interface StoreProviderProps {
 }
 
 export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
+  const { user } = useAuth();
   const [state, setState] = useState<StoreState>({
-    products: initialProducts,
+    products: [],
+    categories: [],
+    suppliers: [],
     cartItems: [],
-    customers: [
-      {
-        id: '1',
-        name: 'John Smith',
-        email: 'john@example.com',
-        phone: '(555) 123-4567',
-        loyaltyPoints: 450
-      },
-      {
-        id: '2',
-        name: 'Sarah Johnson',
-        email: 'sarah@example.com',
-        phone: '(555) 987-6543',
-        loyaltyPoints: 230
-      },
-      {
-        id: '3',
-        name: 'Mike Davis',
-        email: 'mike@example.com',
-        phone: '(555) 456-7890',
-        loyaltyPoints: 680
-      }
-    ],
+    customers: [],
     currentCustomer: null,
     transactions: [],
     lastTransaction: null,
     searchTerm: '',
     selectedCategory: 'all',
-    barcodeInput: ''
+    barcodeInput: '',
+    isLoading: false,
+    error: null
   });
+
+  // Load initial data when user is authenticated
+  useEffect(() => {
+    if (user) {
+      loadInitialData();
+    }
+  }, [user]);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        loadProducts(),
+        loadCategories(),
+        loadCustomers(),
+        loadSuppliers(),
+        loadTransactions()
+      ]);
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      setError('Failed to load store data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Utility Actions
+  const setError = (error: string | null) => {
+    setState(prev => ({ ...prev, error }));
+  };
+
+  const setLoading = (loading: boolean) => {
+    setState(prev => ({ ...prev, isLoading: loading }));
+  };
+
+  // API Integration Functions
+  const loadProducts = async () => {
+    try {
+      const response = await productsAPI.getAll();
+      if (response.success) {
+        const products = response.data.map(product => ({
+          id: product._id,
+          name: product.name,
+          price: product.price,
+          category: product.category?.name || product.category,
+          sku: product.sku,
+          stock: product.stock,
+          image: product.image,
+          description: product.description
+        }));
+        setState(prev => ({ ...prev, products }));
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setError('Failed to load products');
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAll();
+      if (response.success) {
+        setState(prev => ({ ...prev, categories: response.data }));
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      setError('Failed to load categories');
+    }
+  };
+
+  const loadCustomers = async () => {
+    try {
+      const response = await customersAPI.getAll();
+      if (response.success) {
+        const customers = response.data.map(customer => ({
+          id: customer._id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          loyaltyPoints: customer.loyaltyPoints
+        }));
+        setState(prev => ({ ...prev, customers }));
+      }
+    } catch (error) {
+      console.error('Error loading customers:', error);
+      setError('Failed to load customers');
+    }
+  };
+
+  const loadSuppliers = async () => {
+    try {
+      const response = await suppliersAPI.getAll();
+      if (response.success) {
+        setState(prev => ({ ...prev, suppliers: response.data }));
+      }
+    } catch (error) {
+      console.error('Error loading suppliers:', error);
+      setError('Failed to load suppliers');
+    }
+  };
+
+  const loadTransactions = async () => {
+    try {
+      const response = await transactionsAPI.getAll({ limit: 50 });
+      if (response.success) {
+        const transactions = response.data.map(transaction => ({
+          id: transaction._id,
+          items: transaction.items.map(item => ({
+            product: {
+              id: item.product._id || item.product,
+              name: item.productSnapshot.name,
+              price: item.unitPrice,
+              category: '',
+              sku: item.productSnapshot.sku,
+              stock: 0,
+              image: '',
+              description: ''
+            },
+            quantity: item.quantity
+          })),
+          subtotal: transaction.subtotal,
+          tax: transaction.tax,
+          total: transaction.total,
+          paymentMethod: transaction.paymentMethod,
+          amountPaid: transaction.amountPaid,
+          change: transaction.change,
+          customer: transaction.customer ? {
+            id: transaction.customer._id,
+            name: transaction.customer.name,
+            email: transaction.customer.email,
+            phone: transaction.customer.phone || '',
+            loyaltyPoints: transaction.customer.loyaltyPoints || 0
+          } : null,
+          timestamp: new Date(transaction.createdAt),
+          cashier: transaction.cashier?.name || 'Unknown'
+        }));
+        setState(prev => ({ ...prev, transactions }));
+      }
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+      setError('Failed to load transactions');
+    }
+  };
 
   // Product Actions
   const updateProduct = (productId: string, updates: Partial<Product>) => {
@@ -108,18 +260,169 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     }));
   };
 
-  const addProduct = (product: Product) => {
-    setState(prev => ({
-      ...prev,
-      products: [...prev.products, product]
-    }));
+  const addProduct = async (product: Product) => {
+    try {
+      const response = await productsAPI.create({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        sku: product.sku,
+        stock: product.stock,
+        image: product.image
+      });
+      
+      if (response.success) {
+        await loadProducts(); // Reload products to get updated data
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      setError('Failed to add product');
+    }
   };
 
-  const removeProduct = (productId: string) => {
+  const removeProduct = async (productId: string) => {
+    try {
+      const response = await productsAPI.delete(productId);
+      if (response.success) {
+        await loadProducts(); // Reload products
+      }
+    } catch (error) {
+      console.error('Error removing product:', error);
+      setError('Failed to remove product');
+    }
+  };
+
+  const addCustomer = async (customer: Customer) => {
+    try {
+      const response = await customersAPI.create({
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone
+      });
+      
+      if (response.success) {
+        const newCustomer = {
+          id: response.data._id,
+          name: response.data.name,
+          email: response.data.email,
+          phone: response.data.phone,
+          loyaltyPoints: response.data.loyaltyPoints
+        };
+        setState(prev => ({
+          ...prev,
+          customers: [...prev.customers, newCustomer]
+        }));
+        return newCustomer;
+      }
+    } catch (error) {
+      console.error('Error adding customer:', error);
+      setError('Failed to add customer');
+    }
+    return null;
+  };
+
+  const completeTransaction = async (paymentMethod: string, amountPaid: number) => {
+    try {
+      const subtotal = getCartSubtotal();
+      const tax = getCartTax();
+      const total = getCartTotal();
+      
+      // Prepare transaction data for backend
+      const transactionData = {
+        items: state.cartItems.map(item => ({
+          product: item.product.id,
+          quantity: item.quantity
+        })),
+        customer: state.currentCustomer?.id || null,
+        paymentMethod,
+        amountPaid,
+        discount: 0
+      };
+
+      const response = await transactionsAPI.create(transactionData);
+      
+      if (response.success) {
+        const transaction: Transaction = {
+          id: response.data._id,
+          items: state.cartItems,
+          subtotal,
+          tax,
+          total,
+          paymentMethod,
+          amountPaid,
+          change: amountPaid - total,
+          customer: state.currentCustomer,
+          timestamp: new Date(response.data.createdAt),
+          cashier: user?.name || 'Unknown'
+        };
+
+        setState(prev => ({
+          ...prev,
+          transactions: [transaction, ...prev.transactions],
+          lastTransaction: transaction,
+          cartItems: [],
+          currentCustomer: null
+        }));
+
+        // Reload products to update stock levels
+        await loadProducts();
+      }
+    } catch (error) {
+      console.error('Error completing transaction:', error);
+      setError('Failed to complete transaction');
+    }
+  };
+
+  const handleBarcodeScanned = async (barcode: string) => {
+    try {
+      const response = await productsAPI.getByBarcode(barcode);
+      
+      if (response.success) {
+        const product = {
+          id: response.data._id,
+          name: response.data.name,
+          price: response.data.price,
+          category: response.data.category?.name || response.data.category,
+          sku: response.data.sku,
+          stock: response.data.stock,
+          image: response.data.image,
+          description: response.data.description
+        };
+        
+        addToCart(product);
+        setBarcodeInput('');
+        
+        // Show success notification
+        showNotification(`Added ${product.name} to cart`, 'success');
+      } else {
+        showNotification(`Product not found: ${barcode}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error scanning barcode:', error);
+      showNotification(`Product not found: ${barcode}`, 'error');
+    }
+  };
+
+  // Notification helper
+  const showNotification = (message: string, type: 'success' | 'error') => {
     setState(prev => ({
       ...prev,
-      products: prev.products.filter(product => product.id !== productId)
+      barcodeInput: ''
     }));
+    
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse ${
+      type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
+    }, 3000);
   };
 
   // Cart Actions
@@ -179,42 +482,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     }));
   };
 
-  const addCustomer = (customer: Customer) => {
-    setState(prev => ({
-      ...prev,
-      customers: [...prev.customers, customer]
-    }));
-  };
-
-  // Transaction Actions
-  const completeTransaction = (paymentMethod: string, amountPaid: number) => {
-    const subtotal = getCartSubtotal();
-    const tax = getCartTax();
-    const total = getCartTotal();
-    
-    const transaction: Transaction = {
-      id: `TXN-${Date.now()}`,
-      items: state.cartItems,
-      subtotal,
-      tax,
-      total,
-      paymentMethod,
-      amountPaid,
-      change: amountPaid - total,
-      customer: state.currentCustomer,
-      timestamp: new Date(),
-      cashier: 'John Doe'
-    };
-
-    setState(prev => ({
-      ...prev,
-      transactions: [transaction, ...prev.transactions],
-      lastTransaction: transaction,
-      cartItems: [],
-      currentCustomer: null
-    }));
-  };
-
   // Search & Filter Actions
   const setSearchTerm = (term: string) => {
     setState(prev => ({ ...prev, searchTerm: term }));
@@ -226,39 +493,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const setBarcodeInput = (input: string) => {
     setState(prev => ({ ...prev, barcodeInput: input }));
-  };
-
-  const handleBarcodeScanned = (barcode: string) => {
-    const product = state.products.find(p => p.sku.toLowerCase() === barcode.toLowerCase());
-    
-    if (product) {
-      addToCart(product);
-      setBarcodeInput('');
-      
-      // Show success notification
-      const notification = document.createElement('div');
-      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse';
-      notification.textContent = `Added ${product.name} to cart`;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        if (document.body.contains(notification)) {
-          document.body.removeChild(notification);
-        }
-      }, 2000);
-    } else {
-      // Show error notification
-      const notification = document.createElement('div');
-      notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse';
-      notification.textContent = `Product not found: ${barcode}`;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        if (document.body.contains(notification)) {
-          document.body.removeChild(notification);
-        }
-      }, 2000);
-    }
   };
 
   // Computed Values
@@ -290,17 +524,24 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     updateProduct,
     addProduct,
     removeProduct,
+    loadProducts,
     addToCart,
     updateCartItemQuantity,
     removeFromCart,
     clearCart,
     setCurrentCustomer,
     addCustomer,
+    loadCustomers,
     completeTransaction,
+    loadTransactions,
+    loadCategories,
+    loadSuppliers,
     setSearchTerm,
     setSelectedCategory,
     setBarcodeInput,
     handleBarcodeScanned,
+    setError,
+    setLoading,
     
     // Computed Values
     getFilteredProducts,

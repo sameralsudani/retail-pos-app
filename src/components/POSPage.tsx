@@ -20,6 +20,8 @@ const POSPage: React.FC = () => {
     barcodeInput,
     currentCustomer,
     lastTransaction,
+    isLoading,
+    error,
     
     // Actions
     addToCart,
@@ -32,6 +34,7 @@ const POSPage: React.FC = () => {
     setSelectedCategory,
     setBarcodeInput,
     handleBarcodeScanned,
+    setError,
     
     // Computed Values
     getFilteredProducts,
@@ -47,7 +50,7 @@ const POSPage: React.FC = () => {
 
   // Get filtered products and categories
   const filteredProducts = getFilteredProducts();
-  const categories = ['all', ...new Set(useStore().products.map(p => p.category))];
+  const categories = ['all', ...new Set(filteredProducts.map(p => p.category))];
   
   // Get cart totals
   const subtotal = getCartSubtotal();
@@ -60,9 +63,41 @@ const POSPage: React.FC = () => {
     setShowReceiptModal(true);
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('loading.store.data')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Header onMenuClick={() => setShowSidebar(true)} />
+
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex">
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-400 hover:text-red-600"
+            >
+              <span className="sr-only">Dismiss</span>
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)]">
         {/* Main Content */}

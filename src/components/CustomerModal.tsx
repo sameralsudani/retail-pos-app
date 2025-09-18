@@ -29,14 +29,16 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ currentCustomer, onClose,
 
   const handleAddCustomer = () => {
     if (newCustomer.name && newCustomer.email) {
-      const customer: Customer = {
-        id: Date.now().toString(),
+      addCustomer({
+        id: '',
         ...newCustomer,
         loyaltyPoints: 0
-      };
-      addCustomer(customer);
-      onSelectCustomer(customer);
-      onClose();
+      }).then((customer) => {
+        if (customer) {
+          onSelectCustomer(customer);
+          onClose();
+        }
+      });
     }
   };
 

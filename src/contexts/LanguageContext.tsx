@@ -486,7 +486,13 @@ const translations = {
     'users.info.created': 'Created',
     'users.info.updated': 'Updated',
     'users.access.denied.title': 'Access Denied',
-    'users.access.denied.message': 'You do not have permission to access user management'
+    'users.access.denied.message': 'You do not have permission to access user management',
+    
+    // Loading States
+    'loading.store.data': 'Loading store data...',
+    'loading.products': 'Loading products...',
+    'loading.customers': 'Loading customers...',
+    'loading.transactions': 'Loading transactions...'
   },
   ar: {
     // Header
@@ -962,7 +968,13 @@ const translations = {
     'users.info.created': 'تم الإنشاء',
     'users.info.updated': 'تم التحديث',
     'users.access.denied.title': 'الوصول مرفوض',
-    'users.access.denied.message': 'ليس لديك صلاحية للوصول إلى إدارة المستخدمين'
+    'users.access.denied.message': 'ليس لديك صلاحية للوصول إلى إدارة المستخدمين',
+    
+    // Loading States
+    'loading.store.data': 'جاري تحميل بيانات المتجر...',
+    'loading.products': 'جاري تحميل المنتجات...',
+    'loading.customers': 'جاري تحميل العملاء...',
+    'loading.transactions': 'جاري تحميل المعاملات...'
   }
 };
 

@@ -7,6 +7,9 @@ export interface Product {
   stock: number;
   image: string;
   description?: string;
+  costPrice?: number;
+  reorderLevel?: number;
+  supplier?: string;
 }
 
 export interface CartItem {
@@ -20,6 +23,16 @@ export interface Customer {
   email: string;
   phone: string;
   loyaltyPoints: number;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  totalSpent?: number;
+  lastVisit?: Date;
+  notes?: string;
 }
 
 export interface Transaction {
@@ -34,4 +47,35 @@ export interface Transaction {
   customer: Customer | null;
   timestamp: Date;
   cashier: string;
+  transactionId?: string;
+  status?: 'completed' | 'refunded' | 'cancelled';
+  loyaltyPointsEarned?: number;
+  notes?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  productCount?: number;
+  isActive: boolean;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  paymentTerms: string;
+  isActive: boolean;
+  notes?: string;
 }
