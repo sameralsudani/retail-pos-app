@@ -27,62 +27,62 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{t('receipt.title')}</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('receipt.title')}</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         {/* Receipt */}
         <div className="p-6 space-y-6" id="receipt">
           {/* Store Header */}
-          <div className="text-center border-b border-gray-200 pb-4">
-            <h1 className="text-xl font-bold text-gray-900">{t('receipt.store.name')}</h1>
-            <p className="text-sm text-gray-600">{t('receipt.store.address')}</p>
-            <p className="text-sm text-gray-600">{t('receipt.store.phone')}</p>
+          <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-4">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('receipt.store.name')}</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('receipt.store.address')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('receipt.store.phone')}</p>
           </div>
 
           {/* Transaction Details */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.transaction.id')}</span>
-              <span className="font-mono">{transaction.id}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.transaction.id')}</span>
+              <span className="font-mono text-gray-900 dark:text-gray-100">{transaction.id}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.date.time')}</span>
-              <span>{transaction.timestamp.toLocaleString()}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.date.time')}</span>
+              <span className="text-gray-900 dark:text-gray-100">{transaction.timestamp.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.cashier')}</span>
-              <span>{transaction.cashier}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.cashier')}</span>
+              <span className="text-gray-900 dark:text-gray-100">{transaction.cashier}</span>
             </div>
             {transaction.customer && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('receipt.customer')}</span>
-                <span>{transaction.customer.name}</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('receipt.customer')}</span>
+                <span className="text-gray-900 dark:text-gray-100">{transaction.customer.name}</span>
               </div>
             )}
           </div>
 
           {/* Items */}
           <div className="space-y-3">
-            <div className="border-t border-gray-200 pt-4">
-              <h3 className="font-medium text-gray-900 mb-3">{t('receipt.items.purchased')}</h3>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-3">{t('receipt.items.purchased')}</h3>
             </div>
             {transaction.items.map((item, index) => (
               <div key={index} className="flex justify-between items-start text-sm">
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">{item.product.name}</div>
-                  <div className="text-gray-500">
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{item.product.name}</div>
+                  <div className="text-gray-500 dark:text-gray-400">
                     {item.quantity} × ${item.product.price.toFixed(2)}
                   </div>
                 </div>
-                <div className="text-right font-medium">
+                <div className="text-right font-medium text-gray-900 dark:text-gray-100">
                   ${(item.product.price * item.quantity).toFixed(2)}
                 </div>
               </div>
@@ -90,30 +90,30 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
           </div>
 
           {/* Totals */}
-          <div className="border-t border-gray-200 pt-4 space-y-2">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.subtotal')}</span>
-              <span>${transaction.subtotal.toFixed(2)}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.subtotal')}</span>
+              <span className="text-gray-900 dark:text-gray-100">${transaction.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.tax')}</span>
-              <span>${transaction.tax.toFixed(2)}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.tax')}</span>
+              <span className="text-gray-900 dark:text-gray-100">${transaction.tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-2">
+            <div className="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-700 pt-2 text-gray-900 dark:text-gray-100">
               <span>{t('receipt.total')}</span>
               <span>${transaction.total.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Payment Details */}
-          <div className="border-t border-gray-200 pt-4 space-y-2">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.payment.method')}</span>
-              <span className="capitalize">{t(`payment.method.${transaction.paymentMethod}`)}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.payment.method')}</span>
+              <span className="capitalize text-gray-900 dark:text-gray-100">{t(`payment.method.${transaction.paymentMethod}`)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('receipt.amount.paid')}</span>
-              <span>${transaction.amountPaid.toFixed(2)}</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.amount.paid')}</span>
+              <span className="text-gray-900 dark:text-gray-100">${transaction.amountPaid.toFixed(2)}</span>
             </div>
             {transaction.change > 0 && (
               <div className="flex justify-between text-sm font-medium text-green-600">
@@ -124,7 +124,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
           </div>
 
           {/* Footer */}
-          <div className="text-center text-sm text-gray-500 border-t border-gray-200 pt-4">
+          <div className="text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-4">
             <p>{t('receipt.thank.you')}</p>
             <p>{t('receipt.keep.receipt')}</p>
             {transaction.customer && (
@@ -138,7 +138,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
         </div>
 
         {/* Actions */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <div className="grid grid-cols-3 gap-3 mb-4">
             <button
               onClick={handlePrint}

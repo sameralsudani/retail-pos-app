@@ -58,41 +58,41 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="max-w-md w-full space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Receipt className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('header.title')}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{t('header.title')}</h1>
           </div>
-          <h2 className="text-lg sm:text-xl text-gray-600">{t('auth.login.title')}</h2>
+          <h2 className="text-lg sm:text-xl text-gray-600 dark:text-gray-300">{t('auth.login.title')}</h2>
           <div className="mt-4 flex justify-center">
             <LanguageSwitcher />
           </div>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center space-x-2">
                 <AlertCircle className="h-5 w-5 text-red-500" />
-                <span className="text-red-700 text-sm">{error}</span>
+                <span className="text-red-700 dark:text-red-400 text-sm">{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('auth.email')}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t('auth.placeholder.email')}
                   required
                 />
@@ -100,23 +100,23 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('auth.password')}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  className="w-full pl-10 pr-12 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-10 pr-12 py-2.5 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t('auth.placeholder.password')}
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -143,9 +143,9 @@ const LoginPage = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               {t('auth.no.account')}{' '}
-              <a href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+              <a href="/signup" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                 {t('auth.signup.link')}
               </a>
             </p>
@@ -153,21 +153,21 @@ const LoginPage = () => {
         </div>
 
         {/* Demo Credentials */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('auth.demo.credentials')}</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('auth.demo.credentials')}</h3>
           <div className="space-y-3">
             {demoCredentials.map((cred, index) => (
-              <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg space-y-2 sm:space-y-0">
+              <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-2 sm:space-y-0">
                 <div>
-                  <div className="font-medium text-gray-900 text-sm sm:text-base">{t(`auth.role.${cred.role.toLowerCase()}`)}</div>
-                  <div className="text-sm text-gray-600">{cred.email}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base">{t(`auth.role.${cred.role.toLowerCase()}`)}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{cred.email}</div>
                 </div>
                 <button
                   onClick={() => {
                     setFormData({ email: cred.email, password: cred.password });
                     setError('');
                   }}
-                  className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors self-start sm:self-center"
+                  className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-sm hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors self-start sm:self-center"
                 >
                   {t('auth.use.button')}
                 </button>
