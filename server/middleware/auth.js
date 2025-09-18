@@ -1,6 +1,13 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Generate JWT Token
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || '7d'
+  });
+};
+
 // Protect routes - require authentication
 exports.protect = async (req, res, next) => {
   try {
@@ -41,6 +48,14 @@ exports.protect = async (req, res, next) => {
         });
       }
 
+      // Check if user changed password after token was issued
+      if (req.user.changedPasswordAfter(decoded.iat)) {
+        return res.status(401).json({
+          success: false,
+          message: 'User recently changed password. Please log in again'
+        });
+      }
+
       next();
     } catch (error) {
       return res.status(401).json({
@@ -65,3 +80,6 @@ exports.authorize = (...roles) => {
     next();
   };
 };
+
+// Export generateToken for use in routes
+exports.generateToken = generateToken;
