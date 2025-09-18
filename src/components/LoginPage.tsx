@@ -150,7 +150,14 @@ const LoginPage = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {t('auth.no.account')}{' '}
-              <a href="/signup" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
+              <a 
+                href="/signup" 
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/signup';
+                }}
+              >
                 {t('auth.signup.link')}
               </a>
             </p>

@@ -43,16 +43,21 @@ const SignupPage = () => {
 
     setIsSubmitting(true);
 
-    const result = await signup({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-      employeeId: formData.employeeId
-    });
-    
-    if (!result.success) {
-      setError(result.error || 'Signup failed');
+    try {
+      const result = await signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        employeeId: formData.employeeId
+      });
+      
+      if (!result.success) {
+        setError(result.error || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      setError('Registration failed. Please try again.');
     }
     
     setIsSubmitting(false);
@@ -236,7 +241,14 @@ const SignupPage = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               {t('auth.have.account')}{' '}
-              <a href="/login" className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium">
+              <a 
+                href="/login" 
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/login';
+                }}
+              >
                 {t('auth.login.link')}
               </a>
             </p>

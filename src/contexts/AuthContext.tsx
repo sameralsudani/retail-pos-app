@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signup = async (userData: SignupData): Promise<{ success: boolean; error?: string }> => {
     try {
-      const result = await authAPI.login(userData.email, userData.password); // For demo, just login
+      const result = await authAPI.register(userData);
       
       if (result.success) {
         localStorage.setItem('pos_user', JSON.stringify({
@@ -111,7 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(result.user);
         return { success: true };
       } else {
-        return { success: false, error: result.message || 'Signup failed' };
+        return { success: false, error: result.message || 'Registration failed' };
       }
     } catch (error) {
       return { success: false, error: error.message || 'Registration failed. Please try again.' };
