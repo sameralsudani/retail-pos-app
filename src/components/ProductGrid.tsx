@@ -11,6 +11,20 @@ interface ProductGridProps {
 const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
   const { t } = useLanguage();
 
+  console.log('ProductGrid received products:', products.length);
+
+  if (products.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <div className="text-gray-400 mb-4">
+          <Package className="mx-auto h-12 w-12" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
+        <p className="text-gray-500">Products are being loaded or there's a connection issue.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-3 sm:p-4 lg:p-6">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
@@ -31,7 +45,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
                 </div>
               )}
               <button
-                onClick={() => onAddToCart(product)}
+                onClick={() => {
+                  console.log('Product clicked:', product);
+                  onAddToCart(product);
+                }}
                 className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 bg-blue-600 text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
               >
                 <Plus className="h-3 w-3 sm:h-4 sm:w-4" />

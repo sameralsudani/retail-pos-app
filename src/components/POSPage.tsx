@@ -50,6 +50,8 @@ const POSPage: React.FC = () => {
 
   // Get filtered products and categories
   const filteredProducts = getFilteredProducts();
+  console.log('POSPage - Filtered products:', filteredProducts.length);
+  console.log('POSPage - Cart items:', cartItems.length);
   const categories = ['all', ...new Set(filteredProducts.map(p => p.category))];
   
   // Get cart totals

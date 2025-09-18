@@ -110,12 +110,14 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   // Load initial data when user is authenticated
   useEffect(() => {
     if (user) {
+      console.log('User authenticated, loading initial data...');
       loadInitialData();
     }
   }, [user]);
 
   const loadInitialData = async () => {
     try {
+      console.log('Starting to load initial data...');
       setLoading(true);
       await Promise.all([
         loadProducts(),
@@ -124,6 +126,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         loadSuppliers(),
         loadTransactions()
       ]);
+      console.log('Initial data loading completed');
     } catch (error) {
       console.error('Error loading initial data:', error);
       setError('Failed to load store data');
@@ -149,24 +152,45 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       console.log('Products API response:', response);
       
       if (response.success) {
-        const products = response.data.map(product => ({
-          id: product._id,
-          name: product.name,
-          price: product.price,
-          category: product.category?.name || product.category,
-          sku: product.sku,
-          stock: product.stock,
-          image: product.image,
-          description: product.description
-        }));
+        const products = response.data.map(product => {
+          const mappedProduct = {
+            id: product._id || product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category?.name || product.category,
+            sku: product.sku,
+            stock: product.stock,
+            image: product.image || 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
+            description: product.description || '',
+            costPrice: product.costPrice,
+            reorderLevel: product.reorderLevel,
+            supplier: product.supplier?.name || product.supplier
+          };
+          console.log('Mapped product:', mappedProduct);
+          return mappedProduct;
+        });
         console.log('Processed products:', products.length);
         setState(prev => ({ ...prev, products }));
       } else {
         console.error('Failed to load products:', response);
+        // Fallback to sample data if API fails
+        console.log('Using fallback sample data...');
+        const { products: sampleProducts } = await import('../data/products');
+        setState(prev => ({ ...prev, products: sampleProducts }));
         setError('Failed to load products');
       }
     } catch (error) {
       console.error('Error loading products:', error);
+      // Fallback to sample data if API fails
+      console.log('Using fallback sample data due to error...');
+      try {
+        const { products: sampleProducts } = await import('../data/products');
+        setState(prev => ({ ...prev, products: sampleProducts }));
+        setError('Using sample data - backend connection failed');
+      } catch (fallbackError) {
+        console.error('Failed to load fallback data:', fallbackError);
+        setError('Failed to load products');
+      }
       setError('Failed to load products');
     }
   };
@@ -460,9 +484,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   // Cart Actions
   const addToCart = (product: Product) => {
+    console.log('Adding product to cart:', product);
     setState(prev => {
       const existingItem = prev.cartItems.find(item => item.product.id === product.id);
       if (existingItem) {
+        console.log('Product already in cart, increasing quantity');
         return {
           ...prev,
           cartItems: prev.cartItems.map(item =>
@@ -472,6 +498,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           )
         };
       }
+      console.log('Adding new product to cart');
       return {
         ...prev,
         cartItems: [...prev.cartItems, { product, quantity: 1 }]

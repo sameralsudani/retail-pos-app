@@ -9,7 +9,10 @@ export const products: Product[] = [
     sku: '195026541849',
     stock: 45,
     image: 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
-    description: 'Rich, aromatic coffee beans sourced from premium farms'
+    description: 'Rich, aromatic coffee beans sourced from premium farms',
+    costPrice: 17.49,
+    reorderLevel: 10,
+    supplier: 'Global Beverages Inc.'
   },
   {
     id: '2',
@@ -19,7 +22,10 @@ export const products: Product[] = [
     sku: 'TEA001',
     stock: 32,
     image: 'https://images.pexels.com/photos/1417945/pexels-photo-1417945.jpeg?auto=compress&cs=tinysrgb&w=300',
-    description: 'Pure organic green tea leaves with natural antioxidants'
+    description: 'Pure organic green tea leaves with natural antioxidants',
+    costPrice: 9.09,
+    reorderLevel: 8,
+    supplier: 'Global Beverages Inc.'
   },
   {
     id: '3',
