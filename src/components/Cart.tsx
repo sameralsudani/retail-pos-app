@@ -19,6 +19,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
         <div className="text-center">
           <div className="text-gray-400 mb-4">
             <svg className="mx-auto h-12 w-12 sm:h-16 sm:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            </svg>
             <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{t('cart.empty.title')}</h3>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">{t('cart.empty.subtitle')}</p>
           </div>
