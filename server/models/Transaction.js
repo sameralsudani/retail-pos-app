@@ -1,0 +1,107 @@
+const mongoose = require('mongoose');
+
+const transactionItemSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
+  productSnapshot: {
+    name: String,
+    price: Number,
+    sku: String
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: [1, 'Quantity must be at least 1']
+  },
+  unitPrice: {
+    type: Number,
+    required: true,
+    min: [0, 'Unit price cannot be negative']
+  },
+  totalPrice: {
+    type: Number,
+    required: true,
+    min: [0, 'Total price cannot be negative']
+  }
+});
+
+const transactionSchema = new mongoose.Schema({
+  transactionId: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  items: [transactionItemSchema],
+  customer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer'
+  },
+  cashier: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  subtotal: {
+    type: Number,
+    required: true,
+    min: [0, 'Subtotal cannot be negative']
+  },
+  tax: {
+    type: Number,
+    required: true,
+    min: [0, 'Tax cannot be negative']
+  },
+  discount: {
+    type: Number,
+    default: 0,
+    min: [0, 'Discount cannot be negative']
+  },
+  total: {
+    type: Number,
+    required: true,
+    min: [0, 'Total cannot be negative']
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cash', 'card', 'digital'],
+    required: true
+  },
+  amountPaid: {
+    type: Number,
+    required: true,
+    min: [0, 'Amount paid cannot be negative']
+  },
+  change: {
+    type: Number,
+    default: 0,
+    min: [0, 'Change cannot be negative']
+  },
+  status: {
+    type: String,
+    enum: ['completed', 'refunded', 'cancelled'],
+    default: 'completed'
+  },
+  loyaltyPointsEarned: {
+    type: Number,
+    default: 0,
+    min: [0, 'Loyalty points cannot be negative']
+  },
+  notes: {
+    type: String,
+    maxlength: [500, 'Notes cannot exceed 500 characters']
+  }
+}, {
+  timestamps: true
+});
+
+// Index for search and reporting
+transactionSchema.index({ transactionId: 1 });
+transactionSchema.index({ cashier: 1 });
+transactionSchema.index({ customer: 1 });
+transactionSchema.index({ createdAt: -1 });
+transactionSchema.index({ status: 1 });
+
+module.exports = mongoose.model('Transaction', transactionSchema);

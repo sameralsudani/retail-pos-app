@@ -1,0 +1,271 @@
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Get auth token from localStorage
+const getAuthToken = () => {
+  const user = localStorage.getItem('pos_user');
+  if (user) {
+    try {
+      const userData = JSON.parse(user);
+      return userData.token;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return null;
+    }
+  }
+  return null;
+};
+
+// API request helper
+const apiRequest = async (endpoint, options = {}) => {
+  const token = getAuthToken();
+  
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'API request failed');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('API Request Error:', error);
+    throw error;
+  }
+};
+
+// Auth API
+export const authAPI = {
+  login: async (email, password) => {
+    return apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  register: async (userData) => {
+    return apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  getProfile: async () => {
+    return apiRequest('/auth/me');
+  },
+
+  updateProfile: async (profileData) => {
+    return apiRequest('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  },
+};
+
+// Products API
+export const productsAPI = {
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/products${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/products/${id}`);
+  },
+
+  getByBarcode: async (code) => {
+    return apiRequest(`/products/barcode/${code}`);
+  },
+
+  create: async (productData) => {
+    return apiRequest('/products', {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    });
+  },
+
+  update: async (id, productData) => {
+    return apiRequest(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`/products/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Categories API
+export const categoriesAPI = {
+  getAll: async () => {
+    return apiRequest('/categories');
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/categories/${id}`);
+  },
+
+  create: async (categoryData) => {
+    return apiRequest('/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  update: async (id, categoryData) => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Customers API
+export const customersAPI = {
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/customers${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/customers/${id}`);
+  },
+
+  create: async (customerData) => {
+    return apiRequest('/customers', {
+      method: 'POST',
+      body: JSON.stringify(customerData),
+    });
+  },
+
+  update: async (id, customerData) => {
+    return apiRequest(`/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(customerData),
+    });
+  },
+
+  updateLoyalty: async (id, loyaltyData) => {
+    return apiRequest(`/customers/${id}/loyalty`, {
+      method: 'PUT',
+      body: JSON.stringify(loyaltyData),
+    });
+  },
+};
+
+// Transactions API
+export const transactionsAPI = {
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/transactions${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/transactions/${id}`);
+  },
+
+  create: async (transactionData) => {
+    return apiRequest('/transactions', {
+      method: 'POST',
+      body: JSON.stringify(transactionData),
+    });
+  },
+
+  getStats: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/transactions/stats/summary${queryString ? `?${queryString}` : ''}`);
+  },
+};
+
+// Suppliers API
+export const suppliersAPI = {
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/suppliers${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/suppliers/${id}`);
+  },
+
+  create: async (supplierData) => {
+    return apiRequest('/suppliers', {
+      method: 'POST',
+      body: JSON.stringify(supplierData),
+    });
+  },
+
+  update: async (id, supplierData) => {
+    return apiRequest(`/suppliers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(supplierData),
+    });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`/suppliers/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// Users API
+export const usersAPI = {
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/users${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/users/${id}`);
+  },
+
+  create: async (userData) => {
+    return apiRequest('/users', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  update: async (id, userData) => {
+    return apiRequest(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`/users/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getStats: async () => {
+    return apiRequest('/users/stats/summary');
+  },
+};
+
+// Health check
+export const healthAPI = {
+  check: async () => {
+    return apiRequest('/health');
+  },
+};
