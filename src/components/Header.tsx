@@ -112,36 +112,3 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
-                {title || t('header.title')}
-              </h1>
-            </div>
-            <div className="hidden md:block text-sm text-gray-500 flex-shrink-0">
-              {currentTime.toLocaleDateString()} • {currentTime.toLocaleTimeString()}
-            </div>
-          </div>
-          
-          {showActions && (
-            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-              <ThemeToggle />
-              <LanguageSwitcher />
-              <div className="hidden sm:flex items-center space-x-2 px-3 sm:px-4 py-2 bg-blue-50 text-blue-700 rounded-lg">
-                <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                <div>
-                  <div className="font-medium text-sm">{user?.name || t('header.cashier')}</div>
-                  <div className="text-xs text-blue-600 capitalize">{user?.role}</div>
-                </div>
-              </div>
-              <div className="sm:hidden">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-blue-600" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-};
-
-export default Header;
