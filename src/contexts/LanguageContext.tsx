@@ -280,6 +280,14 @@ const translations = {
     'inventory.form.cancel': 'Cancel',
     'inventory.form.add': 'Add Item',
     'inventory.form.save': 'Save Changes',
+    'inventory.form.select.category': 'Select Category',
+    'inventory.form.select.supplier': 'Select Supplier',
+    'inventory.form.adding': 'Adding Item...',
+    'inventory.form.saving': 'Saving...',
+    'inventory.info.supplier': 'Supplier',
+    'inventory.info.last.restocked': 'Last Restocked',
+    'inventory.info.created': 'Created',
+    'loading.inventory': 'Loading inventory...',
 
     // Settings Page
     'settings.title': 'System Settings',
@@ -764,6 +772,14 @@ const translations = {
     'inventory.form.cancel': 'إلغاء',
     'inventory.form.add': 'إضافة عنصر',
     'inventory.form.save': 'حفظ التغييرات',
+    'inventory.form.select.category': 'اختر الفئة',
+    'inventory.form.select.supplier': 'اختر المورد',
+    'inventory.form.adding': 'جاري الإضافة...',
+    'inventory.form.saving': 'جاري الحفظ...',
+    'inventory.info.supplier': 'المورد',
+    'inventory.info.last.restocked': 'آخر تجديد',
+    'inventory.info.created': 'تم الإنشاء',
+    'loading.inventory': 'جاري تحميل المخزون...',
 
     // Settings Page
     'settings.title': 'إعدادات النظام',

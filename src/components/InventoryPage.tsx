@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Search, Filter, Plus, Edit3, Trash2, Package, AlertTriangle, TrendingUp, TrendingDown, Eye, Save, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useStore } from '../contexts/StoreContext';
+import { productsAPI, categoriesAPI, suppliersAPI } from '../services/api';
 import { Product } from '../types';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -10,12 +10,22 @@ import Sidebar from './Sidebar';
 interface InventoryItem extends Product {
   lastRestocked: Date;
   supplier: string;
+  costPrice: number;
+  reorderLevel: number;
 }
 
 const InventoryPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { products, addProduct, updateProduct, removeProduct } = useStore();
+  
+  // State management
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
@@ -26,7 +36,7 @@ const InventoryPage = () => {
   const [newItem, setNewItem] = useState<Partial<InventoryItem>>({
     name: '',
     price: 0,
-    category: 'beverages',
+    category: '',
     sku: '',
     stock: 0,
     costPrice: 0,
@@ -35,16 +45,83 @@ const InventoryPage = () => {
     description: ''
   });
 
-  // Convert products to inventory items with additional fields
-  const inventory: InventoryItem[] = products.map(product => ({
-    ...product,
-    lastRestocked: new Date('2024-01-10'),
-    supplier: 'Default Supplier',
-    costPrice: product.price * 0.7, // Assume 30% markup
-    reorderLevel: 10
-  }));
+  // Load data on component mount
+  React.useEffect(() => {
+    loadInitialData();
+  }, []);
 
-  const categories = ['all', ...new Set(inventory.map(item => item.category))];
+  const loadInitialData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await Promise.all([
+        loadProducts(),
+        loadCategories(),
+        loadSuppliers()
+      ]);
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      setError('Failed to load inventory data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      console.log('Loading products for inventory...');
+      const response = await productsAPI.getAll();
+      console.log('Products API response:', response);
+      
+      if (response.success) {
+        const products = response.data.map(product => ({
+          id: product._id || product.id,
+          name: product.name,
+          price: product.price,
+          category: (product.category?.name || product.category || '').toLowerCase(),
+          sku: product.sku,
+          stock: product.stock,
+          image: product.image || 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
+          description: product.description || '',
+          costPrice: product.costPrice || product.price * 0.7,
+          reorderLevel: product.reorderLevel || 10,
+          supplier: product.supplier?.name || product.supplier || 'Unknown Supplier',
+          lastRestocked: new Date(product.updatedAt || '2024-01-10')
+        }));
+        console.log('Processed inventory items:', products.length);
+        setInventory(products);
+      } else {
+        setError('Failed to load products');
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setError('Failed to load products');
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAll();
+      if (response.success) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const loadSuppliers = async () => {
+    try {
+      const response = await suppliersAPI.getAll();
+      if (response.success) {
+        setSuppliers(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading suppliers:', error);
+    }
+  };
+
+  const categoryOptions = ['all', ...new Set(inventory.map(item => item.category))];
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = 
@@ -69,50 +146,125 @@ const InventoryPage = () => {
     return { status: 'good', color: 'bg-green-100 text-green-800', icon: TrendingUp };
   };
 
-  const handleAddItem = () => {
-    if (newItem.name && newItem.sku && newItem.price) {
-      const item: InventoryItem = {
-        id: Date.now().toString(),
-        name: newItem.name!,
-        price: newItem.price!,
-        category: newItem.category!,
-        sku: newItem.sku!,
-        stock: newItem.stock!,
-        image: 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
-        description: newItem.description || '',
-        lastRestocked: new Date(),
-        supplier: newItem.supplier!,
-        costPrice: newItem.costPrice!,
-        reorderLevel: newItem.reorderLevel!
-      };
-      
-      addProduct(item);
-      setNewItem({
-        name: '',
-        price: 0,
-        category: 'beverages',
-        sku: '',
-        stock: 0,
-        costPrice: 0,
-        reorderLevel: 10,
-        supplier: '',
-        description: ''
-      });
-      setShowAddModal(false);
+  const handleAddItem = async () => {
+    if (newItem.name && newItem.sku && newItem.price && newItem.category) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        // Find category ID
+        const category = categories.find(cat => cat.name.toLowerCase() === newItem.category?.toLowerCase());
+        if (!category) {
+          setError('Invalid category selected');
+          return;
+        }
+        
+        // Find supplier ID if supplier is selected
+        let supplierId = undefined;
+        if (newItem.supplier) {
+          const supplier = suppliers.find(sup => sup.name.toLowerCase() === newItem.supplier?.toLowerCase());
+          supplierId = supplier?._id;
+        }
+        
+        const productData = {
+          name: newItem.name,
+          description: newItem.description || '',
+          price: newItem.price,
+          costPrice: newItem.costPrice || 0,
+          category: category._id,
+          sku: newItem.sku,
+          stock: newItem.stock || 0,
+          reorderLevel: newItem.reorderLevel || 10,
+          supplier: supplierId,
+          image: 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300'
+        };
+        
+        console.log('Creating product with data:', productData);
+        const response = await productsAPI.create(productData);
+        
+        if (response.success) {
+          await loadProducts(); // Reload products
+          setNewItem({
+            name: '',
+            price: 0,
+            category: '',
+            sku: '',
+            stock: 0,
+            costPrice: 0,
+            reorderLevel: 10,
+            supplier: '',
+            description: ''
+          });
+          setShowAddModal(false);
+        } else {
+          setError(response.message || 'Failed to create product');
+        }
+      } catch (error) {
+        console.error('Error creating product:', error);
+        setError('Failed to create product. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleEditItem = () => {
-    if (selectedItem) {
-      updateProduct(selectedItem.id, selectedItem);
-      setShowEditModal(false);
-      setSelectedItem(null);
+  const handleEditItem = async () => {
+    if (selectedItem && canEdit) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        // Find category ID if category changed
+        let categoryId = selectedItem.category;
+        if (typeof selectedItem.category === 'string') {
+          const category = categories.find(cat => cat.name.toLowerCase() === selectedItem.category.toLowerCase());
+          categoryId = category?._id || selectedItem.category;
+        }
+        
+        const updateData = {
+          name: selectedItem.name,
+          description: selectedItem.description,
+          price: selectedItem.price,
+          costPrice: selectedItem.costPrice,
+          stock: selectedItem.stock,
+          reorderLevel: selectedItem.reorderLevel,
+          category: categoryId
+        };
+        
+        console.log('Updating product with data:', updateData);
+        const response = await productsAPI.update(selectedItem.id, updateData);
+        
+        if (response.success) {
+          await loadProducts(); // Reload products
+          setShowEditModal(false);
+          setSelectedItem(null);
+        } else {
+          setError(response.message || 'Failed to update product');
+        }
+      } catch (error) {
+        console.error('Error updating product:', error);
+        setError('Failed to update product. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleDeleteItem = (id: string) => {
-    if (confirm(t('inventory.delete.confirm'))) {
-      removeProduct(id);
+  const handleDeleteItem = async (id: string) => {
+    if (canEdit && confirm(t('inventory.delete.confirm'))) {
+      try {
+        setError(null);
+        const response = await productsAPI.delete(id);
+        
+        if (response.success) {
+          await loadProducts(); // Reload products
+        } else {
+          setError(response.message || 'Failed to delete product');
+        }
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        setError('Failed to delete product. Please try again.');
+      }
     }
   };
 
@@ -125,6 +277,24 @@ const InventoryPage = () => {
   // Check if user has write permissions (Admin or Manager only)
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          onMenuClick={() => setShowSidebar(true)} 
+          title={t('inventory.title')}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('loading.inventory')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header 
@@ -133,6 +303,26 @@ const InventoryPage = () => {
       />
 
       <div className="p-6">
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -207,9 +397,9 @@ const InventoryPage = () => {
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="all">{t('inventory.filter.all.categories')}</option>
-                  {categories.filter(cat => cat !== 'all').map(category => (
-                    <option key={category} value={category} className="capitalize">
-                      {t(`category.${category}`)}
+                  {categoryOptions.filter(cat => cat !== 'all').map(category => (
+                    <option key={category} value={category}>
+                      {t(`category.${category.toLowerCase()}`)}
                     </option>
                   ))}
                 </select>
@@ -419,12 +609,12 @@ const InventoryPage = () => {
                     onChange={(e) => setNewItem(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="beverages">{t('category.beverages')}</option>
-                    <option value="bakery">{t('category.bakery')}</option>
-                    <option value="electronics">{t('category.electronics')}</option>
-                    <option value="produce">{t('category.produce')}</option>
-                    <option value="stationery">{t('category.stationery')}</option>
-                    <option value="clothing">{t('category.clothing')}</option>
+                    <option value="">{t('inventory.form.select.category')}</option>
+                    {categories.map(category => (
+                      <option key={category._id} value={category.name.toLowerCase()}>
+                        {t(`category.${category.name.toLowerCase()}`)}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -432,13 +622,18 @@ const InventoryPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('inventory.form.supplier')} *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={newItem.supplier}
                     onChange={(e) => setNewItem(prev => ({ ...prev, supplier: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t('inventory.form.supplier.placeholder')}
-                  />
+                  >
+                    <option value="">{t('inventory.form.select.supplier')}</option>
+                    {suppliers.map(supplier => (
+                      <option key={supplier._id} value={supplier.name}>
+                        {supplier.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -520,10 +715,10 @@ const InventoryPage = () => {
                 </button>
                 <button
                   onClick={handleAddItem}
-                  disabled={!newItem.name || !newItem.sku || !newItem.price}
+                  disabled={!newItem.name || !newItem.sku || !newItem.price || !newItem.category || isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {t('inventory.form.add')}
+                  {isSubmitting ? t('inventory.form.adding') : t('inventory.form.add')}
                 </button>
               </div>
             </div>
@@ -604,6 +799,54 @@ const InventoryPage = () => {
                     disabled={!canEdit}
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('inventory.form.cost.price')}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={selectedItem.costPrice}
+                    onChange={canEdit ? (e) => setSelectedItem(prev => prev ? ({ ...prev, costPrice: parseFloat(e.target.value) || 0 }) : null) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={!canEdit}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('inventory.form.reorder.level')}
+                  </label>
+                  <input
+                    type="number"
+                    value={selectedItem.reorderLevel}
+                    onChange={canEdit ? (e) => setSelectedItem(prev => prev ? ({ ...prev, reorderLevel: parseInt(e.target.value) || 0 }) : null) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={!canEdit}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('inventory.form.description')}
+                </label>
+                <textarea
+                  value={selectedItem.description}
+                  onChange={canEdit ? (e) => setSelectedItem(prev => prev ? ({ ...prev, description: e.target.value }) : null) : undefined}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={!canEdit}
+                />
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="text-sm text-gray-600">
+                  <p>{t('inventory.info.supplier')}: <span className="font-medium">{selectedItem.supplier}</span></p>
+                  <p>{t('inventory.info.last.restocked')}: <span className="font-medium">{selectedItem.lastRestocked.toLocaleDateString()}</span></p>
+                  <p>{t('inventory.info.created')}: <span className="font-medium">{selectedItem.lastRestocked.toLocaleDateString()}</span></p>
+                </div>
               </div>
             </div>
 
@@ -621,9 +864,10 @@ const InventoryPage = () => {
                 {canEdit && (
                   <button
                     onClick={handleEditItem}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
-                    {t('inventory.form.save')}
+                    {isSubmitting ? t('inventory.form.saving') : t('inventory.form.save')}
                   </button>
                 )}
               </div>
