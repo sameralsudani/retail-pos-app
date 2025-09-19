@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, User, Store, Bell, Settings } from 'lucide-react';
+import { Menu, User, Store, Bell } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
