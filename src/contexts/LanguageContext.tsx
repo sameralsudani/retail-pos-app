@@ -964,10 +964,14 @@ const translations = {
     'users.form.employee.id': 'رقم الموظف',
     'users.form.employee.id.placeholder': 'أدخل رقم الموظف',
     'users.form.role': 'الدور',
+    'users.form.password': 'كلمة المرور',
+    'users.form.password.placeholder': 'أدخل كلمة المرور (6 أحرف على الأقل)',
     'users.form.status': 'الحالة',
     'users.form.cancel': 'إلغاء',
     'users.form.add': 'إضافة مستخدم',
+    'users.form.adding': 'جاري الإضافة...',
     'users.form.save': 'حفظ التغييرات',
+    'users.form.saving': 'جاري الحفظ...',
     'users.info.last.login': 'آخر تسجيل دخول',
     'users.info.created': 'تم الإنشاء',
     'users.info.updated': 'تم التحديث',
@@ -975,6 +979,7 @@ const translations = {
     'users.access.denied.message': 'ليس لديك صلاحية للوصول إلى إدارة المستخدمين',
     
     // Loading States
+    'loading.users': 'جاري تحميل المستخدمين...',
     'loading.store.data': 'جاري تحميل بيانات المتجر...',
     'loading.products': 'جاري تحميل المنتجات...',
     'loading.customers': 'جاري تحميل العملاء...',

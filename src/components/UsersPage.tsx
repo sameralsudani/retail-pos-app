@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit3, Trash2, User, Eye, Save, X, AlertTriangle, Shield, Mail, Phone, Badge } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { usersAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -21,73 +22,61 @@ interface SystemUser {
 const UsersPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const [users, setUsers] = useState<SystemUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showSidebar, setShowSidebar] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
     phone: '',
+    password: '',
     role: 'cashier' as 'admin' | 'manager' | 'cashier',
     employeeId: '',
-    status: 'active' as 'active' | 'inactive'
   });
 
-  // Sample users data
-  const [users, setUsers] = useState<SystemUser[]>([
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'admin@retailpos.com',
-      phone: '(555) 123-4567',
-      role: 'admin',
-      employeeId: 'EMP001',
-      status: 'active',
-      lastLogin: new Date('2024-01-15T10:30:00'),
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'cashier@retailpos.com',
-      phone: '(555) 987-6543',
-      role: 'cashier',
-      employeeId: 'EMP002',
-      status: 'active',
-      lastLogin: new Date('2024-01-14T14:20:00'),
-      createdAt: new Date('2024-01-02'),
-      updatedAt: new Date('2024-01-10')
-    },
-    {
-      id: '3',
-      name: 'Mike Johnson',
-      email: 'manager@retailpos.com',
-      phone: '(555) 456-7890',
-      role: 'manager',
-      employeeId: 'EMP003',
-      status: 'active',
-      lastLogin: new Date('2024-01-13T09:15:00'),
-      createdAt: new Date('2024-01-03'),
-      updatedAt: new Date('2024-01-12')
-    },
-    {
-      id: '4',
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@retailpos.com',
-      phone: '(555) 321-0987',
-      role: 'cashier',
-      employeeId: 'EMP004',
-      status: 'inactive',
-      lastLogin: new Date('2024-01-05T16:45:00'),
-      createdAt: new Date('2024-01-04'),
-      updatedAt: new Date('2024-01-08')
+  // Load users on component mount
+  React.useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await usersAPI.getAll();
+      
+      if (response.success) {
+        const mappedUsers = response.data.map(apiUser => ({
+          id: apiUser._id || apiUser.id,
+          name: apiUser.name,
+          email: apiUser.email,
+          phone: apiUser.phone || '',
+          role: apiUser.role,
+          employeeId: apiUser.employeeId,
+          status: apiUser.isActive ? 'active' : 'inactive' as 'active' | 'inactive',
+          lastLogin: apiUser.lastLogin ? new Date(apiUser.lastLogin) : new Date(),
+          createdAt: new Date(apiUser.createdAt),
+          updatedAt: new Date(apiUser.updatedAt)
+        }));
+        setUsers(mappedUsers);
+      } else {
+        setError(response.message || 'Failed to load users');
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      setError('Failed to load users. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   const filteredUsers = users.filter(systemUser => {
     const matchesSearch = 
@@ -118,49 +107,107 @@ const UsersPage = () => {
     );
   }
 
-  const handleAddUser = () => {
-    if (newUser.name && newUser.email && newUser.employeeId && canEdit) {
-      const systemUser: SystemUser = {
-        id: Date.now().toString(),
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: newUser.role,
-        employeeId: newUser.employeeId,
-        status: newUser.status,
-        lastLogin: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      setUsers(prev => [...prev, systemUser]);
-      setNewUser({
-        name: '',
-        email: '',
-        phone: '',
-        role: 'cashier',
-        employeeId: '',
-        status: 'active'
-      });
-      setShowAddModal(false);
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          onMenuClick={() => setShowSidebar(true)} 
+          title={t('users.title')}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('loading.users')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAddUser = async () => {
+    if (newUser.name && newUser.email && newUser.employeeId && newUser.password && canEdit) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const response = await usersAPI.create({
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone,
+          password: newUser.password,
+          role: newUser.role,
+          employeeId: newUser.employeeId
+        });
+        
+        if (response.success) {
+          await loadUsers(); // Reload users list
+          setNewUser({
+            name: '',
+            email: '',
+            phone: '',
+            password: '',
+            role: 'cashier',
+            employeeId: ''
+          });
+          setShowAddModal(false);
+        } else {
+          setError(response.message || 'Failed to create user');
+        }
+      } catch (error) {
+        console.error('Error creating user:', error);
+        setError('Failed to create user. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (selectedUser && canEdit) {
-      setUsers(prev => prev.map(u =>
-        u.id === selectedUser.id 
-          ? { ...selectedUser, updatedAt: new Date() }
-          : u
-      ));
-      setShowEditModal(false);
-      setSelectedUser(null);
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const response = await usersAPI.update(selectedUser.id, {
+          name: selectedUser.name,
+          email: selectedUser.email,
+          phone: selectedUser.phone,
+          role: selectedUser.role,
+          isActive: selectedUser.status === 'active'
+        });
+        
+        if (response.success) {
+          await loadUsers(); // Reload users list
+          setShowEditModal(false);
+          setSelectedUser(null);
+        } else {
+          setError(response.message || 'Failed to update user');
+        }
+      } catch (error) {
+        console.error('Error updating user:', error);
+        setError('Failed to update user. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = async (id: string) => {
     if (canEdit && confirm(t('users.delete.confirm'))) {
-      setUsers(prev => prev.filter(u => u.id !== id));
+      try {
+        setError(null);
+        const response = await usersAPI.delete(id);
+        
+        if (response.success) {
+          await loadUsers(); // Reload users list
+        } else {
+          setError(response.message || 'Failed to delete user');
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        setError('Failed to delete user. Please try again.');
+      }
     }
   };
 
@@ -197,6 +244,26 @@ const UsersPage = () => {
       />
 
       <div className="p-6">
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -478,6 +545,19 @@ const UsersPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('users.form.password')} *
+                </label>
+                <input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={t('users.form.password.placeholder')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('users.form.role')} *
                 </label>
                 <select
@@ -488,20 +568,6 @@ const UsersPage = () => {
                   <option value="cashier">{t('auth.role.cashier')}</option>
                   <option value="manager">{t('auth.role.manager')}</option>
                   <option value="admin">{t('auth.role.admin')}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('users.form.status')} *
-                </label>
-                <select
-                  value={newUser.status}
-                  onChange={(e) => setNewUser(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="active">{t('users.status.active')}</option>
-                  <option value="inactive">{t('users.status.inactive')}</option>
                 </select>
               </div>
             </div>
@@ -516,10 +582,10 @@ const UsersPage = () => {
                 </button>
                 <button
                   onClick={handleAddUser}
-                  disabled={!newUser.name || !newUser.email || !newUser.employeeId}
+                  disabled={!newUser.name || !newUser.email || !newUser.employeeId || !newUser.password || isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {t('users.form.add')}
+                  {isSubmitting ? t('users.form.adding') : t('users.form.add')}
                 </button>
               </div>
             </div>
@@ -653,9 +719,10 @@ const UsersPage = () => {
                 {canEdit && (
                   <button
                     onClick={handleEditUser}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
-                    {t('users.form.save')}
+                    {isSubmitting ? t('users.form.saving') : t('users.form.save')}
                   </button>
                 )}
               </div>
