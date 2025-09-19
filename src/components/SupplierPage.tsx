@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit3, Trash2, Truck, Eye, Save, X, AlertTriangle, Phone, Mail, MapPin, Calendar } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { suppliersAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -11,10 +12,14 @@ interface Supplier {
   contactPerson: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  country: string;
-  productsSupplied: number;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  productCount?: number;
   status: 'active' | 'inactive';
   paymentTerms: string;
   createdAt: Date;
@@ -24,6 +29,13 @@ interface Supplier {
 const SupplierPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  
+  // State management
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showSidebar, setShowSidebar] = useState(false);
@@ -35,98 +47,61 @@ const SupplierPage = () => {
     contactPerson: '',
     email: '',
     phone: '',
-    address: '',
+    street: '',
     city: '',
+    state: '',
+    zipCode: '',
     country: '',
     paymentTerms: 'Net 30',
-    status: 'active' as 'active' | 'inactive'
   });
 
-  // Sample suppliers data
-  const [suppliers, setSuppliers] = useState<Supplier[]>([
-    {
-      id: '1',
-      name: 'Fresh Foods Co.',
-      contactPerson: 'John Smith',
-      email: 'john@freshfoods.com',
-      phone: '(555) 123-4567',
-      address: '123 Supply Street',
-      city: 'New York',
-      country: 'USA',
-      productsSupplied: 45,
-      status: 'active',
-      paymentTerms: 'Net 30',
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      name: 'Tech Solutions Ltd.',
-      contactPerson: 'Sarah Johnson',
-      email: 'sarah@techsolutions.com',
-      phone: '(555) 987-6543',
-      address: '456 Technology Ave',
-      city: 'San Francisco',
-      country: 'USA',
-      productsSupplied: 28,
-      status: 'active',
-      paymentTerms: 'Net 15',
-      createdAt: new Date('2024-01-02'),
-      updatedAt: new Date('2024-01-20')
-    },
-    {
-      id: '3',
-      name: 'Global Beverages Inc.',
-      contactPerson: 'Mike Davis',
-      email: 'mike@globalbev.com',
-      phone: '(555) 456-7890',
-      address: '789 Beverage Blvd',
-      city: 'Chicago',
-      country: 'USA',
-      productsSupplied: 67,
-      status: 'active',
-      paymentTerms: 'Net 45',
-      createdAt: new Date('2024-01-03'),
-      updatedAt: new Date('2024-01-18')
-    },
-    {
-      id: '4',
-      name: 'Office Supplies Pro',
-      contactPerson: 'Lisa Wilson',
-      email: 'lisa@officesupplies.com',
-      phone: '(555) 321-0987',
-      address: '321 Office Park',
-      city: 'Boston',
-      country: 'USA',
-      productsSupplied: 34,
-      status: 'inactive',
-      paymentTerms: 'Net 30',
-      createdAt: new Date('2024-01-04'),
-      updatedAt: new Date('2024-01-10')
-    },
-    {
-      id: '5',
-      name: 'Fashion Forward',
-      contactPerson: 'Emma Brown',
-      email: 'emma@fashionforward.com',
-      phone: '(555) 654-3210',
-      address: '654 Fashion District',
-      city: 'Los Angeles',
-      country: 'USA',
-      productsSupplied: 52,
-      status: 'active',
-      paymentTerms: 'Net 60',
-      createdAt: new Date('2024-01-05'),
-      updatedAt: new Date('2024-01-25')
+  // Load suppliers on component mount
+  React.useEffect(() => {
+    loadSuppliers();
+  }, []);
+
+  const loadSuppliers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Loading suppliers from API...');
+      
+      const response = await suppliersAPI.getAll();
+      console.log('Suppliers API response:', response);
+      
+      if (response.success) {
+        const mappedSuppliers = response.data.map(apiSupplier => ({
+          id: apiSupplier._id || apiSupplier.id,
+          name: apiSupplier.name,
+          contactPerson: apiSupplier.contactPerson,
+          email: apiSupplier.email,
+          phone: apiSupplier.phone,
+          address: apiSupplier.address || {},
+          productCount: apiSupplier.productCount || 0,
+          status: apiSupplier.isActive ? 'active' : 'inactive' as 'active' | 'inactive',
+          paymentTerms: apiSupplier.paymentTerms || 'Net 30',
+          createdAt: new Date(apiSupplier.createdAt),
+          updatedAt: new Date(apiSupplier.updatedAt)
+        }));
+        console.log('Mapped suppliers:', mappedSuppliers);
+        setSuppliers(mappedSuppliers);
+      } else {
+        setError(response.message || 'Failed to load suppliers');
+      }
+    } catch (error) {
+      console.error('Error loading suppliers:', error);
+      setError('Failed to load suppliers. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   const filteredSuppliers = suppliers.filter(supplier => {
     const matchesSearch = 
       supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.city.toLowerCase().includes(searchTerm.toLowerCase());
+      (supplier.address?.city || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || supplier.status === statusFilter;
     
@@ -136,55 +111,109 @@ const SupplierPage = () => {
   // Permission check - only Admin has full access
   const canEdit = user?.role === 'admin';
 
-  const handleAddSupplier = () => {
+  const handleAddSupplier = async () => {
     if (newSupplier.name && newSupplier.contactPerson && newSupplier.email && canEdit) {
-      const supplier: Supplier = {
-        id: Date.now().toString(),
-        name: newSupplier.name,
-        contactPerson: newSupplier.contactPerson,
-        email: newSupplier.email,
-        phone: newSupplier.phone,
-        address: newSupplier.address,
-        city: newSupplier.city,
-        country: newSupplier.country,
-        productsSupplied: 0,
-        status: newSupplier.status,
-        paymentTerms: newSupplier.paymentTerms,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      setSuppliers(prev => [...prev, supplier]);
-      setNewSupplier({
-        name: '',
-        contactPerson: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        country: '',
-        paymentTerms: 'Net 30',
-        status: 'active'
-      });
-      setShowAddModal(false);
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const supplierData = {
+          name: newSupplier.name,
+          contactPerson: newSupplier.contactPerson,
+          email: newSupplier.email,
+          phone: newSupplier.phone,
+          address: {
+            street: newSupplier.street,
+            city: newSupplier.city,
+            state: newSupplier.state,
+            zipCode: newSupplier.zipCode,
+            country: newSupplier.country
+          },
+          paymentTerms: newSupplier.paymentTerms
+        };
+        
+        console.log('Creating supplier with data:', supplierData);
+        const response = await suppliersAPI.create(supplierData);
+        
+        if (response.success) {
+          await loadSuppliers(); // Reload suppliers list
+          setNewSupplier({
+            name: '',
+            contactPerson: '',
+            email: '',
+            phone: '',
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            country: '',
+            paymentTerms: 'Net 30'
+          });
+          setShowAddModal(false);
+        } else {
+          setError(response.message || 'Failed to create supplier');
+        }
+      } catch (error) {
+        console.error('Error creating supplier:', error);
+        setError('Failed to create supplier. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleEditSupplier = () => {
+  const handleEditSupplier = async () => {
     if (selectedSupplier && canEdit) {
-      setSuppliers(prev => prev.map(s =>
-        s.id === selectedSupplier.id 
-          ? { ...selectedSupplier, updatedAt: new Date() }
-          : s
-      ));
-      setShowEditModal(false);
-      setSelectedSupplier(null);
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const updateData = {
+          name: selectedSupplier.name,
+          contactPerson: selectedSupplier.contactPerson,
+          email: selectedSupplier.email,
+          phone: selectedSupplier.phone,
+          address: selectedSupplier.address,
+          paymentTerms: selectedSupplier.paymentTerms,
+          isActive: selectedSupplier.status === 'active'
+        };
+        
+        console.log('Updating supplier with data:', updateData);
+        const response = await suppliersAPI.update(selectedSupplier.id, updateData);
+        
+        if (response.success) {
+          await loadSuppliers(); // Reload suppliers list
+          setShowEditModal(false);
+          setSelectedSupplier(null);
+        } else {
+          setError(response.message || 'Failed to update supplier');
+        }
+      } catch (error) {
+        console.error('Error updating supplier:', error);
+        setError('Failed to update supplier. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleDeleteSupplier = (id: string) => {
+  const handleDeleteSupplier = async (id: string) => {
     if (canEdit && confirm(t('suppliers.delete.confirm'))) {
-      setSuppliers(prev => prev.filter(s => s.id !== id));
+      try {
+        setError(null);
+        console.log('Deleting supplier:', id);
+        
+        const response = await suppliersAPI.delete(id);
+        
+        if (response.success) {
+          await loadSuppliers(); // Reload suppliers list
+        } else {
+          setError(response.message || 'Failed to delete supplier');
+        }
+      } catch (error) {
+        console.error('Error deleting supplier:', error);
+        setError('Failed to delete supplier. Please try again.');
+      }
     }
   };
 
@@ -197,8 +226,26 @@ const SupplierPage = () => {
   // Statistics
   const totalSuppliers = suppliers.length;
   const activeSuppliers = suppliers.filter(s => s.status === 'active').length;
-  const totalProducts = suppliers.reduce((sum, s) => sum + s.productsSupplied, 0);
-  const avgProductsPerSupplier = Math.round(totalProducts / totalSuppliers);
+  const totalProducts = suppliers.reduce((sum, s) => sum + (s.productCount || 0), 0);
+  const avgProductsPerSupplier = totalSuppliers > 0 ? Math.round(totalProducts / totalSuppliers) : 0;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          onMenuClick={() => setShowSidebar(true)} 
+          title={t('suppliers.title')}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('loading.suppliers')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -208,6 +255,26 @@ const SupplierPage = () => {
       />
 
       <div className="p-6">
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -345,11 +412,11 @@ const SupplierPage = () => {
                       <div className="text-sm text-gray-500">{supplier.phone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{supplier.city}</div>
-                      <div className="text-sm text-gray-500">{supplier.country}</div>
+                      <div className="text-sm text-gray-900">{supplier.address?.city || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{supplier.address?.country || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{supplier.productsSupplied}</div>
+                      <div className="text-sm font-medium text-gray-900">{supplier.productCount || 0}</div>
                       <div className="text-sm text-gray-500">{t('suppliers.products.supplied')}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -479,6 +546,45 @@ const SupplierPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('suppliers.form.address')}
+                  </label>
+                  <input
+                    type="text"
+                    value={newSupplier.street}
+                    onChange={(e) => setNewSupplier(prev => ({ ...prev, street: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('suppliers.form.address.placeholder')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('suppliers.form.state')}
+                  </label>
+                  <input
+                    type="text"
+                    value={newSupplier.state}
+                    onChange={(e) => setNewSupplier(prev => ({ ...prev, state: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('suppliers.form.state.placeholder')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('suppliers.form.zip.code')}
+                  </label>
+                  <input
+                    type="text"
+                    value={newSupplier.zipCode}
+                    onChange={(e) => setNewSupplier(prev => ({ ...prev, zipCode: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t('suppliers.form.zip.code.placeholder')}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('suppliers.form.city')}
                   </label>
                   <input
@@ -519,33 +625,6 @@ const SupplierPage = () => {
                     <option value="COD">COD</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('suppliers.form.status')}
-                  </label>
-                  <select
-                    value={newSupplier.status}
-                    onChange={(e) => setNewSupplier(prev => ({ ...prev, status: e.target.value as 'active' | 'inactive' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="active">{t('suppliers.status.active')}</option>
-                    <option value="inactive">{t('suppliers.status.inactive')}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('suppliers.form.address')}
-                </label>
-                <textarea
-                  value={newSupplier.address}
-                  onChange={(e) => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={t('suppliers.form.address.placeholder')}
-                />
               </div>
             </div>
 
@@ -559,10 +638,10 @@ const SupplierPage = () => {
                 </button>
                 <button
                   onClick={handleAddSupplier}
-                  disabled={!newSupplier.name || !newSupplier.contactPerson || !newSupplier.email}
+                  disabled={!newSupplier.name || !newSupplier.contactPerson || !newSupplier.email || isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {t('suppliers.form.add')}
+                  {isSubmitting ? t('suppliers.form.adding') : t('suppliers.form.add')}
                 </button>
               </div>
             </div>
@@ -649,8 +728,11 @@ const SupplierPage = () => {
                   </label>
                   <input
                     type="text"
-                    value={selectedSupplier.city}
-                    onChange={canEdit ? (e) => setSelectedSupplier(prev => prev ? ({ ...prev, city: e.target.value }) : null) : undefined}
+                    value={selectedSupplier.address?.city || ''}
+                    onChange={canEdit ? (e) => setSelectedSupplier(prev => prev ? ({ 
+                      ...prev, 
+                      address: { ...prev.address, city: e.target.value }
+                    }) : null) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={!canEdit}
                   />
@@ -662,8 +744,11 @@ const SupplierPage = () => {
                   </label>
                   <input
                     type="text"
-                    value={selectedSupplier.country}
-                    onChange={canEdit ? (e) => setSelectedSupplier(prev => prev ? ({ ...prev, country: e.target.value }) : null) : undefined}
+                    value={selectedSupplier.address?.country || ''}
+                    onChange={canEdit ? (e) => setSelectedSupplier(prev => prev ? ({ 
+                      ...prev, 
+                      address: { ...prev.address, country: e.target.value }
+                    }) : null) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={!canEdit}
                   />
@@ -703,22 +788,9 @@ const SupplierPage = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('suppliers.form.address')}
-                </label>
-                <textarea
-                  value={selectedSupplier.address}
-                  onChange={canEdit ? (e) => setSelectedSupplier(prev => prev ? ({ ...prev, address: e.target.value }) : null) : undefined}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={!canEdit}
-                />
-              </div>
-
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="text-sm text-gray-600">
-                  <p>{t('suppliers.info.products.supplied')}: <span className="font-medium">{selectedSupplier.productsSupplied}</span></p>
+                  <p>{t('suppliers.info.products.supplied')}: <span className="font-medium">{selectedSupplier.productCount || 0}</span></p>
                   <p>{t('suppliers.info.created')}: <span className="font-medium">{selectedSupplier.createdAt.toLocaleDateString()}</span></p>
                   <p>{t('suppliers.info.updated')}: <span className="font-medium">{selectedSupplier.updatedAt.toLocaleDateString()}</span></p>
                 </div>
@@ -739,9 +811,10 @@ const SupplierPage = () => {
                 {canEdit && (
                   <button
                     onClick={handleEditSupplier}
+                    disabled={isSubmitting}
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    {t('suppliers.form.save')}
+                    {isSubmitting ? t('suppliers.form.saving') : t('suppliers.form.save')}
                   </button>
                 )}
               </div>
