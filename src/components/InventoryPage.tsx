@@ -250,48 +250,6 @@ const InventoryPage = () => {
   };
 
   const handleEditItem = async () => {
-          name: newItem.name,
-          description: newItem.description || '',
-          price: newItem.price,
-          costPrice: newItem.costPrice || 0,
-          category: category._id,
-          sku: newItem.sku,
-          stock: newItem.stock || 0,
-          reorderLevel: newItem.reorderLevel || 10,
-          supplier: supplierId,
-          image: 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300'
-        };
-        
-        console.log('Creating product with data:', productData);
-        const response = await productsAPI.create(productData);
-        
-        if (response.success) {
-          await loadProducts(); // Reload products
-          setNewItem({
-            name: '',
-            price: 0,
-            category: '',
-            sku: '',
-            stock: 0,
-            costPrice: 0,
-            reorderLevel: 10,
-            supplier: '',
-            description: ''
-          });
-          setShowAddModal(false);
-        } else {
-          setError(response.message || 'Failed to create product');
-        }
-      } catch (error) {
-        console.error('Error creating product:', error);
-        setError('Failed to create product. Please try again.');
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
-
-  const handleEditItem = async () => {
     if (selectedItem && canEdit) {
       try {
         setIsSubmitting(true);
@@ -657,6 +615,52 @@ const InventoryPage = () => {
 
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Image Upload Section */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('inventory.form.image')}
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+                        {imagePreview ? (
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t('inventory.form.image.help')}
+                      </p>
+                      {selectedImage && (
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="mt-2 text-sm text-red-600 hover:text-red-800"
+                        >
+                          {t('inventory.form.image.remove')}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t('inventory.form.name')} *

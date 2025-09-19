@@ -118,6 +118,32 @@ export const productsAPI = {
     });
   },
 
+  createWithImage: async (formData) => {
+    const token = getAuthToken();
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+          // Don't set Content-Type for FormData, let browser set it
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Create product with image error:', error);
+      throw error;
+    }
+  },
+
   update: async (id, productData) => {
     return apiRequest(`/products/${id}`, {
       method: 'PUT',
