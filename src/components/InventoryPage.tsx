@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Filter, Plus, Edit3, Trash2, Package, AlertTriangle, TrendingUp, TrendingDown, Eye, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Plus, Edit3, Trash2, Package, AlertTriangle, TrendingUp, TrendingDown, Eye, Save, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { productsAPI, categoriesAPI, suppliersAPI } from '../services/api';
@@ -9,7 +9,6 @@ import Sidebar from './Sidebar';
 
 interface InventoryItem extends Product {
   lastRestocked: Date;
-  supplier: string;
   costPrice: number;
   reorderLevel: number;
 }
@@ -33,7 +32,9 @@ const InventoryPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  const [newItem, setNewItem] = useState<Partial<InventoryItem>>({
+  
+  // Form state
+  const [newItem, setNewItem] = useState({
     name: '',
     price: 0,
     category: '',
@@ -45,11 +46,13 @@ const InventoryPage = () => {
     description: '',
     image: ''
   });
+  
+  // Image upload state
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Load data on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     loadInitialData();
   }, []);
 
@@ -149,6 +152,37 @@ const InventoryPage = () => {
     return { status: 'good', color: 'bg-green-100 text-green-800', icon: TrendingUp };
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   const handleAddItem = async () => {
     if (newItem.name && newItem.sku && newItem.price && newItem.category) {
       try {
@@ -216,37 +250,6 @@ const InventoryPage = () => {
         setIsSubmitting(false);
       }
     }
-  };
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
-        return;
-      }
-      
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
-      
-      setSelectedImage(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
   };
 
   const handleEditItem = async () => {
@@ -606,14 +609,84 @@ const InventoryPage = () => {
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">{t('inventory.add.title')}</h2>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                  setNewItem({
+                    name: '',
+                    price: 0,
+                    category: '',
+                    sku: '',
+                    stock: 0,
+                    costPrice: 0,
+                    reorderLevel: 10,
+                    supplier: '',
+                    description: '',
+                    image: ''
+                  });
+                }}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-6">
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('inventory.form.image')}
+                </label>
+                <div className="flex items-center space-x-4">
+                  {/* Image Preview */}
+                  <div className="flex-shrink-0">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="h-20 w-20 object-cover rounded-lg border border-gray-300"
+                        />
+                        <button
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          title={t('inventory.form.image.remove')}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Button */}
+                  <div className="flex-1">
+                    <label className="cursor-pointer">
+                      <div className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                        <span className="text-sm text-gray-600">
+                          {selectedImage ? selectedImage.name : 'Choose image'}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t('inventory.form.image.help')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -653,7 +726,7 @@ const InventoryPage = () => {
                     <option value="">{t('inventory.form.select.category')}</option>
                     {categories.map(category => (
                       <option key={category._id} value={category.name.toLowerCase()}>
-                        {t(`category.${category.name.toLowerCase()}`)}
+                        {category.name}
                       </option>
                     ))}
                   </select>
@@ -661,7 +734,7 @@ const InventoryPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('inventory.form.supplier')} *
+                    {t('inventory.form.supplier')}
                   </label>
                   <select
                     value={newItem.supplier}
@@ -749,7 +822,23 @@ const InventoryPage = () => {
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                    setNewItem({
+                      name: '',
+                      price: 0,
+                      category: '',
+                      sku: '',
+                      stock: 0,
+                      costPrice: 0,
+                      reorderLevel: 10,
+                      supplier: '',
+                      description: '',
+                      image: ''
+                    });
+                  }}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   {t('inventory.form.cancel')}
