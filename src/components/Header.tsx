@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
               <button
                 onClick={onMenuClick}
-                className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 flex-shrink-0 hover:scale-105"
+                className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 flex-shrink-0 hover:scale-105 rtl:order-2"
               >
                 <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({
             </div>
             
             {/* Live Clock */}
-            <div className="hidden lg:flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
+            <div className="hidden lg:flex items-center space-x-2 rtl:space-x-reverse px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {currentTime.toLocaleDateString()} • {currentTime.toLocaleTimeString()}
@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
           
           {showActions && (
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+            <div className="flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse flex-shrink-0">
               {/* Notifications */}
               <button className="relative p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:scale-105">
                 <Bell className="h-5 w-5" />
@@ -79,14 +79,14 @@ const Header: React.FC<HeaderProps> = ({
               <LanguageSwitcher />
               
               {/* User Profile */}
-              <div className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-all duration-200 space-x-3 rtl:space-x-reverse">
+              <div className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-all duration-200 space-x-3 rtl:space-x-reverse rtl:flex-row-reverse">
                 <div className="relative">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"></div>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 rtl:text-right">
                   <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
                     {user?.name || t('header.cashier')}
                   </div>
