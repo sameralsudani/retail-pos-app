@@ -46,9 +46,9 @@ const LoginPage = () => {
   };
 
   const demoCredentials = [
-    { email: 'admin@retailpos.com', password: 'admin123', role: 'Admin' },
-    { email: 'cashier@retailpos.com', password: 'cashier123', role: 'Cashier' },
-    { email: 'manager@retailpos.com', password: 'manager123', role: 'Manager' }
+     { email: 'sameralsudani@yahoo.com', password: 'Monk@104', role: 'Admin' },
+    { email: 'intisiar@gmail.com', password: 'Monk@104', role: 'Cashier' },
+    { email: 'alixxxalsudani@gmail.com', password: 'Monk@104', role: 'Manager' }
   ];
 
   if (isLoading) {
