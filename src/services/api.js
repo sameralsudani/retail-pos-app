@@ -83,6 +83,17 @@ export const authAPI = {
       body: JSON.stringify(profileData),
     });
   },
+
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    return apiRequest('/auth/change-password', {
+      method: 'PUT',
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+        confirmPassword
+      }),
+    });
+  },
 };
 
 // Products API
