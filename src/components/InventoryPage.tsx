@@ -42,8 +42,11 @@ const InventoryPage = () => {
     costPrice: 0,
     reorderLevel: 10,
     supplier: '',
-    description: ''
+    description: '',
+    image: ''
   });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Load data on component mount
   React.useEffect(() => {
@@ -166,7 +169,87 @@ const InventoryPage = () => {
           supplierId = supplier?._id;
         }
         
-        const productData = {
+        // Prepare form data for file upload
+        const formData = new FormData();
+        formData.append('name', newItem.name);
+        formData.append('description', newItem.description || '');
+        formData.append('price', newItem.price.toString());
+        formData.append('costPrice', (newItem.costPrice || 0).toString());
+        formData.append('category', category._id);
+        formData.append('sku', newItem.sku);
+        formData.append('stock', (newItem.stock || 0).toString());
+        formData.append('reorderLevel', (newItem.reorderLevel || 10).toString());
+        if (supplierId) {
+          formData.append('supplier', supplierId);
+        }
+        if (selectedImage) {
+          formData.append('image', selectedImage);
+        }
+        
+        console.log('Creating product with form data');
+        const response = await productsAPI.createWithImage(formData);
+        
+        if (response.success) {
+          await loadProducts(); // Reload products
+          setNewItem({
+            name: '',
+            price: 0,
+            category: '',
+            sku: '',
+            stock: 0,
+            costPrice: 0,
+            reorderLevel: 10,
+            supplier: '',
+            description: '',
+            image: ''
+          });
+          setSelectedImage(null);
+          setImagePreview(null);
+          setShowAddModal(false);
+        } else {
+          setError(response.message || 'Failed to create product');
+        }
+      } catch (error) {
+        console.error('Error creating product:', error);
+        setError('Failed to create product. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const handleEditItem = async () => {
           name: newItem.name,
           description: newItem.description || '',
           price: newItem.price,
