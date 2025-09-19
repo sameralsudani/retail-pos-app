@@ -32,6 +32,8 @@ const translations = {
     'category.produce': 'produce',
     'category.stationery': 'stationery',
     'category.clothing': 'clothing',
+   'category.snacks': 'snacks',
+   'category.health & beauty': 'health & beauty',
     
     // Cart
     'cart.title': 'Cart',
@@ -515,6 +517,8 @@ const translations = {
     'category.produce': 'المنتجات الطازجة',
     'category.stationery': 'القرطاسية',
     'category.clothing': 'الملابس',
+   'category.snacks': 'الوجبات الخفيفة',
+   'category.health & beauty': 'الصحة والجمال',
     
     // Cart
     'cart.title': 'السلة',

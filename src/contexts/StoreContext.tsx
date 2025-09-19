@@ -157,7 +157,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             id: product._id || product.id,
             name: product.name,
             price: product.price,
-            category: product.category?.name || product.category,
+           category: (product.category?.name || product.category || '').toLowerCase(),
             sku: product.sku,
             stock: product.stock,
             image: product.image || 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',

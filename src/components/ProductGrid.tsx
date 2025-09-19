@@ -73,7 +73,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
                   ${product.price.toFixed(2)}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 capitalize px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded">
-                  {product.category}
+                 {t(`category.${product.category}`)}
                 </span>
               </div>
             </div>
