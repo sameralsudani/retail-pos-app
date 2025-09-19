@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit3, Trash2, Tag, Eye, Save, X, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { categoriesAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -18,6 +19,13 @@ interface Category {
 const CategoryPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  
+  // State management
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showSidebar, setShowSidebar] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -29,63 +37,42 @@ const CategoryPage = () => {
     color: '#3B82F6'
   });
 
-  // Sample categories data
-  const [categories, setCategories] = useState<Category[]>([
-    {
-      id: '1',
-      name: 'Beverages',
-      description: 'Hot and cold drinks, coffee, tea, juices',
-      color: '#3B82F6',
-      productCount: 15,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-15')
-    },
-    {
-      id: '2',
-      name: 'Bakery',
-      description: 'Fresh bread, pastries, and baked goods',
-      color: '#F59E0B',
-      productCount: 8,
-      createdAt: new Date('2024-01-02'),
-      updatedAt: new Date('2024-01-10')
-    },
-    {
-      id: '3',
-      name: 'Electronics',
-      description: 'Phones, accessories, and electronic devices',
-      color: '#8B5CF6',
-      productCount: 12,
-      createdAt: new Date('2024-01-03'),
-      updatedAt: new Date('2024-01-20')
-    },
-    {
-      id: '4',
-      name: 'Produce',
-      description: 'Fresh fruits and vegetables',
-      color: '#10B981',
-      productCount: 25,
-      createdAt: new Date('2024-01-04'),
-      updatedAt: new Date('2024-01-18')
-    },
-    {
-      id: '5',
-      name: 'Stationery',
-      description: 'Office supplies, pens, notebooks',
-      color: '#EF4444',
-      productCount: 18,
-      createdAt: new Date('2024-01-05'),
-      updatedAt: new Date('2024-01-12')
-    },
-    {
-      id: '6',
-      name: 'Clothing',
-      description: 'Apparel and fashion items',
-      color: '#EC4899',
-      productCount: 22,
-      createdAt: new Date('2024-01-06'),
-      updatedAt: new Date('2024-01-25')
+  // Load categories on component mount
+  React.useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Loading categories from API...');
+      
+      const response = await categoriesAPI.getAll();
+      console.log('Categories API response:', response);
+      
+      if (response.success) {
+        const mappedCategories = response.data.map(apiCategory => ({
+          id: apiCategory._id || apiCategory.id,
+          name: apiCategory.name,
+          description: apiCategory.description || '',
+          color: apiCategory.color || '#3B82F6',
+          productCount: apiCategory.productCount || 0,
+          createdAt: new Date(apiCategory.createdAt),
+          updatedAt: new Date(apiCategory.updatedAt)
+        }));
+        console.log('Mapped categories:', mappedCategories);
+        setCategories(mappedCategories);
+      } else {
+        setError(response.message || 'Failed to load categories');
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      setError('Failed to load categories. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
 
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,39 +82,85 @@ const CategoryPage = () => {
   // Permission check - only Admin has full access
   const canEdit = user?.role === 'admin';
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newCategory.name && canEdit) {
-      const category: Category = {
-        id: Date.now().toString(),
-        name: newCategory.name,
-        description: newCategory.description,
-        color: newCategory.color,
-        productCount: 0,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      setCategories(prev => [...prev, category]);
-      setNewCategory({ name: '', description: '', color: '#3B82F6' });
-      setShowAddModal(false);
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const categoryData = {
+          name: newCategory.name,
+          description: newCategory.description,
+          color: newCategory.color
+        };
+        
+        console.log('Creating category with data:', categoryData);
+        const response = await categoriesAPI.create(categoryData);
+        
+        if (response.success) {
+          await loadCategories(); // Reload categories list
+          setNewCategory({ name: '', description: '', color: '#3B82F6' });
+          setShowAddModal(false);
+        } else {
+          setError(response.message || 'Failed to create category');
+        }
+      } catch (error) {
+        console.error('Error creating category:', error);
+        setError('Failed to create category. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleEditCategory = () => {
+  const handleEditCategory = async () => {
     if (selectedCategory && canEdit) {
-      setCategories(prev => prev.map(cat =>
-        cat.id === selectedCategory.id 
-          ? { ...selectedCategory, updatedAt: new Date() }
-          : cat
-      ));
-      setShowEditModal(false);
-      setSelectedCategory(null);
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const updateData = {
+          name: selectedCategory.name,
+          description: selectedCategory.description,
+          color: selectedCategory.color
+        };
+        
+        console.log('Updating category with data:', updateData);
+        const response = await categoriesAPI.update(selectedCategory.id, updateData);
+        
+        if (response.success) {
+          await loadCategories(); // Reload categories list
+          setShowEditModal(false);
+          setSelectedCategory(null);
+        } else {
+          setError(response.message || 'Failed to update category');
+        }
+      } catch (error) {
+        console.error('Error updating category:', error);
+        setError('Failed to update category. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = async (id: string) => {
     if (canEdit && confirm(t('categories.delete.confirm'))) {
-      setCategories(prev => prev.filter(cat => cat.id !== id));
+      try {
+        setError(null);
+        console.log('Deleting category:', id);
+        
+        const response = await categoriesAPI.delete(id);
+        
+        if (response.success) {
+          await loadCategories(); // Reload categories list
+        } else {
+          setError(response.message || 'Failed to delete category');
+        }
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        setError('Failed to delete category. Please try again.');
+      }
     }
   };
 
@@ -139,7 +172,25 @@ const CategoryPage = () => {
   // Statistics
   const totalCategories = categories.length;
   const totalProducts = categories.reduce((sum, cat) => sum + cat.productCount, 0);
-  const avgProductsPerCategory = Math.round(totalProducts / totalCategories);
+  const avgProductsPerCategory = totalCategories > 0 ? Math.round(totalProducts / totalCategories) : 0;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          onMenuClick={() => setShowSidebar(true)} 
+          title={t('categories.title')}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('loading.categories')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -149,6 +200,26 @@ const CategoryPage = () => {
       />
 
       <div className="p-6">
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-6">
@@ -274,7 +345,7 @@ const CategoryPage = () => {
           ))}
         </div>
 
-        {filteredCategories.length === 0 && (
+        {filteredCategories.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <Tag className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">{t('categories.empty.title')}</h3>
@@ -353,10 +424,10 @@ const CategoryPage = () => {
                 </button>
                 <button
                   onClick={handleAddCategory}
-                  disabled={!newCategory.name}
+                  disabled={!newCategory.name || isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {t('categories.form.add')}
+                  {isSubmitting ? t('categories.form.adding') : t('categories.form.add')}
                 </button>
               </div>
             </div>
@@ -452,9 +523,10 @@ const CategoryPage = () => {
                 {canEdit && (
                   <button
                     onClick={handleEditCategory}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
-                    {t('categories.form.save')}
+                    {isSubmitting ? t('categories.form.saving') : t('categories.form.save')}
                   </button>
                 )}
               </div>

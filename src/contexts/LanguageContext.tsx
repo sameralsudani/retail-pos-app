@@ -399,9 +399,12 @@ const translations = {
     'categories.form.cancel': 'Cancel',
     'categories.form.add': 'Add Category',
     'categories.form.save': 'Save Changes',
+    'categories.form.adding': 'Adding Category...',
+    'categories.form.saving': 'Saving...',
     'categories.info.products': 'Products',
     'categories.info.created': 'Created',
     'categories.info.updated': 'Updated',
+    'loading.categories': 'Loading categories...',
 
     // Suppliers Page
     'suppliers.title': 'Supplier Management',
@@ -911,9 +914,12 @@ const translations = {
     'categories.form.cancel': 'إلغاء',
     'categories.form.add': 'إضافة فئة',
     'categories.form.save': 'حفظ التغييرات',
+    'categories.form.adding': 'جاري الإضافة...',
+    'categories.form.saving': 'جاري الحفظ...',
     'categories.info.products': 'المنتجات',
     'categories.info.created': 'تم الإنشاء',
     'categories.info.updated': 'تم التحديث',
+    'loading.categories': 'جاري تحميل الفئات...',
 
     // Suppliers Page
     'suppliers.title': 'إدارة الموردين',
