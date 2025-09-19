@@ -293,4 +293,49 @@ export const healthAPI = {
   check: async () => {
     return apiRequest('/health');
   },
-}
+};
+
+// Reports API
+export const reportsAPI = {
+  // Get overview report data
+  getOverview: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/overview${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get daily sales data
+  getDailySales: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/daily-sales${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get top products report
+  getTopProducts: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/top-products${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get category sales report
+  getCategorySales: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/category-sales${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get sales trends
+  getSalesTrends: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/sales-trends${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get inventory report
+  getInventoryReport: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/inventory${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get customer report
+  getCustomerReport: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/reports/customers${queryString ? `?${queryString}` : ''}`);
+  }
+};
