@@ -14,6 +14,7 @@ const translations = {
   en: {
     // Header
     'header.title': 'RetailPOS',
+    'header.subtitle': 'Point of Sale System',
     'header.reports': 'Reports',
     'header.settings': 'Settings',
     'header.cashier': 'John Doe',
@@ -507,6 +508,7 @@ const translations = {
   ar: {
     // Header
     'header.title': 'نقاط البيع',
+    'header.subtitle': 'نظام نقاط البيع',
     'header.reports': 'التقارير',
     'header.settings': 'الإعدادات',
     'header.cashier': 'جون دو',
