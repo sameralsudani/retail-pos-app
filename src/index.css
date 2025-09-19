@@ -17,3 +17,19 @@
 .rtl {
   direction: rtl;
 }
+
+  .rtl .flex.items-center.space-x-2 > *:not(:last-child) {
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+  
+  .rtl .flex.items-center.space-x-3 > *:not(:last-child) {
+    margin-left: 0;
+    margin-right: 0.75rem;
+  }
+  
+  .rtl .flex.items-center.space-x-4 > *:not(:last-child) {
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+}
