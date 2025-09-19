@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Download, Filter, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, BarChart3, PieChart, FileText, Printer } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { reportsAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -26,45 +28,100 @@ interface CategorySales {
 
 const ReportsPage = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [showSidebar, setShowSidebar] = useState(false);
   const [dateRange, setDateRange] = useState('today');
   const [reportType, setReportType] = useState('overview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Report data state
+  const [overviewData, setOverviewData] = useState<any>(null);
+  const [dailySalesData, setDailySalesData] = useState<any[]>([]);
+  const [topProductsData, setTopProductsData] = useState<any[]>([]);
+  const [categorySalesData, setCategorySalesData] = useState<any[]>([]);
+  const [inventoryData, setInventoryData] = useState<any>(null);
+  const [customerData, setCustomerData] = useState<any>(null);
 
-  // Sample data - in a real app, this would come from your database
-  const salesData: SalesData[] = [
-    { date: '2024-01-15', sales: 1250.50, transactions: 45, customers: 38 },
-    { date: '2024-01-14', sales: 980.25, transactions: 32, customers: 28 },
-    { date: '2024-01-13', sales: 1450.75, transactions: 52, customers: 44 },
-    { date: '2024-01-12', sales: 1100.00, transactions: 38, customers: 35 },
-    { date: '2024-01-11', sales: 1350.25, transactions: 48, customers: 41 },
-  ];
+  // Load reports data on component mount and when date range changes
+  React.useEffect(() => {
+    if (user && (user.role === 'admin' || user.role === 'manager')) {
+      loadReportsData();
+    }
+  }, [user, dateRange]);
 
-  const topProducts: ProductSales[] = [
-    { name: 'Premium Coffee Beans', category: 'beverages', quantity: 25, revenue: 624.75 },
-    { name: 'Artisan Bread', category: 'bakery', quantity: 18, revenue: 117.00 },
-    { name: 'Wireless Headphones', category: 'electronics', quantity: 8, revenue: 719.92 },
-    { name: 'Organic Green Tea', category: 'beverages', quantity: 15, revenue: 194.85 },
-    { name: 'Designer T-Shirt', category: 'clothing', quantity: 12, revenue: 419.88 },
-  ];
+  const getDateRangeParams = () => {
+    const now = new Date();
+    let startDate, endDate;
 
-  const categorySales: CategorySales[] = [
-    { category: 'beverages', sales: 2450.50, percentage: 35 },
-    { category: 'electronics', sales: 1890.25, percentage: 27 },
-    { category: 'clothing', sales: 1250.75, percentage: 18 },
-    { category: 'bakery', sales: 980.00, percentage: 14 },
-    { category: 'produce', sales: 428.50, percentage: 6 },
-  ];
+    switch (dateRange) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        break;
+      case 'yesterday':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        endDate = now;
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        endDate = now;
+        break;
+      case 'quarter':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        endDate = now;
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        endDate = now;
+        break;
+      default:
+        return {};
+    }
 
-  // Calculate totals
-  const totalSales = salesData.reduce((sum, day) => sum + day.sales, 0);
-  const totalTransactions = salesData.reduce((sum, day) => sum + day.transactions, 0);
-  const totalCustomers = salesData.reduce((sum, day) => sum + day.customers, 0);
-  const avgTransactionValue = totalSales / totalTransactions;
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    };
+  };
 
-  // Calculate trends (comparing with previous period)
-  const salesTrend = 12.5; // +12.5%
-  const transactionsTrend = -3.2; // -3.2%
-  const customersTrend = 8.7; // +8.7%
+  const loadReportsData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const dateParams = getDateRangeParams();
+      console.log('Loading reports with date params:', dateParams);
+
+      // Load all report data in parallel
+      const [overview, dailySales, topProducts, categorySales, inventory, customers] = await Promise.all([
+        reportsAPI.getOverview(dateParams),
+        reportsAPI.getDailySales({ ...dateParams, days: 7 }),
+        reportsAPI.getTopProducts({ ...dateParams, limit: 10 }),
+        reportsAPI.getCategorySales(dateParams),
+        reportsAPI.getInventoryReport(),
+        reportsAPI.getCustomerReport({ limit: 10 })
+      ]);
+
+      if (overview.success) setOverviewData(overview.data);
+      if (dailySales.success) setDailySalesData(dailySales.data);
+      if (topProducts.success) setTopProductsData(topProducts.data);
+      if (categorySales.success) setCategorySalesData(categorySales.data);
+      if (inventory.success) setInventoryData(inventory.data);
+      if (customers.success) setCustomerData(customers.data);
+
+    } catch (error) {
+      console.error('Error loading reports data:', error);
+      setError('Failed to load reports data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   const handleExport = (format: 'pdf' | 'excel' | 'csv') => {
     // In a real app, this would generate and download the report
