@@ -18,4 +18,8 @@
   direction: rtl;
 }
 
+/* RTL spacing utilities */
+.rtl .space-x-reverse > * + * {
+  margin-left: 0;
+  margin-right: 0.75rem;
 }
