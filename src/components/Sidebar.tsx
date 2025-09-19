@@ -165,7 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <button
                 key={index}
                 onClick={item.onClick}
-                className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left"
+                className="w-full flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse px-3 sm:px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left rtl:text-right"
               >
                 <item.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                 <span className="font-medium text-sm sm:text-base truncate">{item.label}</span>
@@ -178,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+            className="w-full flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse px-3 sm:px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left rtl:text-right"
           >
             <LogOut className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
             <span className="font-medium text-sm sm:text-base">{t('sidebar.logout')}</span>
