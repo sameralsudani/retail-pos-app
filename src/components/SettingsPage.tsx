@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, User, Bell, Shield, Palette, Database, Printer, Receipt, Save, X, Check, AlertTriangle, Globe, DollarSign, Percent, Clock, Store } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { settingsAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -45,10 +47,15 @@ interface SystemSettings {
 
 const SettingsPage = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [showSidebar, setShowSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState('store');
   const [hasChanges, setHasChanges] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const [settings, setSettings] = useState<SystemSettings>({
     // Store Information
@@ -89,49 +96,164 @@ const SettingsPage = () => {
     showProductImages: true
   });
 
+  // Load settings on component mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Loading settings from API...');
+      
+      const response = await settingsAPI.getSettings();
+      console.log('Settings API response:', response);
+      
+      if (response.success) {
+        const apiSettings = response.data;
+        setSettings({
+          storeName: apiSettings.storeName || 'RetailPOS Store',
+          storeAddress: apiSettings.storeAddress || '123 Main Street, City, State 12345',
+          storePhone: apiSettings.storePhone || '(555) 123-4567',
+          storeEmail: apiSettings.storeEmail || 'info@retailpos.com',
+          taxRate: apiSettings.taxRate || 8.0,
+          taxIncluded: apiSettings.taxIncluded || false,
+          receiptHeader: apiSettings.receiptHeader || 'Thank you for your business!',
+          receiptFooter: apiSettings.receiptFooter || 'Please keep this receipt for your records',
+          printLogo: apiSettings.printLogo !== undefined ? apiSettings.printLogo : true,
+          autoprint: apiSettings.autoprint || false,
+          currency: apiSettings.currency || 'USD',
+          dateFormat: apiSettings.dateFormat || 'MM/DD/YYYY',
+          timeFormat: apiSettings.timeFormat || '12',
+          lowStockThreshold: apiSettings.lowStockThreshold || 10,
+          lowStockAlerts: apiSettings.lowStockAlerts !== undefined ? apiSettings.lowStockAlerts : true,
+          emailNotifications: apiSettings.emailNotifications !== undefined ? apiSettings.emailNotifications : true,
+          soundEffects: apiSettings.soundEffects !== undefined ? apiSettings.soundEffects : true,
+          sessionTimeout: apiSettings.sessionTimeout || 30,
+          requirePasswordChange: apiSettings.requirePasswordChange || false,
+          twoFactorAuth: apiSettings.twoFactorAuth || false,
+          theme: apiSettings.theme || 'light',
+          compactMode: apiSettings.compactMode || false,
+          showProductImages: apiSettings.showProductImages !== undefined ? apiSettings.showProductImages : true
+        });
+        console.log('Settings loaded successfully');
+      } else {
+        setError(response.message || 'Failed to load settings');
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      setError('Failed to load settings. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSettingChange = (key: keyof SystemSettings, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
     setHasChanges(true);
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleSave = () => {
-    // In a real app, this would save to backend/database
-    setShowSaveConfirm(true);
-    setHasChanges(false);
-    setTimeout(() => setShowSaveConfirm(false), 3000);
-  };
-
-  const handleReset = () => {
-    if (confirm(t('settings.reset.confirm'))) {
-      // Reset to defaults
-      setSettings({
-        storeName: 'RetailPOS Store',
-        storeAddress: '123 Main Street, City, State 12345',
-        storePhone: '(555) 123-4567',
-        storeEmail: 'info@retailpos.com',
-        taxRate: 8.0,
-        taxIncluded: false,
-        receiptHeader: 'Thank you for your business!',
-        receiptFooter: 'Please keep this receipt for your records',
-        printLogo: true,
-        autoprint: false,
-        currency: 'USD',
-        dateFormat: 'MM/DD/YYYY',
-        timeFormat: '12',
-        lowStockThreshold: 10,
-        lowStockAlerts: true,
-        emailNotifications: true,
-        soundEffects: true,
-        sessionTimeout: 30,
-        requirePasswordChange: false,
-        twoFactorAuth: false,
-        theme: 'light',
-        compactMode: false,
-        showProductImages: true
-      });
-      setHasChanges(false);
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setError(null);
+      setSuccess(null);
+      
+      console.log('Saving settings:', settings);
+      const response = await settingsAPI.updateSettings(settings);
+      
+      if (response.success) {
+        setHasChanges(false);
+        setSuccess(t('settings.saved.successfully'));
+        setShowSaveConfirm(true);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setShowSaveConfirm(false);
+          setSuccess(null);
+        }, 3000);
+      } else {
+        setError(response.message || 'Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setError('Failed to save settings. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  const handleReset = async () => {
+    if (confirm(t('settings.reset.confirm'))) {
+      try {
+        setIsSaving(true);
+        setError(null);
+        setSuccess(null);
+        
+        console.log('Resetting settings to defaults...');
+        const response = await settingsAPI.resetSettings();
+        
+        if (response.success) {
+          await loadSettings(); // Reload settings from server
+          setHasChanges(false);
+          setSuccess('Settings reset to defaults successfully');
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => setSuccess(null), 3000);
+        } else {
+          setError(response.message || 'Failed to reset settings');
+        }
+      } catch (error) {
+        console.error('Error resetting settings:', error);
+        setError('Failed to reset settings. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  // Permission check - only Admin has full access, Manager has read-only
+  const canEdit = user?.role === 'admin';
+  const canView = user?.role === 'admin' || user?.role === 'manager';
+
+  // Access control
+  if (!canView) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
+          <p className="text-gray-500">You do not have permission to access settings</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          onMenuClick={() => setShowSidebar(true)} 
+          title={t('settings.title')}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const colorOptions = [
+    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+    '#8B5CF6', '#EC4899', '#6B7280', '#14B8A6'
+  ];
 
   const tabs = [
     { id: 'store', label: t('settings.tabs.store'), icon: Store },
@@ -156,6 +278,7 @@ const SettingsPage = () => {
               value={settings.storeName}
               onChange={(e) => handleSettingChange('storeName', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
           <div>
@@ -167,6 +290,7 @@ const SettingsPage = () => {
               value={settings.storePhone}
               onChange={(e) => handleSettingChange('storePhone', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
           <div className="md:col-span-2">
@@ -178,6 +302,7 @@ const SettingsPage = () => {
               value={settings.storeAddress}
               onChange={(e) => handleSettingChange('storeAddress', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
           <div className="md:col-span-2">
@@ -189,6 +314,7 @@ const SettingsPage = () => {
               value={settings.storeEmail}
               onChange={(e) => handleSettingChange('storeEmail', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
         </div>
@@ -207,6 +333,7 @@ const SettingsPage = () => {
               value={settings.taxRate}
               onChange={(e) => handleSettingChange('taxRate', parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
           <div className="flex items-center">
@@ -216,6 +343,7 @@ const SettingsPage = () => {
                 checked={settings.taxIncluded}
                 onChange={(e) => handleSettingChange('taxIncluded', e.target.checked)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                disabled={!canEdit}
               />
               <span className="text-sm font-medium text-gray-700">{t('settings.tax.included')}</span>
             </label>
@@ -238,6 +366,7 @@ const SettingsPage = () => {
               value={settings.currency}
               onChange={(e) => handleSettingChange('currency', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             >
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
@@ -254,6 +383,7 @@ const SettingsPage = () => {
               value={settings.dateFormat}
               onChange={(e) => handleSettingChange('dateFormat', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             >
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -268,6 +398,7 @@ const SettingsPage = () => {
               value={settings.timeFormat}
               onChange={(e) => handleSettingChange('timeFormat', e.target.value as '12' | '24')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             >
               <option value="12">{t('settings.system.time.12')}</option>
               <option value="24">{t('settings.system.time.24')}</option>
@@ -282,6 +413,7 @@ const SettingsPage = () => {
               value={settings.lowStockThreshold}
               onChange={(e) => handleSettingChange('lowStockThreshold', parseInt(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
         </div>
@@ -303,6 +435,7 @@ const SettingsPage = () => {
               onChange={(e) => handleSettingChange('receiptHeader', e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
           <div>
@@ -314,6 +447,7 @@ const SettingsPage = () => {
               onChange={(e) => handleSettingChange('receiptFooter', e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
         </div>
@@ -328,6 +462,7 @@ const SettingsPage = () => {
               checked={settings.printLogo}
               onChange={(e) => handleSettingChange('printLogo', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.receipt.print.logo')}</span>
           </label>
@@ -337,6 +472,7 @@ const SettingsPage = () => {
               checked={settings.autoprint}
               onChange={(e) => handleSettingChange('autoprint', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.receipt.auto.print')}</span>
           </label>
@@ -356,6 +492,7 @@ const SettingsPage = () => {
               checked={settings.lowStockAlerts}
               onChange={(e) => handleSettingChange('lowStockAlerts', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.notifications.low.stock')}</span>
           </label>
@@ -365,6 +502,7 @@ const SettingsPage = () => {
               checked={settings.emailNotifications}
               onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.notifications.email')}</span>
           </label>
@@ -374,6 +512,7 @@ const SettingsPage = () => {
               checked={settings.soundEffects}
               onChange={(e) => handleSettingChange('soundEffects', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.notifications.sound')}</span>
           </label>
@@ -396,6 +535,7 @@ const SettingsPage = () => {
               value={settings.sessionTimeout}
               onChange={(e) => handleSettingChange('sessionTimeout', parseInt(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             />
           </div>
         </div>
@@ -406,6 +546,7 @@ const SettingsPage = () => {
               checked={settings.requirePasswordChange}
               onChange={(e) => handleSettingChange('requirePasswordChange', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.security.password.change')}</span>
           </label>
@@ -415,6 +556,7 @@ const SettingsPage = () => {
               checked={settings.twoFactorAuth}
               onChange={(e) => handleSettingChange('twoFactorAuth', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.security.two.factor')}</span>
           </label>
@@ -436,6 +578,7 @@ const SettingsPage = () => {
               value={settings.theme}
               onChange={(e) => handleSettingChange('theme', e.target.value as 'light' | 'dark' | 'auto')}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
             >
               <option value="light">{t('settings.display.theme.light')}</option>
               <option value="dark">{t('settings.display.theme.dark')}</option>
@@ -450,6 +593,7 @@ const SettingsPage = () => {
               checked={settings.compactMode}
               onChange={(e) => handleSettingChange('compactMode', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.display.compact.mode')}</span>
           </label>
@@ -459,6 +603,7 @@ const SettingsPage = () => {
               checked={settings.showProductImages}
               onChange={(e) => handleSettingChange('showProductImages', e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              disabled={!canEdit}
             />
             <span className="text-sm font-medium text-gray-700">{t('settings.display.product.images')}</span>
           </label>
@@ -494,6 +639,38 @@ const SettingsPage = () => {
       />
 
       <div className="p-6 max-w-6xl mx-auto">
+        {/* Success Message */}
+        {success && (
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+            <div className="flex items-center">
+              <Check className="h-5 w-5 text-green-400" />
+              <div className="ml-3">
+                <p className="text-sm text-green-700">{success}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Save Confirmation */}
         {showSaveConfirm && (
           <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2">
@@ -544,20 +721,25 @@ const SettingsPage = () => {
           </div>
           
           <div className="flex space-x-3">
-            <button
-              onClick={handleReset}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {t('settings.reset.defaults')}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={!hasChanges}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              <Save className="h-4 w-4" />
-              <span>{t('settings.save.changes')}</span>
-            </button>
+            {canEdit && (
+              <>
+                <button
+                  onClick={handleReset}
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                >
+                  {t('settings.reset.defaults')}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!hasChanges || isSaving}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSaving ? 'Saving...' : t('settings.save.changes')}</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

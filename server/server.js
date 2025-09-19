@@ -50,6 +50,7 @@ app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/settings', require('./routes/settings'));
 
 // Add request logging middleware for debugging
 app.use((req, res, next) => {

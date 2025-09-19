@@ -365,3 +365,26 @@ export const reportsAPI = {
     return apiRequest(`/reports/customers${queryString ? `?${queryString}` : ''}`);
   }
 };
+
+// Settings API
+export const settingsAPI = {
+  // Get system settings
+  getSettings: async () => {
+    return apiRequest('/settings');
+  },
+
+  // Update system settings
+  updateSettings: async (settingsData) => {
+    return apiRequest('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settingsData),
+    });
+  },
+
+  // Reset settings to defaults
+  resetSettings: async () => {
+    return apiRequest('/settings/reset', {
+      method: 'POST',
+    });
+  }
+};
