@@ -1,10 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Settings, User, Bell, Shield, Palette, Database, Printer, Receipt, Save, X, Check, AlertTriangle, Globe, DollarSign, Percent, Clock, Store } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
-import { settingsAPI } from '../services/api';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import React, { useState, useEffect } from "react";
+import {
+  Settings,
+  Bell,
+  Shield,
+  Palette,
+  Receipt,
+  Save,
+  X,
+  Check,
+  AlertTriangle,
+  Store,
+} from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
+import { settingsAPI } from "../services/api";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 interface SystemSettings {
   // Store Information
@@ -12,35 +23,35 @@ interface SystemSettings {
   storeAddress: string;
   storePhone: string;
   storeEmail: string;
-  
+
   // Tax Settings
   taxRate: number;
   taxIncluded: boolean;
-  
+
   // Receipt Settings
   receiptHeader: string;
   receiptFooter: string;
   printLogo: boolean;
   autoprint: boolean;
-  
+
   // System Settings
   currency: string;
   dateFormat: string;
-  timeFormat: '12' | '24';
+  timeFormat: "12" | "24";
   lowStockThreshold: number;
-  
+
   // Notification Settings
   lowStockAlerts: boolean;
   emailNotifications: boolean;
   soundEffects: boolean;
-  
+
   // Security Settings
   sessionTimeout: number;
   requirePasswordChange: boolean;
   twoFactorAuth: boolean;
-  
+
   // Display Settings
-  theme: 'light' | 'dark' | 'auto';
+  theme: "light" | "dark" | "auto";
   compactMode: boolean;
   showProductImages: boolean;
 }
@@ -49,7 +60,7 @@ const SettingsPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [showSidebar, setShowSidebar] = useState(false);
-  const [activeTab, setActiveTab] = useState('store');
+  const [activeTab, setActiveTab] = useState("store");
   const [hasChanges, setHasChanges] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,41 +70,41 @@ const SettingsPage = () => {
 
   const [settings, setSettings] = useState<SystemSettings>({
     // Store Information
-    storeName: 'RetailPOS Store',
-    storeAddress: '123 Main Street, City, State 12345',
-    storePhone: '(555) 123-4567',
-    storeEmail: 'info@retailpos.com',
-    
+    storeName: "RetailPOS Store",
+    storeAddress: "123 Main Street, City, State 12345",
+    storePhone: "(555) 123-4567",
+    storeEmail: "info@retailpos.com",
+
     // Tax Settings
     taxRate: 8.0,
     taxIncluded: false,
-    
+
     // Receipt Settings
-    receiptHeader: 'Thank you for your business!',
-    receiptFooter: 'Please keep this receipt for your records',
+    receiptHeader: "Thank you for your business!",
+    receiptFooter: "Please keep this receipt for your records",
     printLogo: true,
     autoprint: false,
-    
+
     // System Settings
-    currency: 'USD',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12',
+    currency: "USD",
+    dateFormat: "MM/DD/YYYY",
+    timeFormat: "12",
     lowStockThreshold: 10,
-    
+
     // Notification Settings
     lowStockAlerts: true,
     emailNotifications: true,
     soundEffects: true,
-    
+
     // Security Settings
     sessionTimeout: 30,
     requirePasswordChange: false,
     twoFactorAuth: false,
-    
+
     // Display Settings
-    theme: 'light',
+    theme: "light",
     compactMode: false,
-    showProductImages: true
+    showProductImages: true,
   });
 
   // Load settings on component mount
@@ -105,52 +116,72 @@ const SettingsPage = () => {
     try {
       setIsLoading(true);
       setError(null);
-      console.log('Loading settings from API...');
-      
+      console.log("Loading settings from API...");
+
       const response = await settingsAPI.getSettings();
-      console.log('Settings API response:', response);
-      
+      console.log("Settings API response:", response);
+
       if (response.success) {
         const apiSettings = response.data;
         setSettings({
-          storeName: apiSettings.storeName || 'RetailPOS Store',
-          storeAddress: apiSettings.storeAddress || '123 Main Street, City, State 12345',
-          storePhone: apiSettings.storePhone || '(555) 123-4567',
-          storeEmail: apiSettings.storeEmail || 'info@retailpos.com',
+          storeName: apiSettings.storeName || "RetailPOS Store",
+          storeAddress:
+            apiSettings.storeAddress || "123 Main Street, City, State 12345",
+          storePhone: apiSettings.storePhone || "(555) 123-4567",
+          storeEmail: apiSettings.storeEmail || "info@retailpos.com",
           taxRate: apiSettings.taxRate || 8.0,
           taxIncluded: apiSettings.taxIncluded || false,
-          receiptHeader: apiSettings.receiptHeader || 'Thank you for your business!',
-          receiptFooter: apiSettings.receiptFooter || 'Please keep this receipt for your records',
-          printLogo: apiSettings.printLogo !== undefined ? apiSettings.printLogo : true,
+          receiptHeader:
+            apiSettings.receiptHeader || "Thank you for your business!",
+          receiptFooter:
+            apiSettings.receiptFooter ||
+            "Please keep this receipt for your records",
+          printLogo:
+            apiSettings.printLogo !== undefined ? apiSettings.printLogo : true,
           autoprint: apiSettings.autoprint || false,
-          currency: apiSettings.currency || 'USD',
-          dateFormat: apiSettings.dateFormat || 'MM/DD/YYYY',
-          timeFormat: apiSettings.timeFormat || '12',
+          currency: apiSettings.currency || "USD",
+          dateFormat: apiSettings.dateFormat || "MM/DD/YYYY",
+          timeFormat: apiSettings.timeFormat || "12",
           lowStockThreshold: apiSettings.lowStockThreshold || 10,
-          lowStockAlerts: apiSettings.lowStockAlerts !== undefined ? apiSettings.lowStockAlerts : true,
-          emailNotifications: apiSettings.emailNotifications !== undefined ? apiSettings.emailNotifications : true,
-          soundEffects: apiSettings.soundEffects !== undefined ? apiSettings.soundEffects : true,
+          lowStockAlerts:
+            apiSettings.lowStockAlerts !== undefined
+              ? apiSettings.lowStockAlerts
+              : true,
+          emailNotifications:
+            apiSettings.emailNotifications !== undefined
+              ? apiSettings.emailNotifications
+              : true,
+          soundEffects:
+            apiSettings.soundEffects !== undefined
+              ? apiSettings.soundEffects
+              : true,
           sessionTimeout: apiSettings.sessionTimeout || 30,
           requirePasswordChange: apiSettings.requirePasswordChange || false,
           twoFactorAuth: apiSettings.twoFactorAuth || false,
-          theme: apiSettings.theme || 'light',
+          theme: apiSettings.theme || "light",
           compactMode: apiSettings.compactMode || false,
-          showProductImages: apiSettings.showProductImages !== undefined ? apiSettings.showProductImages : true
+          showProductImages:
+            apiSettings.showProductImages !== undefined
+              ? apiSettings.showProductImages
+              : true,
         });
-        console.log('Settings loaded successfully');
+        console.log("Settings loaded successfully");
       } else {
-        setError(response.message || 'Failed to load settings');
+        setError(response.message || "Failed to load settings");
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
-      setError('Failed to load settings. Please try again.');
+      console.error("Error loading settings:", error);
+      setError("Failed to load settings. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSettingChange = (key: keyof SystemSettings, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const handleSettingChange = <K extends keyof SystemSettings>(
+    key: K,
+    value: SystemSettings[K]
+  ) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
     setHasChanges(true);
     setError(null);
     setSuccess(null);
@@ -161,54 +192,54 @@ const SettingsPage = () => {
       setIsSaving(true);
       setError(null);
       setSuccess(null);
-      
-      console.log('Saving settings:', settings);
+
+      console.log("Saving settings:", settings);
       const response = await settingsAPI.updateSettings(settings);
-      
+
       if (response.success) {
         setHasChanges(false);
-        setSuccess(t('settings.saved.successfully'));
+        setSuccess(t("settings.saved.successfully"));
         setShowSaveConfirm(true);
-        
+
         // Clear success message after 3 seconds
         setTimeout(() => {
           setShowSaveConfirm(false);
           setSuccess(null);
         }, 3000);
       } else {
-        setError(response.message || 'Failed to save settings');
+        setError(response.message || "Failed to save settings");
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
-      setError('Failed to save settings. Please try again.');
+      console.error("Error saving settings:", error);
+      setError("Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleReset = async () => {
-    if (confirm(t('settings.reset.confirm'))) {
+    if (confirm(t("settings.reset.confirm"))) {
       try {
         setIsSaving(true);
         setError(null);
         setSuccess(null);
-        
-        console.log('Resetting settings to defaults...');
+
+        console.log("Resetting settings to defaults...");
         const response = await settingsAPI.resetSettings();
-        
+
         if (response.success) {
           await loadSettings(); // Reload settings from server
           setHasChanges(false);
-          setSuccess('Settings reset to defaults successfully');
-          
+          setSuccess("Settings reset to defaults successfully");
+
           // Clear success message after 3 seconds
           setTimeout(() => setSuccess(null), 3000);
         } else {
-          setError(response.message || 'Failed to reset settings');
+          setError(response.message || "Failed to reset settings");
         }
       } catch (error) {
-        console.error('Error resetting settings:', error);
-        setError('Failed to reset settings. Please try again.');
+        console.error("Error resetting settings:", error);
+        setError("Failed to reset settings. Please try again.");
       } finally {
         setIsSaving(false);
       }
@@ -216,8 +247,8 @@ const SettingsPage = () => {
   };
 
   // Permission check - only Admin has full access, Manager has read-only
-  const canEdit = user?.role === 'admin';
-  const canView = user?.role === 'admin' || user?.role === 'manager';
+  const canEdit = user?.role === "admin";
+  const canView = user?.role === "admin" || user?.role === "manager";
 
   // Access control
   if (!canView) {
@@ -225,8 +256,12 @@ const SettingsPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
-          <p className="text-gray-500">You do not have permission to access settings</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Access Denied
+          </h3>
+          <p className="text-gray-500">
+            You do not have permission to access settings
+          </p>
         </div>
       </div>
     );
@@ -236,9 +271,9 @@ const SettingsPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header 
-          onMenuClick={() => setShowSidebar(true)} 
-          title={t('settings.title')}
+        <Header
+          onMenuClick={() => setShowSidebar(true)}
+          title={t("settings.title")}
         />
         <div className="p-6 flex items-center justify-center">
           <div className="text-center">
@@ -250,69 +285,76 @@ const SettingsPage = () => {
     );
   }
 
-  const colorOptions = [
-    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
-    '#8B5CF6', '#EC4899', '#6B7280', '#14B8A6'
-  ];
-
   const tabs = [
-    { id: 'store', label: t('settings.tabs.store'), icon: Store },
-    { id: 'system', label: t('settings.tabs.system'), icon: Settings },
-    { id: 'receipt', label: t('settings.tabs.receipt'), icon: Receipt },
-    { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
-    { id: 'security', label: t('settings.tabs.security'), icon: Shield },
-    { id: 'display', label: t('settings.tabs.display'), icon: Palette }
+    { id: "store", label: t("settings.tabs.store"), icon: Store },
+    { id: "system", label: t("settings.tabs.system"), icon: Settings },
+    { id: "receipt", label: t("settings.tabs.receipt"), icon: Receipt },
+    {
+      id: "notifications",
+      label: t("settings.tabs.notifications"),
+      icon: Bell,
+    },
+    { id: "security", label: t("settings.tabs.security"), icon: Shield },
+    { id: "display", label: t("settings.tabs.display"), icon: Palette },
   ];
 
   const renderStoreSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.store.info')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.store.info")}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.store.name')}
+              {t("settings.store.name")}
             </label>
             <input
               type="text"
               value={settings.storeName}
-              onChange={(e) => handleSettingChange('storeName', e.target.value)}
+              onChange={(e) => handleSettingChange("storeName", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.store.phone')}
+              {t("settings.store.phone")}
             </label>
             <input
               type="tel"
               value={settings.storePhone}
-              onChange={(e) => handleSettingChange('storePhone', e.target.value)}
+              onChange={(e) =>
+                handleSettingChange("storePhone", e.target.value)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.store.address')}
+              {t("settings.store.address")}
             </label>
             <input
               type="text"
               value={settings.storeAddress}
-              onChange={(e) => handleSettingChange('storeAddress', e.target.value)}
+              onChange={(e) =>
+                handleSettingChange("storeAddress", e.target.value)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.store.email')}
+              {t("settings.store.email")}
             </label>
             <input
               type="email"
               value={settings.storeEmail}
-              onChange={(e) => handleSettingChange('storeEmail', e.target.value)}
+              onChange={(e) =>
+                handleSettingChange("storeEmail", e.target.value)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
@@ -321,17 +363,21 @@ const SettingsPage = () => {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.tax.settings')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.tax.settings")}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.tax.rate')} (%)
+              {t("settings.tax.rate")} (%)
             </label>
             <input
               type="number"
               step="0.1"
               value={settings.taxRate}
-              onChange={(e) => handleSettingChange('taxRate', parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                handleSettingChange("taxRate", parseFloat(e.target.value) || 0)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
@@ -341,11 +387,15 @@ const SettingsPage = () => {
               <input
                 type="checkbox"
                 checked={settings.taxIncluded}
-                onChange={(e) => handleSettingChange('taxIncluded', e.target.checked)}
+                onChange={(e) =>
+                  handleSettingChange("taxIncluded", e.target.checked)
+                }
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 disabled={!canEdit}
               />
-              <span className="text-sm font-medium text-gray-700">{t('settings.tax.included')}</span>
+              <span className="text-sm font-medium text-gray-700">
+                {t("settings.tax.included")}
+              </span>
             </label>
           </div>
         </div>
@@ -356,15 +406,17 @@ const SettingsPage = () => {
   const renderSystemSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.system.general')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.system.general")}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.system.currency')}
+              {t("settings.system.currency")}
             </label>
             <select
               value={settings.currency}
-              onChange={(e) => handleSettingChange('currency', e.target.value)}
+              onChange={(e) => handleSettingChange("currency", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             >
@@ -377,11 +429,13 @@ const SettingsPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.system.date.format')}
+              {t("settings.system.date.format")}
             </label>
             <select
               value={settings.dateFormat}
-              onChange={(e) => handleSettingChange('dateFormat', e.target.value)}
+              onChange={(e) =>
+                handleSettingChange("dateFormat", e.target.value)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             >
@@ -392,26 +446,33 @@ const SettingsPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.system.time.format')}
+              {t("settings.system.time.format")}
             </label>
             <select
               value={settings.timeFormat}
-              onChange={(e) => handleSettingChange('timeFormat', e.target.value as '12' | '24')}
+              onChange={(e) =>
+                handleSettingChange("timeFormat", e.target.value as "12" | "24")
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             >
-              <option value="12">{t('settings.system.time.12')}</option>
-              <option value="24">{t('settings.system.time.24')}</option>
+              <option value="12">{t("settings.system.time.12")}</option>
+              <option value="24">{t("settings.system.time.24")}</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.system.low.stock.threshold')}
+              {t("settings.system.low.stock.threshold")}
             </label>
             <input
               type="number"
               value={settings.lowStockThreshold}
-              onChange={(e) => handleSettingChange('lowStockThreshold', parseInt(e.target.value) || 0)}
+              onChange={(e) =>
+                handleSettingChange(
+                  "lowStockThreshold",
+                  parseInt(e.target.value) || 0
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
@@ -424,15 +485,19 @@ const SettingsPage = () => {
   const renderReceiptSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.receipt.customization')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.receipt.customization")}
+        </h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.receipt.header')}
+              {t("settings.receipt.header")}
             </label>
             <textarea
               value={settings.receiptHeader}
-              onChange={(e) => handleSettingChange('receiptHeader', e.target.value)}
+              onChange={(e) =>
+                handleSettingChange("receiptHeader", e.target.value)
+              }
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
@@ -440,11 +505,13 @@ const SettingsPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.receipt.footer')}
+              {t("settings.receipt.footer")}
             </label>
             <textarea
               value={settings.receiptFooter}
-              onChange={(e) => handleSettingChange('receiptFooter', e.target.value)}
+              onChange={(e) =>
+                handleSettingChange("receiptFooter", e.target.value)
+              }
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
@@ -454,27 +521,41 @@ const SettingsPage = () => {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.receipt.printing')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.receipt.printing")}
+        </h3>
         <div className="space-y-3">
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.printLogo}
-              onChange={(e) => handleSettingChange('printLogo', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("printLogo", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.receipt.print.logo')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.receipt.print.logo")}
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.autoprint}
-              onChange={(e) => handleSettingChange('autoprint', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("autoprint", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.receipt.auto.print')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.receipt.auto.print")}
+            </span>
           </label>
         </div>
       </div>
@@ -484,37 +565,57 @@ const SettingsPage = () => {
   const renderNotificationSettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.notifications.alerts')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.notifications.alerts")}
+        </h3>
         <div className="space-y-3">
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.lowStockAlerts}
-              onChange={(e) => handleSettingChange('lowStockAlerts', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("lowStockAlerts", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.notifications.low.stock')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.notifications.low.stock")}
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.emailNotifications}
-              onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("emailNotifications", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.notifications.email')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.notifications.email")}
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.soundEffects}
-              onChange={(e) => handleSettingChange('soundEffects', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("soundEffects", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.notifications.sound')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.notifications.sound")}
+            </span>
           </label>
         </div>
       </div>
@@ -524,16 +625,24 @@ const SettingsPage = () => {
   const renderSecuritySettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.security.access')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.security.access")}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.security.session.timeout')} ({t('settings.security.minutes')})
+              {t("settings.security.session.timeout")} (
+              {t("settings.security.minutes")})
             </label>
             <input
               type="number"
               value={settings.sessionTimeout}
-              onChange={(e) => handleSettingChange('sessionTimeout', parseInt(e.target.value) || 0)}
+              onChange={(e) =>
+                handleSettingChange(
+                  "sessionTimeout",
+                  parseInt(e.target.value) || 0
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
@@ -544,21 +653,33 @@ const SettingsPage = () => {
             <input
               type="checkbox"
               checked={settings.requirePasswordChange}
-              onChange={(e) => handleSettingChange('requirePasswordChange', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("requirePasswordChange", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.security.password.change')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.security.password.change")}
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.twoFactorAuth}
-              onChange={(e) => handleSettingChange('twoFactorAuth', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("twoFactorAuth", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.security.two.factor')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.security.two.factor")}
+            </span>
           </label>
         </div>
       </div>
@@ -568,21 +689,28 @@ const SettingsPage = () => {
   const renderDisplaySettings = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('settings.display.appearance')}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {t("settings.display.appearance")}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('settings.display.theme')}
+              {t("settings.display.theme")}
             </label>
             <select
               value={settings.theme}
-              onChange={(e) => handleSettingChange('theme', e.target.value as 'light' | 'dark' | 'auto')}
+              onChange={(e) =>
+                handleSettingChange(
+                  "theme",
+                  e.target.value as "light" | "dark" | "auto"
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             >
-              <option value="light">{t('settings.display.theme.light')}</option>
-              <option value="dark">{t('settings.display.theme.dark')}</option>
-              <option value="auto">{t('settings.display.theme.auto')}</option>
+              <option value="light">{t("settings.display.theme.light")}</option>
+              <option value="dark">{t("settings.display.theme.dark")}</option>
+              <option value="auto">{t("settings.display.theme.auto")}</option>
             </select>
           </div>
         </div>
@@ -591,21 +719,33 @@ const SettingsPage = () => {
             <input
               type="checkbox"
               checked={settings.compactMode}
-              onChange={(e) => handleSettingChange('compactMode', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("compactMode", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.display.compact.mode')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.display.compact.mode")}
+            </span>
           </label>
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={settings.showProductImages}
-              onChange={(e) => handleSettingChange('showProductImages', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              onChange={(e) =>
+                handleSettingChange("showProductImages", e.target.checked)
+              }
+              className={`rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                document.documentElement.dir === "rtl" ? "mr-2" : "ml-2"
+              }`}
               disabled={!canEdit}
             />
-            <span className="text-sm font-medium text-gray-700">{t('settings.display.product.images')}</span>
+            <span className="text-sm font-medium text-gray-700">
+              {t("settings.display.product.images")}
+            </span>
           </label>
         </div>
       </div>
@@ -614,17 +754,17 @@ const SettingsPage = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'store':
+      case "store":
         return renderStoreSettings();
-      case 'system':
+      case "system":
         return renderSystemSettings();
-      case 'receipt':
+      case "receipt":
         return renderReceiptSettings();
-      case 'notifications':
+      case "notifications":
         return renderNotificationSettings();
-      case 'security':
+      case "security":
         return renderSecuritySettings();
-      case 'display':
+      case "display":
         return renderDisplaySettings();
       default:
         return renderStoreSettings();
@@ -633,9 +773,9 @@ const SettingsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        onMenuClick={() => setShowSidebar(true)} 
-        title={t('settings.title')}
+      <Header
+        onMenuClick={() => setShowSidebar(true)}
+        title={t("settings.title")}
       />
 
       <div className="p-6 max-w-6xl mx-auto">
@@ -675,7 +815,7 @@ const SettingsPage = () => {
         {showSaveConfirm && (
           <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2">
             <Check className="h-4 w-4" />
-            <span>{t('settings.saved.successfully')}</span>
+            <span>{t("settings.saved.successfully")}</span>
           </div>
         )}
 
@@ -689,13 +829,13 @@ const SettingsPage = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                    className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                       activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className={`h-5 w-5 ${document.documentElement.dir === 'rtl' ? 'mr-2' : 'ml-2'}`} />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -704,9 +844,7 @@ const SettingsPage = () => {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
-            {renderTabContent()}
-          </div>
+          <div className="p-6">{renderTabContent()}</div>
         </div>
 
         {/* Action Buttons */}
@@ -715,11 +853,11 @@ const SettingsPage = () => {
             {hasChanges && (
               <div className="flex items-center space-x-2 text-amber-600">
                 <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm">{t('settings.unsaved.changes')}</span>
+                <span className="text-sm">{t("settings.unsaved.changes")}</span>
               </div>
             )}
           </div>
-          
+
           <div className="flex space-x-3">
             {canEdit && (
               <>
@@ -728,7 +866,7 @@ const SettingsPage = () => {
                   disabled={isSaving}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
                 >
-                  {t('settings.reset.defaults')}
+                  {t("settings.reset.defaults")}
                 </button>
                 <button
                   onClick={handleSave}
@@ -736,7 +874,9 @@ const SettingsPage = () => {
                   className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   <Save className="h-4 w-4" />
-                  <span>{isSaving ? 'Saving...' : t('settings.save.changes')}</span>
+                  <span>
+                    {isSaving ? "Saving..." : t("settings.save.changes")}
+                  </span>
                 </button>
               </>
             )}
@@ -745,10 +885,7 @@ const SettingsPage = () => {
       </div>
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={showSidebar} 
-        onClose={() => setShowSidebar(false)}
-      />
+      <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
     </div>
   );
 };
