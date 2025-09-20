@@ -58,7 +58,13 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      <h4
+                        className={
+                          `text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 truncate flex items-center` +
+                          (document?.documentElement?.dir === 'rtl' ? ' ml-2' : ' mr-2')
+                        }
+                      >
+                        {/* If you have an icon, place it here, otherwise remove this comment */}
                         {item.product.name}
                       </h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{item.product.sku}</p>
