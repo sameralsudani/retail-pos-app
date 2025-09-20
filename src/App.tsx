@@ -15,8 +15,7 @@ import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
 
 function App() {
-  const { isAuthenticated } = useAuth();
-  const { user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <Router>
@@ -26,7 +25,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           
-          {/* Default route */}
+          {/* Default route - redirect based on user role */}
           <Route 
             path="/" 
             element={
@@ -120,7 +119,7 @@ function App() {
             } 
           />
           
-          {/* Catch all route */}
+          {/* Catch all route - redirect based on user role */}
           <Route 
             path="*" 
             element={
