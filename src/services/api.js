@@ -187,6 +187,58 @@ export const categoriesAPI = {
       method: 'DELETE',
     });
   },
+
+  createWithImage: async (formData) => {
+    const token = getAuthToken();
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+          // Don't set Content-Type for FormData, let browser set it
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Create category with image error:', error);
+      throw error;
+    }
+  },
+
+  updateWithImage: async (id, formData) => {
+    const token = getAuthToken();
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+          // Don't set Content-Type for FormData, let browser set it
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Update category with image error:', error);
+      throw error;
+    }
+  },
 };
 
 // Customers API

@@ -1,7 +1,10 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const fs = require('fs').promises;
 const Category = require('../models/Category');
 const { protect, authorize } = require('../middleware/auth');
+const { upload, handleUploadError } = require('../middleware/upload');
+const { uploadImage, deleteImage } = require('../config/cloudinary');
 
 const router = express.Router();
 
@@ -58,7 +61,7 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new category
 // @route   POST /api/categories
 // @access  Private (Admin)
-router.post('/', protect, authorize('admin'), [
+router.post('/', protect, authorize('admin'), upload.single('image'), handleUploadError, [
   body('name').trim().isLength({ min: 1 }).withMessage('Category name is required'),
   body('color').optional().matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).withMessage('Invalid hex color format')
 ], async (req, res) => {
@@ -137,6 +140,31 @@ router.put('/:id', protect, authorize('admin'), [
           success: false,
           message: 'Category with this name already exists'
         });
+      }
+    }
+
+    // Handle image upload if file is provided
+    if (req.file) {
+      try {
+        const uploadResult = await uploadImage(req.file, 'retail-pos/categories');
+        
+        if (uploadResult.success) {
+          req.body.image = uploadResult.url;
+          
+          // TODO: Delete old image from Cloudinary if it exists
+          // This would require storing the public_id in the database
+        } else {
+          console.error('Image upload failed:', uploadResult.error);
+        }
+        
+        // Clean up temporary file
+        try {
+          await fs.unlink(req.file.path);
+        } catch (cleanupError) {
+          console.error('Error cleaning up temp file:', cleanupError);
+        }
+      } catch (error) {
+        console.error('Error processing image upload:', error);
       }
     }
 
