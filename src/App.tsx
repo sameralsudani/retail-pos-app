@@ -16,6 +16,7 @@ import ReportsPage from './components/ReportsPage';
 
 function App() {
   const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
   return (
     <Router>
@@ -30,7 +31,9 @@ function App() {
             path="/" 
             element={
               isAuthenticated ? 
-                <Navigate to="/pos" replace /> : 
+                user?.role === 'admin' ? 
+                  <Navigate to="/users" replace /> : 
+                  <Navigate to="/pos" replace /> : 
                 <Navigate to="/login" replace />
             } 
           />
@@ -122,7 +125,9 @@ function App() {
             path="*" 
             element={
               isAuthenticated ? 
-                <Navigate to="/pos" replace /> : 
+                user?.role === 'admin' ? 
+                  <Navigate to="/users" replace /> : 
+                  <Navigate to="/pos" replace /> : 
                 <Navigate to="/login" replace />
             } 
           />
