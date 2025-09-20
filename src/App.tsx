@@ -14,6 +14,17 @@ import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
 
+// Component to block admin access to POS
+const AdminBlockedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (user?.role === 'admin') {
+    return <Navigate to="/users" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 function App() {
   const { isAuthenticated, user } = useAuth();
 
@@ -42,7 +53,9 @@ function App() {
             path="/pos" 
             element={
               <ProtectedRoute>
-                <POSPage />
+                <AdminBlockedRoute>
+                  <POSPage />
+                </AdminBlockedRoute>
               </ProtectedRoute>
             } 
           />

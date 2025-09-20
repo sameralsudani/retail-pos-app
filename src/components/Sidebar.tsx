@@ -102,6 +102,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   }
 
   const handlePOSClick = () => {
+    // Block admin access to POS
+    if (user?.role === 'admin') {
+      // Show notification that admin cannot access POS
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 bg-red-500 text-white';
+      notification.textContent = 'Admin users cannot access POS system';
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 3000);
+      
+      return;
+    }
+    
     navigate('/pos');
     onClose();
   };
