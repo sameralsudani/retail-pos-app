@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, Edit3, Trash2, Tag, Eye, Save, X, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Edit3, Trash2, Tag, Eye, Save, X, AlertTriangle, Upload, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { categoriesAPI } from '../services/api';
@@ -11,6 +11,7 @@ interface Category {
   name: string;
   description: string;
   color: string;
+  image?: string;
   productCount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -37,6 +38,12 @@ const CategoryPage = () => {
     color: '#3B82F6'
   });
 
+  // Image upload state
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [editSelectedImage, setEditSelectedImage] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+
   // Load categories on component mount
   React.useEffect(() => {
     loadCategories();
@@ -57,6 +64,7 @@ const CategoryPage = () => {
           name: apiCategory.name,
           description: apiCategory.description || '',
           color: apiCategory.color || '#3B82F6',
+          image: apiCategory.image || undefined,
           productCount: apiCategory.productCount || 0,
           createdAt: new Date(apiCategory.createdAt),
           updatedAt: new Date(apiCategory.updatedAt)
@@ -82,27 +90,112 @@ const CategoryPage = () => {
   // Permission check - only Admin has full access
   const canEdit = user?.role === 'admin';
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB');
+        return;
+      }
+
+      setSelectedImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image size must be less than 5MB');
+        return;
+      }
+
+      setEditSelectedImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setEditImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const removeEditImage = () => {
+    setEditSelectedImage(null);
+    setEditImagePreview(null);
+  };
+
   const handleAddCategory = async () => {
     if (newCategory.name && canEdit) {
       try {
         setIsSubmitting(true);
         setError(null);
         
-        const categoryData = {
-          name: newCategory.name,
-          description: newCategory.description,
-          color: newCategory.color
-        };
-        
-        console.log('Creating category with data:', categoryData);
-        const response = await categoriesAPI.create(categoryData);
-        
-        if (response.success) {
-          await loadCategories(); // Reload categories list
-          setNewCategory({ name: '', description: '', color: '#3B82F6' });
-          setShowAddModal(false);
+        if (selectedImage) {
+          // Use FormData for image upload
+          const formData = new FormData();
+          formData.append('name', newCategory.name);
+          formData.append('description', newCategory.description);
+          formData.append('color', newCategory.color);
+          formData.append('image', selectedImage);
+          
+          console.log('Creating category with image...');
+          const response = await categoriesAPI.createWithImage(formData);
+          
+          if (response.success) {
+            await loadCategories(); // Reload categories list
+            setNewCategory({ name: '', description: '', color: '#3B82F6' });
+            setSelectedImage(null);
+            setImagePreview(null);
+            setShowAddModal(false);
+          } else {
+            setError(response.message || 'Failed to create category');
+          }
         } else {
-          setError(response.message || 'Failed to create category');
+          // Regular JSON request without image
+          const categoryData = {
+            name: newCategory.name,
+            description: newCategory.description,
+            color: newCategory.color
+          };
+          
+          console.log('Creating category without image:', categoryData);
+          const response = await categoriesAPI.create(categoryData);
+          
+          if (response.success) {
+            await loadCategories(); // Reload categories list
+            setNewCategory({ name: '', description: '', color: '#3B82F6' });
+            setShowAddModal(false);
+          } else {
+            setError(response.message || 'Failed to create category');
+          }
         }
       } catch (error) {
         console.error('Error creating category:', error);
@@ -119,21 +212,44 @@ const CategoryPage = () => {
         setIsSubmitting(true);
         setError(null);
         
-        const updateData = {
-          name: selectedCategory.name,
-          description: selectedCategory.description,
-          color: selectedCategory.color
-        };
-        
-        console.log('Updating category with data:', updateData);
-        const response = await categoriesAPI.update(selectedCategory.id, updateData);
-        
-        if (response.success) {
-          await loadCategories(); // Reload categories list
-          setShowEditModal(false);
-          setSelectedCategory(null);
+        if (editSelectedImage) {
+          // Use FormData for image upload
+          const formData = new FormData();
+          formData.append('name', selectedCategory.name);
+          formData.append('description', selectedCategory.description);
+          formData.append('color', selectedCategory.color);
+          formData.append('image', editSelectedImage);
+          
+          console.log('Updating category with image...');
+          const response = await categoriesAPI.updateWithImage(selectedCategory.id, formData);
+          
+          if (response.success) {
+            await loadCategories(); // Reload categories list
+            setShowEditModal(false);
+            setSelectedCategory(null);
+            setEditSelectedImage(null);
+            setEditImagePreview(null);
+          } else {
+            setError(response.message || 'Failed to update category');
+          }
         } else {
-          setError(response.message || 'Failed to update category');
+          // Regular JSON request without image
+          const updateData = {
+            name: selectedCategory.name,
+            description: selectedCategory.description,
+            color: selectedCategory.color
+          };
+          
+          console.log('Updating category without image:', updateData);
+          const response = await categoriesAPI.update(selectedCategory.id, updateData);
+          
+          if (response.success) {
+            await loadCategories(); // Reload categories list
+            setShowEditModal(false);
+            setSelectedCategory(null);
+          } else {
+            setError(response.message || 'Failed to update category');
+          }
         }
       } catch (error) {
         console.error('Error updating category:', error);
@@ -289,6 +405,17 @@ const CategoryPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCategories.map((category) => (
             <div key={category.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              {/* Category Image */}
+              {category.image && (
+                <div className="h-32 bg-gray-100">
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
@@ -304,6 +431,7 @@ const CategoryPage = () => {
                         <button
                           onClick={() => {
                             setSelectedCategory(category);
+                            setEditImagePreview(category.image || null);
                             setShowEditModal(true);
                           }}
                           className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
@@ -323,6 +451,7 @@ const CategoryPage = () => {
                       <button
                         onClick={() => {
                           setSelectedCategory(category);
+                          setEditImagePreview(category.image || null);
                           setShowEditModal(true);
                         }}
                         className="text-gray-600 hover:text-gray-900 p-1 hover:bg-gray-50 rounded"
@@ -357,11 +486,16 @@ const CategoryPage = () => {
       {/* Add Category Modal */}
       {showAddModal && canEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">{t('categories.add.title')}</h2>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                  setNewCategory({ name: '', description: '', color: '#3B82F6' });
+                }}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -369,6 +503,59 @@ const CategoryPage = () => {
             </div>
 
             <div className="p-6 space-y-4">
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('categories.form.image')}
+                </label>
+                <div className="flex items-center space-x-4">
+                  {/* Image Preview */}
+                  <div className="flex-shrink-0">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="h-20 w-20 object-cover rounded-lg border border-gray-300"
+                        />
+                        <button
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          title={t('categories.form.image.remove')}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Button */}
+                  <div className="flex-1">
+                    <label className="cursor-pointer">
+                      <div className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                        <span className="text-sm text-gray-600">
+                          {selectedImage ? selectedImage.name : t('categories.form.image.choose')}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t('categories.form.image.help')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('categories.form.name')} *
@@ -417,7 +604,12 @@ const CategoryPage = () => {
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setShowAddModal(false)}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                    setNewCategory({ name: '', description: '', color: '#3B82F6' });
+                  }}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   {t('categories.form.cancel')}
@@ -438,7 +630,7 @@ const CategoryPage = () => {
       {/* Edit/View Category Modal */}
       {showEditModal && selectedCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
                 {canEdit ? t('categories.edit.title') : t('categories.view.title')}
@@ -447,6 +639,8 @@ const CategoryPage = () => {
                 onClick={() => {
                   setShowEditModal(false);
                   setSelectedCategory(null);
+                  setEditSelectedImage(null);
+                  setEditImagePreview(null);
                 }}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
@@ -455,6 +649,63 @@ const CategoryPage = () => {
             </div>
 
             <div className="p-6 space-y-4">
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('categories.form.image')}
+                </label>
+                <div className="flex items-center space-x-4">
+                  {/* Image Preview */}
+                  <div className="flex-shrink-0">
+                    {editImagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={editImagePreview}
+                          alt="Preview"
+                          className="h-20 w-20 object-cover rounded-lg border border-gray-300"
+                        />
+                        {canEdit && (
+                          <button
+                            onClick={removeEditImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                            title={t('categories.form.image.remove')}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Button */}
+                  {canEdit && (
+                    <div className="flex-1">
+                      <label className="cursor-pointer">
+                        <div className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                          <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-sm text-gray-600">
+                            {editSelectedImage ? editSelectedImage.name : t('categories.form.image.choose')}
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleEditImageSelect}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t('categories.form.image.help')}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('categories.form.name')} *
@@ -515,6 +766,8 @@ const CategoryPage = () => {
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedCategory(null);
+                    setEditSelectedImage(null);
+                    setEditImagePreview(null);
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
