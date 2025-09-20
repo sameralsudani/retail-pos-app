@@ -11,8 +11,6 @@ interface ProductGridProps {
 const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
   const { t } = useLanguage();
 
-  console.log('ProductGrid received products:', products.length);
-
   if (products.length === 0) {
     return (
       <div className="p-6 text-center">
@@ -26,12 +24,13 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+    <div className="p-2 sm:p-2 lg:p-3">
+  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-9 gap-y-3 gap-x-1 sm:gap-y-3 sm:gap-x-2 lg:gap-y-4 lg:gap-x-2">
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 group"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 group text-xs"
+            style={{ maxWidth: 140 }}
           >
             <div className="relative aspect-square bg-gray-100">
               <img
@@ -55,7 +54,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
               </button>
             </div>
             
-            <div className="p-3 sm:p-4">
+            <div className="p-1.5 sm:p-2">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                 <span>{product.sku}</span>
                 <div className="flex items-center space-x-1">
