@@ -24,15 +24,10 @@ const getTenantId = () => {
     return tenantParam;
   }
   
-  // In production, this would extract from subdomain
-  const host = window.location.hostname;
-  if (host.includes('demo1')) return 'demo1';
-  if (host.includes('demo2')) return 'demo2';
-  if (host.includes('demo3')) return 'demo3';
-  
-  // Default to demo1 for localhost development
-  console.log('Using default tenant: demo1');
-  return 'demo1';
+  // For localhost development, don't set a default tenant
+  // Let the backend find the first available tenant
+  console.log('No tenant identifier found, letting backend handle it');
+  return null;
 };
 
 // Get auth token from localStorage

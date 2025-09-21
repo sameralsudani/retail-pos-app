@@ -5,31 +5,36 @@ const extractTenant = async (req, res, next) => {
   try {
     let tenantIdentifier = null;
     
-    // Method 1: Extract from subdomain
-    const host = req.get('host') || req.get('x-forwarded-host');
-    if (host) {
-      const subdomain = host.split('.')[0];
-      if (subdomain && subdomain !== 'www' && subdomain !== 'localhost') {
-        tenantIdentifier = subdomain;
-      }
-    }
-    
-    // Method 2: Extract from custom header (for development/testing)
-    if (!tenantIdentifier && req.headers['x-tenant-id']) {
+    // Method 1: Extract from custom header (for development/testing)
+    if (req.headers['x-tenant-id']) {
       tenantIdentifier = req.headers['x-tenant-id'];
       console.log('Tenant from header:', tenantIdentifier);
     }
     
-    // Method 3: Extract from query parameter (fallback)
+    // Method 2: Extract from query parameter
     if (!tenantIdentifier && req.query.tenant) {
       tenantIdentifier = req.query.tenant;
       console.log('Tenant from query:', tenantIdentifier);
     }
     
-    // For development, use default tenant if none specified
-    if (!tenantIdentifier && process.env.NODE_ENV === 'development') {
-      tenantIdentifier = 'demo1';
-      console.log('Using default tenant for development:', tenantIdentifier);
+    // Method 3: Extract from subdomain (for production)
+    const host = req.get('host') || req.get('x-forwarded-host');
+    if (!tenantIdentifier && host && !host.includes('localhost')) {
+      const subdomain = host.split('.')[0];
+      if (subdomain && subdomain !== 'www' && subdomain !== 'localhost') {
+        tenantIdentifier = subdomain;
+        console.log('Tenant from subdomain:', tenantIdentifier);
+      }
+    }
+    
+    // Method 4: For localhost development, try to find any tenant if none specified
+    if (!tenantIdentifier && host && host.includes('localhost')) {
+      // Try to find the first available tenant for development
+      const firstTenant = await Tenant.findOne({ isActive: true }).sort({ createdAt: 1 });
+      if (firstTenant) {
+        tenantIdentifier = firstTenant._id.toString();
+        console.log('Using first available tenant for localhost:', tenantIdentifier, firstTenant.name);
+      }
     }
     
     console.log('Tenant identifier extracted:', tenantIdentifier);
