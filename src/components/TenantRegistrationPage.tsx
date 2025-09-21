@@ -168,8 +168,8 @@ const TenantRegistrationPage = () => {
         };
         
         localStorage.setItem('pos_user', JSON.stringify(userData));
-        // Redirect to login with tenant parameter to ensure proper tenant detection
-        window.location.href = `/login?tenant=${result.data.user.tenantId}`;
+        // Redirect to login page
+        window.location.href = '/login';
       } else {
         setError(result.message || 'Registration failed');
       }

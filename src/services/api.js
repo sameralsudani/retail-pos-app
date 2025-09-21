@@ -16,17 +16,8 @@ const getTenantId = () => {
     }
   }
   
-  // Check URL parameters for tenant (useful for development)
-  const urlParams = new URLSearchParams(window.location.search);
-  const tenantParam = urlParams.get('tenant');
-  if (tenantParam) {
-    console.log('Found tenant from URL param:', tenantParam);
-    return tenantParam;
-  }
-  
-  // For localhost development, don't set a default tenant
-  // Let the backend find the first available tenant
-  console.log('No tenant identifier found, letting backend handle it');
+  // No tenant identifier found - will be handled by authentication
+  console.log('No tenant identifier found, will use authenticated user tenant');
   return null;
 };
 
