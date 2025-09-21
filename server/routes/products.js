@@ -33,7 +33,7 @@ router.get('/', protect, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true };
+    let query = { isActive: true, tenantId: req.user.tenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -83,7 +83,10 @@ router.get('/', protect, [
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
-    const product = await Product.findOne({ _id: req.params.id })
+    const product = await Product.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.user.tenantId 
+    })
       .populate('category', 'name color')
       .populate('supplier', 'name contactPerson');
 
@@ -129,7 +132,10 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
     }
 
     // Check if SKU already exists
-    const existingProduct = await Product.findOne({ sku: req.body.sku.toUpperCase() });
+    const existingProduct = await Product.findOne({ 
+      sku: req.body.sku.toUpperCase(),
+      tenantId: req.user.tenantId
+    });
     if (existingProduct) {
       return res.status(400).json({
         success: false,
@@ -165,6 +171,7 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
 
     const product = await Product.create({
       ...req.body,
+      tenantId: req.user.tenantId,
       sku: req.body.sku.toUpperCase(),
       image: imageUrl
     });
@@ -205,7 +212,10 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
       });
     }
 
-    let product = await Product.findById(req.params.id);
+    let product = await Product.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.user.tenantId 
+    });
 
     if (!product) {
       return res.status(404).json({
@@ -216,7 +226,10 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
 
     // If updating SKU, check for duplicates
     if (req.body.sku && req.body.sku.toUpperCase() !== product.sku) {
-      const existingProduct = await Product.findOne({ sku: req.body.sku.toUpperCase() });
+      const existingProduct = await Product.findOne({ 
+        sku: req.body.sku.toUpperCase(),
+        tenantId: req.user.tenantId
+      });
       if (existingProduct) {
         return res.status(400).json({
           success: false,
@@ -251,8 +264,8 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
       }
     }
 
-    product = await Product.findByIdAndUpdate(
-      req.params.id,
+    product = await Product.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.user.tenantId },
       req.body,
       { new: true, runValidators: true }
     ).populate('category', 'name color').populate('supplier', 'name');
@@ -276,7 +289,10 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
 // @access  Private (Admin)
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.user.tenantId 
+    });
 
     if (!product) {
       return res.status(404).json({
@@ -286,7 +302,10 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     }
 
     // Soft delete - set isActive to false
-    await Product.findByIdAndUpdate(req.params.id, { isActive: false });
+    await Product.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.user.tenantId },
+      { isActive: false }
+    );
 
     res.json({
       success: true,
@@ -311,6 +330,7 @@ router.get('/barcode/:code', protect, async (req, res) => {
         { sku: req.params.code.toUpperCase() },
         { barcode: req.params.code }
       ],
+      tenantId: req.user.tenantId,
       isActive: true
     }).populate('category', 'name color');
 
