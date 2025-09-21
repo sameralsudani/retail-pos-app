@@ -11,8 +11,6 @@ const router = express.Router();
 // @access  Public
 router.post('/register', [
   body('storeName').trim().isLength({ min: 1 }).withMessage('Store name is required'),
-  body('subdomain').trim().isLength({ min: 3 }).withMessage('Subdomain must be at least 3 characters')
-    .matches(/^[a-z0-9-]+$/).withMessage('Subdomain can only contain lowercase letters, numbers, and hyphens'),
   body('ownerName').trim().isLength({ min: 2 }).withMessage('Owner name must be at least 2 characters'),
   body('ownerEmail').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('ownerPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -35,7 +33,6 @@ router.post('/register', [
 
     const { 
       storeName, 
-      subdomain, 
       description,
       ownerName, 
       ownerEmail, 
@@ -44,14 +41,6 @@ router.post('/register', [
       address 
     } = req.body;
 
-    // Check if subdomain is already taken
-    const existingTenant = await Tenant.findOne({ subdomain: subdomain.toLowerCase() });
-    if (existingTenant) {
-      return res.status(400).json({
-        success: false,
-        message: 'This store name is already taken'
-      });
-    }
 
     // Check if owner email is already used
     const existingUser = await User.findOne({ email: ownerEmail });
@@ -65,7 +54,6 @@ router.post('/register', [
     // Create tenant
     const tenant = await Tenant.create({
       name: storeName,
-      subdomain: subdomain.toLowerCase(),
       description,
       address,
       contact: {
@@ -95,7 +83,6 @@ router.post('/register', [
         tenant: {
           id: tenant._id,
           name: tenant.name,
-          subdomain: tenant.subdomain,
           description: tenant.description
         },
         user: {
@@ -107,7 +94,6 @@ router.post('/register', [
           employeeId: owner.employeeId,
           phone: owner.phone,
           isActive: owner.isActive,
-          tenantId: owner.tenantId,
           createdAt: owner.createdAt,
           updatedAt: owner.updatedAt
         },

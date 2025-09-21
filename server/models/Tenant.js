@@ -7,14 +7,6 @@ const tenantSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Store name cannot exceed 100 characters']
   },
-  subdomain: {
-    type: String,
-    required: [true, 'Subdomain is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^[a-z0-9-]+$/, 'Subdomain can only contain lowercase letters, numbers, and hyphens']
-  },
   domain: {
     type: String,
     trim: true
@@ -76,7 +68,6 @@ const tenantSchema = new mongoose.Schema({
 });
 
 // Index for subdomain lookup
-tenantSchema.index({ subdomain: 1 });
 tenantSchema.index({ domain: 1 });
 
 module.exports = mongoose.model('Tenant', tenantSchema);

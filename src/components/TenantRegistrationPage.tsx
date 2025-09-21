@@ -12,13 +12,10 @@ const TenantRegistrationPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null);
-  const [checkingSubdomain, setCheckingSubdomain] = useState(false);
 
   // Form data
   const [storeData, setStoreData] = useState({
     storeName: '',
-    subdomain: '',
     description: ''
   });
 
@@ -43,45 +40,10 @@ const TenantRegistrationPage = () => {
     return <Navigate to="/" replace />;
   }
 
-  const checkSubdomainAvailability = async (subdomain: string) => {
-    if (subdomain.length < 3) {
-      setSubdomainAvailable(null);
-      return;
-    }
-
-    setCheckingSubdomain(true);
-    try {
-      const result = await tenantsAPI.checkSubdomain(subdomain);
-      setSubdomainAvailable(result.available);
-      if (!result.available) {
-        setError(result.message || 'This store name is already taken');
-      } else {
-        setError('');
-      }
-    } catch (error) {
-      console.error('Error checking subdomain:', error);
-      setSubdomainAvailable(null);
-    } finally {
-      setCheckingSubdomain(false);
-    }
-  };
 
   const handleStoreDataChange = (field: string, value: string) => {
     setStoreData(prev => ({ ...prev, [field]: value }));
-    
-    if (field === 'subdomain') {
-      const cleanSubdomain = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-      setStoreData(prev => ({ ...prev, subdomain: cleanSubdomain }));
-      
-      if (cleanSubdomain !== value) {
-        setError('Store name can only contain lowercase letters, numbers, and hyphens');
-      } else {
-        setError('');
-        if (cleanSubdomain.length >= 3) {
-          checkSubdomainAvailability(cleanSubdomain);
-        }
-      }
-    }
+    if (error) setError('');
   };
 
   const handleOwnerDataChange = (field: string, value: string) => {
@@ -94,7 +56,7 @@ const TenantRegistrationPage = () => {
   };
 
   const validateStep1 = () => {
-    return storeData.storeName && storeData.subdomain && subdomainAvailable;
+    return storeData.storeName.trim().length > 0;
   };
 
   const validateStep2 = () => {
@@ -137,7 +99,6 @@ const TenantRegistrationPage = () => {
     try {
       const registrationData = {
         storeName: storeData.storeName,
-        subdomain: storeData.subdomain,
         description: storeData.description,
         ownerName: ownerData.ownerName,
         ownerEmail: ownerData.ownerEmail,
@@ -162,7 +123,6 @@ const TenantRegistrationPage = () => {
           isActive: result.data.user.isActive,
           tenantId: result.data.user.tenantId,
           tenantName: result.data.tenant.name,
-          subdomain: result.data.tenant.subdomain,
           createdAt: result.data.user.createdAt,
           updatedAt: result.data.user.updatedAt
         };
@@ -203,45 +163,7 @@ const TenantRegistrationPage = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Store URL *
-        </label>
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={storeData.subdomain}
-            onChange={(e) => handleStoreDataChange('subdomain', e.target.value)}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="mystorename"
-          />
-          <div className="px-4 py-3 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-gray-600">
-            .retailpos.com
-          </div>
-        </div>
-        
-        {checkingSubdomain && (
-          <div className="mt-2 flex items-center text-sm text-blue-600">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-            Checking availability...
-          </div>
-        )}
-        
-        {subdomainAvailable === true && (
-          <div className="mt-2 flex items-center text-sm text-green-600">
-            <Check className="h-4 w-4 mr-2" />
-            Store name is available!
-          </div>
-        )}
-        
-        {subdomainAvailable === false && (
-          <div className="mt-2 flex items-center text-sm text-red-600">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            This store name is already taken
-          </div>
-        )}
-      </div>
 
-      <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Description
         </label>
@@ -401,7 +323,6 @@ const TenantRegistrationPage = () => {
         <h4 className="font-medium text-gray-900 mb-2">Registration Summary</h4>
         <div className="text-sm text-gray-600 space-y-1">
           <p><span className="font-medium">Store:</span> {storeData.storeName}</p>
-          <p><span className="font-medium">URL:</span> {storeData.subdomain}.retailpos.com</p>
           <p><span className="font-medium">Owner:</span> {ownerData.ownerName}</p>
           <p><span className="font-medium">Email:</span> {ownerData.ownerEmail}</p>
         </div>

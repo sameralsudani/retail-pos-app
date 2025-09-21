@@ -3,7 +3,6 @@ const Tenant = require('../models/Tenant');
 const tenants = [
   {
     name: 'Demo Store 1',
-    subdomain: 'demo1',
     description: 'Premium electronics and lifestyle store',
     address: {
       street: '123 Main Street',
@@ -35,7 +34,6 @@ const tenants = [
   },
   {
     name: 'Demo Store 2',
-    subdomain: 'demo2',
     description: 'Fresh food and grocery store',
     address: {
       street: '456 Oak Avenue',
@@ -67,7 +65,6 @@ const tenants = [
   },
   {
     name: 'متجر تجريبي 3',
-    subdomain: 'demo3',
     description: 'متجر شامل للمنتجات المتنوعة',
     address: {
       street: '789 King Fahd Road',
