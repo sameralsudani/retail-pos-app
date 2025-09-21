@@ -100,7 +100,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      console.log('AuthContext login called with:', { email, password: '***' });
       const result = await authAPI.login(email, password);
+      console.log('AuthAPI login result:', result);
       
       if (result.success) {
         // Store complete user data

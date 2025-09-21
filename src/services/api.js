@@ -92,14 +92,20 @@ const apiRequest = async (endpoint, options = {}) => {
 // Auth API
 export const authAPI = {
   login: async (email, password) => {
+    console.log('authAPI.login called with:', { email, password: '***' });
     const tenantId = getTenantId();
     console.log('Attempting login with tenant:', tenantId);
+    
+    const requestData = { email, password };
+    console.log('Sending login request with data:', { email, password: '***' });
+    
     return apiRequest('/auth/login', {
       method: 'POST',
       headers: {
-        'X-Tenant-Id': tenantId
+        'Content-Type': 'application/json',
+        ...(tenantId && { 'X-Tenant-Id': tenantId })
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(requestData),
     });
   },
 

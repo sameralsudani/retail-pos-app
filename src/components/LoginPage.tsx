@@ -53,7 +53,7 @@ const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('Attempting login with:', email);
+      console.log('Attempting login with:', { email, password: '***' });
       const result = await login(email, password);
       console.log('Login result:', result);
 

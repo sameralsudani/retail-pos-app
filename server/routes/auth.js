@@ -100,6 +100,11 @@ router.post('/register', extractTenant, [
 // @access  Public
 router.post('/login', extractTenant, async (req, res) => {
   try {
+    console.log('=== LOGIN REQUEST ===');
+    console.log('Request body:', req.body);
+    console.log('Tenant ID:', req.tenantId);
+    console.log('Tenant:', req.tenant ? req.tenant.name : 'No tenant');
+    
     // Require tenant for login
     if (!req.tenantId) {
       return res.status(400).json({
@@ -112,6 +117,7 @@ router.post('/login', extractTenant, async (req, res) => {
 
     // Basic validation
     if (!email || !password) {
+      console.log('Missing email or password:', { email: !!email, password: !!password });
       return res.status(400).json({
         success: false,
         message: 'Email and password are required'
