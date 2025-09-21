@@ -1052,7 +1052,21 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguageState] = useState<Language>('en');
+
+  // Load language from localStorage on mount
+  React.useEffect(() => {
+    const savedLanguage = localStorage.getItem('pos-language') as Language;
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'ar')) {
+      setLanguageState(savedLanguage);
+    }
+  }, []);
+
+  // Save language to localStorage when it changes
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('pos-language', lang);
+  };
 
   const t = (key: string): string => {
     return translations[language][key] || key;
