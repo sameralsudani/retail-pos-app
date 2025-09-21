@@ -1,47 +1,60 @@
 const Category = require('../models/Category');
+const Tenant = require('../models/Tenant');
 
-const categories = [
+const createCategories = (tenants) => {
+  const categoriesForTenant1 = [
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Beverages',
     description: 'Hot and cold drinks, coffee, tea, juices, and soft drinks',
     color: '#3B82F6'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Bakery',
     description: 'Fresh bread, pastries, cakes, and baked goods',
     color: '#F59E0B'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Electronics',
     description: 'Phones, accessories, headphones, and electronic devices',
     color: '#8B5CF6'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Produce',
     description: 'Fresh fruits, vegetables, and organic produce',
     color: '#10B981'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Stationery',
     description: 'Office supplies, pens, notebooks, and paper products',
     color: '#EF4444'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Clothing',
     description: 'Apparel, fashion items, and accessories',
     color: '#EC4899'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Snacks',
     description: 'Chips, crackers, nuts, and quick snacks',
     color: '#F97316'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Health & Beauty',
     description: 'Personal care, cosmetics, and health products',
     color: '#06B6D4'
   }
 ];
+
+  return categoriesForTenant1;
+};
 
 const seedCategories = async () => {
   try {
@@ -61,4 +74,4 @@ const seedCategories = async () => {
   }
 };
 
-module.exports = { seedCategories, categories };
+module.exports = { seedCategories, createCategories };
