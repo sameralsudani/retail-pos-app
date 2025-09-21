@@ -3,7 +3,6 @@ const { body, validationResult } = require('express-validator');
 const Tenant = require('../models/Tenant');
 const User = require('../models/User');
 const { protect, authorize, generateToken } = require('../middleware/auth');
-const { extractTenant } = require('../middleware/tenant');
 
 const router = express.Router();
 
@@ -127,9 +126,29 @@ router.post('/register', [
 // @desc    Get tenant info
 // @route   GET /api/tenants/info
 // @access  Private
-router.get('/info', extractTenant, protect, async (req, res) => {
+router.get('/info', protect, async (req, res) => {
   try {
-    if (!req.tenant) {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
+    const tenant = await Tenant.findOne({ 
+      _id: userTenantId, 
+      isActive: true 
+    });
+
+    if (!tenant) {
       return res.status(404).json({
         success: false,
         message: 'Store not found'
@@ -138,7 +157,7 @@ router.get('/info', extractTenant, protect, async (req, res) => {
 
     res.json({
       success: true,
-      data: req.tenant
+      data: tenant
     });
   } catch (error) {
     res.status(500).json({
@@ -152,7 +171,7 @@ router.get('/info', extractTenant, protect, async (req, res) => {
 // @desc    Update tenant settings
 // @route   PUT /api/tenants/settings
 // @access  Private (Admin only)
-router.put('/settings', extractTenant, protect, authorize('admin'), [
+router.put('/settings', protect, authorize('admin'), [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Store name cannot be empty'),
   body('description').optional().trim(),
   body('contact.phone').optional().trim(),
@@ -170,7 +189,27 @@ router.put('/settings', extractTenant, protect, authorize('admin'), [
       });
     }
 
-    if (!req.tenant) {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
+    const tenant = await Tenant.findOne({ 
+      _id: userTenantId, 
+      isActive: true 
+    });
+
+    if (!tenant) {
       return res.status(404).json({
         success: false,
         message: 'Store not found'
@@ -178,7 +217,7 @@ router.put('/settings', extractTenant, protect, authorize('admin'), [
     }
 
     const tenant = await Tenant.findByIdAndUpdate(
-      req.tenant._id,
+      userTenantId,
       req.body,
       { new: true, runValidators: true }
     );
