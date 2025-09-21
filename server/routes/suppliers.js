@@ -2,23 +2,33 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const Supplier = require('../models/Supplier');
 const { protect, authorize } = require('../middleware/auth');
-const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
-
-// Apply tenant middleware to all routes
-router.use(extractTenant);
-router.use(requireTenant);
 
 // @desc    Get all suppliers
 // @route   GET /api/suppliers
 // @access  Private
-router.get('/', protect, validateUserTenant, [
+router.get('/', protect, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('search').optional().trim()
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -33,7 +43,7 @@ router.get('/', protect, validateUserTenant, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true, tenantId: req.tenantId };
+    let query = { isActive: true, tenantId: userTenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -68,11 +78,26 @@ router.get('/', protect, validateUserTenant, [
 // @desc    Get single supplier
 // @route   GET /api/suppliers/:id
 // @access  Private
-router.get('/:id', protect, validateUserTenant, async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const supplier = await Supplier.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     }).populate('productCount');
 
     if (!supplier) {
@@ -98,7 +123,7 @@ router.get('/:id', protect, validateUserTenant, async (req, res) => {
 // @desc    Create new supplier
 // @route   POST /api/suppliers
 // @access  Private (Admin)
-router.post('/', protect, validateUserTenant, authorize('admin'), [
+router.post('/', protect, authorize('admin'), [
   body('name').trim().isLength({ min: 1 }).withMessage('Supplier name is required'),
   body('contactPerson').trim().isLength({ min: 1 }).withMessage('Contact person is required'),
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
@@ -106,6 +131,21 @@ router.post('/', protect, validateUserTenant, authorize('admin'), [
   body('paymentTerms').optional().isIn(['Net 15', 'Net 30', 'Net 45', 'Net 60', 'COD']).withMessage('Invalid payment terms')
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -118,7 +158,7 @@ router.post('/', protect, validateUserTenant, authorize('admin'), [
     // Check if supplier already exists
     const existingSupplier = await Supplier.findOne({ 
       email: req.body.email,
-      tenantId: req.tenantId
+      tenantId: userTenantId
     });
     if (existingSupplier) {
       return res.status(400).json({
@@ -129,7 +169,7 @@ router.post('/', protect, validateUserTenant, authorize('admin'), [
 
     const supplier = await Supplier.create({
       ...req.body,
-      tenantId: req.tenantId
+      tenantId: userTenantId
     });
 
     res.status(201).json({
@@ -149,7 +189,7 @@ router.post('/', protect, validateUserTenant, authorize('admin'), [
 // @desc    Update supplier
 // @route   PUT /api/suppliers/:id
 // @access  Private (Admin)
-router.put('/:id', protect, validateUserTenant, authorize('admin'), [
+router.put('/:id', protect, authorize('admin'), [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Supplier name cannot be empty'),
   body('contactPerson').optional().trim().isLength({ min: 1 }).withMessage('Contact person cannot be empty'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
@@ -157,6 +197,21 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
   body('paymentTerms').optional().isIn(['Net 15', 'Net 30', 'Net 45', 'Net 60', 'COD']).withMessage('Invalid payment terms')
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -168,7 +223,7 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
 
     let supplier = await Supplier.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!supplier) {
@@ -182,7 +237,7 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
     if (req.body.email && req.body.email !== supplier.email) {
       const existingSupplier = await Supplier.findOne({ 
         email: req.body.email,
-        tenantId: req.tenantId
+        tenantId: userTenantId
       });
       if (existingSupplier) {
         return res.status(400).json({
@@ -193,7 +248,7 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
     }
 
     supplier = await Supplier.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -215,11 +270,26 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
 // @desc    Delete supplier
 // @route   DELETE /api/suppliers/:id
 // @access  Private (Admin)
-router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const supplier = await Supplier.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!supplier) {
@@ -233,7 +303,7 @@ router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (re
     const Product = require('../models/Product');
     const productCount = await Product.countDocuments({ 
       supplier: req.params.id, 
-      tenantId: req.tenantId,
+      tenantId: userTenantId,
       isActive: true 
     });
 
@@ -246,7 +316,7 @@ router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (re
 
     // Soft delete - set isActive to false
     await Supplier.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       { isActive: false }
     );
 

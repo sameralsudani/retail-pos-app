@@ -2,23 +2,33 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const Customer = require('../models/Customer');
 const { protect } = require('../middleware/auth');
-const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
-
-// Apply tenant middleware to all routes
-router.use(extractTenant);
-router.use(requireTenant);
 
 // @desc    Get all customers
 // @route   GET /api/customers
 // @access  Private
-router.get('/', protect, validateUserTenant, [
+router.get('/', protect, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('search').optional().trim()
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -33,7 +43,7 @@ router.get('/', protect, validateUserTenant, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true, tenantId: req.tenantId };
+    let query = { isActive: true, tenantId: userTenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -67,11 +77,26 @@ router.get('/', protect, validateUserTenant, [
 // @desc    Get single customer
 // @route   GET /api/customers/:id
 // @access  Private
-router.get('/:id', protect, validateUserTenant, async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const customer = await Customer.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!customer) {
@@ -97,12 +122,27 @@ router.get('/:id', protect, validateUserTenant, async (req, res) => {
 // @desc    Create new customer
 // @route   POST /api/customers
 // @access  Private
-router.post('/', protect, validateUserTenant, [
+router.post('/', protect, [
   body('name').trim().isLength({ min: 1 }).withMessage('Customer name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('phone').optional().trim()
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -115,7 +155,7 @@ router.post('/', protect, validateUserTenant, [
     // Check if customer already exists
     const existingCustomer = await Customer.findOne({ 
       email: req.body.email,
-      tenantId: req.tenantId
+      tenantId: userTenantId
     });
     if (existingCustomer) {
       return res.status(400).json({
@@ -126,7 +166,7 @@ router.post('/', protect, validateUserTenant, [
 
     const customer = await Customer.create({
       ...req.body,
-      tenantId: req.tenantId
+      tenantId: userTenantId
     });
 
     res.status(201).json({
@@ -146,12 +186,27 @@ router.post('/', protect, validateUserTenant, [
 // @desc    Update customer
 // @route   PUT /api/customers/:id
 // @access  Private
-router.put('/:id', protect, validateUserTenant, [
+router.put('/:id', protect, [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Customer name cannot be empty'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('phone').optional().trim()
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -163,7 +218,7 @@ router.put('/:id', protect, validateUserTenant, [
 
     let customer = await Customer.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!customer) {
@@ -177,7 +232,7 @@ router.put('/:id', protect, validateUserTenant, [
     if (req.body.email && req.body.email !== customer.email) {
       const existingCustomer = await Customer.findOne({ 
         email: req.body.email,
-        tenantId: req.tenantId
+        tenantId: userTenantId
       });
       if (existingCustomer) {
         return res.status(400).json({
@@ -188,7 +243,7 @@ router.put('/:id', protect, validateUserTenant, [
     }
 
     customer = await Customer.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -210,11 +265,26 @@ router.put('/:id', protect, validateUserTenant, [
 // @desc    Update customer loyalty points
 // @route   PUT /api/customers/:id/loyalty
 // @access  Private
-router.put('/:id/loyalty', protect, validateUserTenant, [
+router.put('/:id/loyalty', protect, [
   body('points').isInt({ min: 0 }).withMessage('Points must be a non-negative integer'),
   body('totalSpent').optional().isFloat({ min: 0 }).withMessage('Total spent must be non-negative')
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -226,7 +296,7 @@ router.put('/:id/loyalty', protect, validateUserTenant, [
 
     const customer = await Customer.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!customer) {
@@ -246,7 +316,7 @@ router.put('/:id/loyalty', protect, validateUserTenant, [
     }
 
     const updatedCustomer = await Customer.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       updateData,
       { new: true, runValidators: true }
     );

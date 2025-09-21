@@ -2,20 +2,30 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Settings = require('../models/Settings');
 const { protect, authorize } = require('../middleware/auth');
-const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
-
-// Apply tenant middleware to all routes
-router.use(extractTenant);
-router.use(requireTenant);
 
 // @desc    Get system settings
 // @route   GET /api/settings
 // @access  Private (Admin/Manager)
-router.get('/', protect, validateUserTenant, authorize('admin', 'manager'), async (req, res) => {
+router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const settings = await Settings.getSettings(req.tenantId);
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
+    const settings = await Settings.getSettings(userTenantId);
 
     res.json({
       success: true,
@@ -33,7 +43,7 @@ router.get('/', protect, validateUserTenant, authorize('admin', 'manager'), asyn
 // @desc    Update system settings
 // @route   PUT /api/settings
 // @access  Private (Admin only)
-router.put('/', protect, validateUserTenant, authorize('admin'), [
+router.put('/', protect, authorize('admin'), [
   body('storeName').optional().trim().isLength({ min: 1, max: 100 }).withMessage('Store name must be between 1 and 100 characters'),
   body('storeAddress').optional().trim().isLength({ max: 200 }).withMessage('Store address cannot exceed 200 characters'),
   body('storePhone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
@@ -59,6 +69,21 @@ router.put('/', protect, validateUserTenant, authorize('admin'), [
   body('showProductImages').optional().isBoolean().withMessage('Show product images must be boolean')
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -68,7 +93,7 @@ router.put('/', protect, validateUserTenant, authorize('admin'), [
       });
     }
 
-    const settings = await Settings.getSettings(req.tenantId);
+    const settings = await Settings.getSettings(userTenantId);
     
     // Update settings with provided data
     Object.keys(req.body).forEach(key => {
@@ -96,11 +121,26 @@ router.put('/', protect, validateUserTenant, authorize('admin'), [
 // @desc    Reset settings to defaults
 // @route   POST /api/settings/reset
 // @access  Private (Admin only)
-router.post('/reset', protect, validateUserTenant, authorize('admin'), async (req, res) => {
+router.post('/reset', protect, authorize('admin'), async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     // Delete existing settings and create new with defaults
-    await Settings.deleteMany({ tenantId: req.tenantId });
-    const settings = await Settings.create({ tenantId: req.tenantId });
+    await Settings.deleteMany({ tenantId: userTenantId });
+    const settings = await Settings.create({ tenantId: userTenantId });
 
     res.json({
       success: true,

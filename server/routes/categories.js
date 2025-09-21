@@ -5,22 +5,32 @@ const Category = require('../models/Category');
 const { protect, authorize } = require('../middleware/auth');
 const { upload, handleUploadError } = require('../middleware/upload');
 const { uploadImage, deleteImage } = require('../config/cloudinary');
-const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
-
-// Apply tenant middleware to all routes
-router.use(extractTenant);
-router.use(requireTenant);
 
 // @desc    Get all categories
 // @route   GET /api/categories
 // @access  Private
-router.get('/', protect, validateUserTenant, async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const categories = await Category.find({ 
       isActive: true, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     })
       .populate('productCount')
       .sort({ name: 1 });
@@ -42,11 +52,26 @@ router.get('/', protect, validateUserTenant, async (req, res) => {
 // @desc    Get single category
 // @route   GET /api/categories/:id
 // @access  Private
-router.get('/:id', protect, validateUserTenant, async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const category = await Category.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     }).populate('productCount');
 
     if (!category) {
@@ -72,11 +97,26 @@ router.get('/:id', protect, validateUserTenant, async (req, res) => {
 // @desc    Create new category
 // @route   POST /api/categories
 // @access  Private (Admin)
-router.post('/', protect, validateUserTenant, authorize('admin'), upload.single('image'), handleUploadError, [
+router.post('/', protect, authorize('admin'), upload.single('image'), handleUploadError, [
   body('name').trim().isLength({ min: 1 }).withMessage('Category name is required'),
   body('color').optional().matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).withMessage('Invalid hex color format')
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -88,7 +128,7 @@ router.post('/', protect, validateUserTenant, authorize('admin'), upload.single(
 
     // Check if category already exists
     const existingCategory = await Category.findOne({ 
-      tenantId: req.tenantId,
+      tenantId: userTenantId,
       name: { $regex: new RegExp(`^${req.body.name}$`, 'i') }
     });
 
@@ -101,7 +141,7 @@ router.post('/', protect, validateUserTenant, authorize('admin'), upload.single(
 
     const category = await Category.create({
       ...req.body,
-      tenantId: req.tenantId
+      tenantId: userTenantId
     });
 
     res.status(201).json({
@@ -121,11 +161,26 @@ router.post('/', protect, validateUserTenant, authorize('admin'), upload.single(
 // @desc    Update category
 // @route   PUT /api/categories/:id
 // @access  Private (Admin)
-router.put('/:id', protect, validateUserTenant, authorize('admin'), [
+router.put('/:id', protect, authorize('admin'), [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Category name cannot be empty'),
   body('color').optional().matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).withMessage('Invalid hex color format')
 ], async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -137,7 +192,7 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
 
     let category = await Category.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!category) {
@@ -150,7 +205,7 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
     // Check for duplicate name if updating name
     if (req.body.name && req.body.name.toLowerCase() !== category.name.toLowerCase()) {
       const existingCategory = await Category.findOne({ 
-        tenantId: req.tenantId,
+        tenantId: userTenantId,
         name: { $regex: new RegExp(`^${req.body.name}$`, 'i') }
       });
 
@@ -188,7 +243,7 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
     }
 
     category = await Category.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -210,11 +265,26 @@ router.put('/:id', protect, validateUserTenant, authorize('admin'), [
 // @desc    Delete category
 // @route   DELETE /api/categories/:id
 // @access  Private (Admin)
-router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const category = await Category.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!category) {
@@ -228,7 +298,7 @@ router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (re
     const Product = require('../models/Product');
     const productCount = await Product.countDocuments({ 
       category: req.params.id, 
-      tenantId: req.tenantId,
+      tenantId: userTenantId,
       isActive: true 
     });
 
@@ -241,7 +311,7 @@ router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (re
 
     // Soft delete - set isActive to false
     await Category.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       { isActive: false }
     );
 
