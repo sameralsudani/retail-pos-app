@@ -10,7 +10,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations = {
+const translations: Record<Language, { [key: string]: string }> = {
   en: {
     // Header
     'header.title': 'RetailPOS',

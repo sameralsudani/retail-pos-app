@@ -188,7 +188,7 @@ const LoginPage = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            {/* <p className="text-sm text-gray-600 dark:text-gray-400">
               {t("auth.no.account")}{" "}
               <a
                 href="/signup"
@@ -200,7 +200,7 @@ const LoginPage = () => {
               >
                 {t("auth.signup.link")}
               </a>
-            </p>
+            </p> */}
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               Need a new store?{' '}
               <a
