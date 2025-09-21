@@ -6,13 +6,9 @@ import {
   Trash2,
   User,
   Eye,
-  Save,
   X,
   AlertTriangle,
   Shield,
-  Mail,
-  Phone,
-  Badge,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
