@@ -64,7 +64,19 @@ const UsersPage = () => {
       const response = await usersAPI.getAll();
 
       if (response.success) {
-        const mappedUsers = response.data.map((apiUser) => ({
+        const mappedUsers = response.data.map((apiUser: {
+          _id?: string;
+          id?: string;
+          name: string;
+          email: string;
+          phone?: string;
+          role: "admin" | "manager" | "cashier";
+          employeeId: string;
+          isActive: boolean;
+          lastLogin?: string | Date;
+          createdAt: string | Date;
+          updatedAt: string | Date;
+        }) => ({
           id: apiUser._id || apiUser.id,
           name: apiUser.name,
           email: apiUser.email,
