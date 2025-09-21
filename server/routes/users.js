@@ -6,14 +6,15 @@ const { extractTenant, requireTenant, validateUserTenant } = require('../middlew
 
 const router = express.Router();
 
-// Apply tenant middleware to all routes
+// Apply auth middleware first, then tenant middleware
+router.use(protect);
 router.use(extractTenant);
 router.use(requireTenant);
+router.use(validateUserTenant);
 
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private (Admin/Manager)
-router.get('/', protect, validateUserTenant, authorize('admin', 'manager'), [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),

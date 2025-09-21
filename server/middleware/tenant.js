@@ -5,8 +5,14 @@ const extractTenant = async (req, res, next) => {
   try {
     let tenantIdentifier = null;
     
+    // Method 0: If user is authenticated, use their tenant ID
+    if (req.user && req.user.tenantId) {
+      tenantIdentifier = req.user.tenantId.toString();
+      console.log('Tenant from authenticated user:', tenantIdentifier);
+    }
+    
     // Method 1: Extract from custom header (for development/testing)
-    if (req.headers['x-tenant-id']) {
+    if (!tenantIdentifier && req.headers['x-tenant-id']) {
       tenantIdentifier = req.headers['x-tenant-id'];
       console.log('Tenant from header:', tenantIdentifier);
     }
@@ -29,12 +35,8 @@ const extractTenant = async (req, res, next) => {
     
     // Method 4: For localhost development, try to find any tenant if none specified
     if (!tenantIdentifier && host && host.includes('localhost')) {
-      // For localhost, don't auto-select a tenant - let the user specify
-      console.log('Localhost detected but no tenant specified');
-      return res.status(400).json({
-        success: false,
-        message: 'Please specify your store. Add ?tenant=YOUR_TENANT_ID to the URL or contact support.'
-      });
+      // For localhost development, find the first available tenant
+      console.log('Localhost detected, finding first available tenant...');
       const firstTenant = await Tenant.findOne({ isActive: true });
       if (firstTenant) {
         tenantIdentifier = firstTenant._id.toString();
