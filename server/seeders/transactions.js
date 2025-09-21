@@ -1,4 +1,5 @@
 const Transaction = require('../models/Transaction');
+const Tenant = require('../models/Tenant');
 
 const createSampleTransactions = (tenants, users, customers, products) => {
   console.log('=== CREATING SAMPLE TRANSACTIONS ===');

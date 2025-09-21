@@ -1,93 +1,91 @@
-const Tenant = require('../models/Tenant');
+const Tenant = require("../models/Tenant");
 
 // Extract tenant from request (subdomain, header, or query param)
 const extractTenant = async (req, res, next) => {
   try {
     let tenantIdentifier = null;
-    
+
     // Method 0: If user is authenticated, use their tenant ID
     if (req.user && req.user.tenantId) {
       tenantIdentifier = req.user.tenantId.toString();
-      console.log('Tenant from authenticated user:', tenantIdentifier);
     }
-    
+
     // Method 1: Extract from custom header (for development/testing)
-    if (!tenantIdentifier && req.headers['x-tenant-id']) {
-      tenantIdentifier = req.headers['x-tenant-id'];
-      console.log('Tenant from header:', tenantIdentifier);
+    if (!tenantIdentifier && req.headers["x-tenant-id"]) {
+      tenantIdentifier = req.headers["x-tenant-id"];
     }
-    
+
     // Method 2: Extract from query parameter
     if (!tenantIdentifier && req.query.tenant) {
       tenantIdentifier = req.query.tenant;
-      console.log('Tenant from query:', tenantIdentifier);
     }
-    
+
     // Method 3: Extract from subdomain (for production)
-    const host = req.get('host') || req.get('x-forwarded-host');
-    if (!tenantIdentifier && host && !host.includes('localhost')) {
-      const subdomain = host.split('.')[0];
-      if (subdomain && subdomain !== 'www' && subdomain !== 'localhost') {
+    const host = req.get("host") || req.get("x-forwarded-host");
+    if (!tenantIdentifier && host && !host.includes("localhost")) {
+      const subdomain = host.split(".")[0];
+      if (subdomain && subdomain !== "www" && subdomain !== "localhost") {
         tenantIdentifier = subdomain;
-        console.log('Tenant from subdomain:', tenantIdentifier);
       }
     }
-    
+
     // Method 4: For localhost development, try to find any tenant if none specified
-    if (!tenantIdentifier && host && host.includes('localhost')) {
+    if (!tenantIdentifier && host && host.includes("localhost")) {
       // For localhost development, find the first available tenant
-      console.log('Localhost detected, finding first available tenant...');
+      console.log("Localhost detected, finding first available tenant...");
       const firstTenant = await Tenant.findOne({ isActive: true });
       if (firstTenant) {
         tenantIdentifier = firstTenant._id.toString();
-        console.log('Using first available tenant for localhost:', tenantIdentifier, firstTenant.name);
       }
     }
-    
+
     // Method 5: If no tenant found, return error
     if (!tenantIdentifier) {
-      console.log('No tenant identifier found');
+      console.log("No tenant identifier found");
       return res.status(400).json({
         success: false,
-        message: 'Store identification required'
+        message: "Store identification required",
       });
     }
-    
-    console.log('Tenant identifier extracted:', tenantIdentifier);
-    
+
     if (tenantIdentifier) {
       // Find tenant by subdomain or ID
       let tenant;
       if (tenantIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
         // It's an ObjectId
-        tenant = await Tenant.findOne({ _id: tenantIdentifier, isActive: true });
-        console.log('Found tenant by ID:', tenant ? tenant.name : 'Not found');
+        tenant = await Tenant.findOne({
+          _id: tenantIdentifier,
+          isActive: true,
+        });
       } else {
         // It's a subdomain
-        tenant = await Tenant.findOne({ subdomain: tenantIdentifier, isActive: true });
-        console.log('Found tenant by subdomain:', tenant ? tenant.name : 'Not found');
+        tenant = await Tenant.findOne({
+          subdomain: tenantIdentifier,
+          isActive: true,
+        });
       }
-      
+
       if (tenant) {
         req.tenant = tenant;
         req.tenantId = tenant._id;
-        console.log('Tenant set:', tenant.name, tenant._id);
       } else {
-        console.log('Tenant not found or inactive for identifier:', tenantIdentifier);
+        console.log(
+          "Tenant not found or inactive for identifier:",
+          tenantIdentifier
+        );
         return res.status(404).json({
           success: false,
-          message: 'Store not found or inactive'
+          message: "Store not found or inactive",
         });
       }
     }
-    
+
     next();
   } catch (error) {
-    console.error('Tenant extraction error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: "Server error",
+      error: error.message,
     });
   }
 };
@@ -97,7 +95,7 @@ const requireTenant = (req, res, next) => {
   if (!req.tenant || !req.tenantId) {
     return res.status(400).json({
       success: false,
-      message: 'Store identification required'
+      message: "Store identification required",
     });
   }
   next();
@@ -110,44 +108,32 @@ const validateUserTenant = (req, res, next) => {
     let userTenantId = null;
     if (req.user.tenantId) {
       // If tenantId is populated (object with _id), extract the _id
-      if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      if (typeof req.user.tenantId === "object" && req.user.tenantId._id) {
         userTenantId = req.user.tenantId._id.toString();
       } else {
         // If tenantId is just an ObjectId or string
         userTenantId = req.user.tenantId.toString();
       }
     }
-    
+
     const requestTenantId = req.tenantId.toString();
-    
-    console.log('=== TENANT VALIDATION ===');
-    console.log('User tenant ID:', userTenantId);
-    console.log('Request tenant ID:', requestTenantId);
-    console.log('Raw user tenantId:', req.user.tenantId);
-    console.log('User tenant ID type:', typeof userTenantId);
-    console.log('Request tenant ID type:', typeof req.tenantId);
-    
+
     // Only validate if user has a tenantId
     if (userTenantId && requestTenantId && userTenantId !== requestTenantId) {
-      console.log('❌ Tenant validation failed - user does not belong to this store');
-      console.log('Comparison details:');
-      console.log('  userTenantId:', userTenantId, typeof userTenantId);
-      console.log('  requestTenantId:', requestTenantId, typeof requestTenantId);
-      console.log('  Are equal?:', userTenantId === requestTenantId);
       return res.status(403).json({
         success: false,
-        message: 'Access denied: User does not belong to this store'
+        message: "Access denied: User does not belong to this store",
       });
     }
-    
-    console.log('✅ Tenant validation passed');
+
+    console.log("✅ Tenant validation passed");
   }
-  
+
   next();
 };
 
 module.exports = {
   extractTenant,
   requireTenant,
-  validateUserTenant
+  validateUserTenant,
 };

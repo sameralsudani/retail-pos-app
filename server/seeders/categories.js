@@ -1,4 +1,5 @@
 const Category = require('../models/Category');
+const Tenant = require('../models/Tenant');
 
 const createCategories = (tenants) => {
   const categoriesForTenant1 = [

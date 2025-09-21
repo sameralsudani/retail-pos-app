@@ -47,7 +47,7 @@ const createUsers = (tenants) => {
       email: 'admin@demo2.com',
       password: 'admin123',
       role: 'admin',
-      employeeId: 'EMP001',
+      employeeId: '456788',
       phone: '(555) 654-3210'
     },
     {
@@ -56,7 +56,7 @@ const createUsers = (tenants) => {
       email: 'cashier@demo2.com',
       password: 'cashier123',
       role: 'cashier',
-      employeeId: 'EMP002',
+      employeeId: '34567',
       phone: '(555) 789-0123'
     },
     
@@ -67,7 +67,7 @@ const createUsers = (tenants) => {
       email: 'admin@demo3.com',
       password: 'admin123',
       role: 'admin',
-      employeeId: 'EMP001',
+      employeeId: '123456',
       phone: '+966 11 123 4567'
     },
     {
@@ -76,7 +76,7 @@ const createUsers = (tenants) => {
       email: 'cashier@demo3.com',
       password: 'cashier123',
       role: 'cashier',
-      employeeId: 'EMP002',
+      employeeId: '67823',
       phone: '+966 11 987 6543'
     }
   ];
