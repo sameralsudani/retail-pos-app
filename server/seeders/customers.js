@@ -38,7 +38,7 @@ const createCustomers = (tenants) => {
     notes: 'Likes electronics and gadgets'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Carol Davis',
     email: 'carol.davis@email.com',
     phone: '(555) 555-6666',
@@ -55,7 +55,7 @@ const createCustomers = (tenants) => {
     notes: 'VIP customer, bulk buyer'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[1]._id, // Demo Store 2
     name: 'Daniel Wilson',
     email: 'daniel.wilson@email.com',
     phone: '(555) 777-8888',
@@ -72,7 +72,7 @@ const createCustomers = (tenants) => {
     notes: 'New customer, interested in beverages'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[1]._id, // Demo Store 2
     name: 'Eva Martinez',
     email: 'eva.martinez@email.com',
     phone: '(555) 999-0000',
@@ -89,7 +89,7 @@ const createCustomers = (tenants) => {
     notes: 'Regular customer, fashion enthusiast'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[2]._id, // Demo Store 3
     name: 'Frank Thompson',
     email: 'frank.thompson@email.com',
     phone: '(555) 123-9876',
@@ -106,7 +106,7 @@ const createCustomers = (tenants) => {
     notes: 'Office manager, buys stationery in bulk'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[2]._id,
     name: 'Grace Lee',
     email: 'grace.lee@email.com',
     phone: '(555) 456-1234',
@@ -123,7 +123,7 @@ const createCustomers = (tenants) => {
     notes: 'Health-conscious, prefers organic and natural products'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[2]._id,
     name: 'Henry Clark',
     email: 'henry.clark@email.com',
     phone: '(555) 789-4567',
@@ -140,7 +140,7 @@ const createCustomers = (tenants) => {
     notes: 'Tech enthusiast, frequent electronics buyer'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[2]._id,
     name: 'Isabella Rodriguez',
     email: 'isabella.rodriguez@email.com',
     phone: '(555) 234-7890',
@@ -157,7 +157,7 @@ const createCustomers = (tenants) => {
     notes: 'Fashion blogger, loves new clothing arrivals'
   },
   {
-    tenantId: tenants[0]._id,
+    tenantId: tenants[2]._id,
     name: 'Jack Miller',
     email: 'jack.miller@email.com',
     phone: '(555) 567-8901',
@@ -184,6 +184,12 @@ const seedCustomers = async () => {
     
     // Clear existing customers
     await Customer.deleteMany({});
+    
+    // Get tenants
+    const tenants = await Tenant.find({});
+    
+    // Create customers
+    const customers = createCustomers(tenants);
     
     // Insert new customers
     const createdCustomers = await Customer.insertMany(customers);
