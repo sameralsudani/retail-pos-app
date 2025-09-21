@@ -132,13 +132,6 @@ const validateUserTenant = (req, res, next) => {
   
   next();
 };
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied: User does not belong to this store'
-    });
-  }
-  next();
-};
 
 module.exports = {
   extractTenant,
