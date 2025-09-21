@@ -17,16 +17,19 @@ const extractTenant = async (req, res, next) => {
     // Method 2: Extract from custom header (for development/testing)
     if (!tenantIdentifier && req.headers['x-tenant-id']) {
       tenantIdentifier = req.headers['x-tenant-id'];
+      console.log('Tenant from header:', tenantIdentifier);
     }
     
     // Method 3: Extract from query parameter (fallback)
     if (!tenantIdentifier && req.query.tenant) {
       tenantIdentifier = req.query.tenant;
+      console.log('Tenant from query:', tenantIdentifier);
     }
     
     // For development, use default tenant if none specified
     if (!tenantIdentifier && process.env.NODE_ENV === 'development') {
       tenantIdentifier = 'demo1';
+      console.log('Using default tenant for development:', tenantIdentifier);
     }
     
     console.log('Tenant identifier extracted:', tenantIdentifier);

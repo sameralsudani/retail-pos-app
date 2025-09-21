@@ -34,20 +34,13 @@ const LoginPage = () => {
     setError("");
     setIsSubmitting(true);
 
-    // Check if we have a tenant parameter in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tenantParam = urlParams.get('tenant');
-    
     try {
+      console.log('Attempting login with:', formData.email);
       const result = await login(formData.email, formData.password);
+      console.log('Login result:', result);
 
       if (!result.success) {
         setError(result.error || "Login failed");
-      } else {
-        // Clear tenant parameter from URL after successful login
-        if (tenantParam) {
-          window.history.replaceState({}, '', '/login');
-        }
       }
     } catch (error) {
       console.error("Login error:", error);

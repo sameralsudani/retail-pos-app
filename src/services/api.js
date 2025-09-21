@@ -8,6 +8,7 @@ const getTenantId = () => {
     try {
       const userData = JSON.parse(storedUser);
       if (userData.tenantId) {
+        console.log('Found tenant from localStorage:', userData.tenantId);
         return userData.tenantId;
       }
     } catch (error) {
@@ -19,6 +20,7 @@ const getTenantId = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const tenantParam = urlParams.get('tenant');
   if (tenantParam) {
+    console.log('Found tenant from URL param:', tenantParam);
     return tenantParam;
   }
   
@@ -29,6 +31,7 @@ const getTenantId = () => {
   if (host.includes('demo3')) return 'demo3';
   
   // Default to demo1 for localhost development
+  console.log('Using default tenant: demo1');
   return 'demo1';
 };
 
@@ -95,6 +98,7 @@ const apiRequest = async (endpoint, options = {}) => {
 export const authAPI = {
   login: async (email, password) => {
     const tenantId = getTenantId();
+    console.log('Attempting login with tenant:', tenantId);
     return apiRequest('/auth/login', {
       method: 'POST',
       headers: {
