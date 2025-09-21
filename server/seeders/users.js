@@ -91,13 +91,24 @@ const seedUsers = async (tenants) => {
     // Clear existing users
     await User.deleteMany({});
     
+    // Validate tenants input
+    if (!tenants || tenants.length === 0) {
+      throw new Error('No tenants provided for user seeding');
+    }
+    
+    console.log('Available tenants for user seeding:', tenants.map(t => ({ id: t._id, name: t.name })));
+    
     // Create users with tenant references
     const users = createUsers(tenants);
+    
+    console.log('Users to be created:', users.length);
+    console.log('Sample user data:', users[0]);
     
     // Insert new users
     const createdUsers = await User.insertMany(users);
     
     console.log(`✅ Successfully seeded ${createdUsers.length} users`);
+    console.log('Created users:', createdUsers.map(u => ({ id: u._id, name: u.name, role: u.role, email: u.email })));
     return createdUsers;
   } catch (error) {
     console.error('❌ Error seeding users:', error);

@@ -1,14 +1,26 @@
 const Transaction = require('../models/Transaction');
 
-const createSampleTransactions = (users, customers, products) => {
+const createSampleTransactions = (tenants, users, customers, products) => {
+  console.log('=== CREATING SAMPLE TRANSACTIONS ===');
+  console.log('Users for transactions:', users ? users.map(u => ({ role: u.role, name: u.name, id: u._id })) : 'No users');
+  
   const adminUser = users.find(u => u.role === 'admin');
   const cashierUser = users.find(u => u.role === 'cashier');
   const managerUser = users.find(u => u.role === 'manager');
 
   if (!adminUser || !cashierUser || !managerUser) {
     console.error('❌ Missing required users for transaction seeding');
-    console.log('Available users:', users.map(u => ({ role: u.role, name: u.name })));
+    console.log('Available users:', users ? users.map(u => ({ role: u.role, name: u.name, id: u._id })) : 'No users array');
+    console.log('Admin user found:', adminUser ? 'Yes' : 'No');
+    console.log('Cashier user found:', cashierUser ? 'Yes' : 'No');
+    console.log('Manager user found:', managerUser ? 'Yes' : 'No');
     throw new Error('Required users (admin, cashier, manager) not found');
+  }
+
+  // Get the first tenant for transactions
+  const tenant = tenants[0];
+  if (!tenant) {
+    throw new Error('No tenant available for transactions');
   }
 
   const adminUserId = adminUser._id;
@@ -46,6 +58,7 @@ const createSampleTransactions = (users, customers, products) => {
   const transactions = [
     // Transaction 1 - Coffee and pastry
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(1),
       items: [
         {
@@ -84,6 +97,7 @@ const createSampleTransactions = (users, customers, products) => {
 
     // Transaction 2 - Electronics purchase
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(2),
       items: [
         {
@@ -122,6 +136,7 @@ const createSampleTransactions = (users, customers, products) => {
 
     // Transaction 3 - Grocery shopping
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(3),
       items: [
         {
@@ -171,6 +186,7 @@ const createSampleTransactions = (users, customers, products) => {
 
     // Transaction 4 - Office supplies
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(4),
       items: [
         {
@@ -220,6 +236,7 @@ const createSampleTransactions = (users, customers, products) => {
 
     // Transaction 5 - Fashion purchase
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(5),
       items: [
         {
@@ -258,6 +275,7 @@ const createSampleTransactions = (users, customers, products) => {
 
     // Transaction 6 - Health products
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(6),
       items: [
         {
@@ -296,6 +314,7 @@ const createSampleTransactions = (users, customers, products) => {
 
     // Transaction 7 - Snack run
     {
+      tenantId: tenant._id,
       transactionId: generateTransactionId(7),
       items: [
         {
@@ -351,11 +370,23 @@ const seedTransactions = async (users, customers, products) => {
   try {
     console.log('🧾 Seeding transactions...');
     
+    // Debug input data
+    console.log('=== TRANSACTION SEEDER DEBUG ===');
+    console.log('Tenants received:', tenants ? tenants.length : 'undefined');
+    console.log('Users received:', users ? users.length : 'undefined');
+    console.log('Customers received:', customers ? customers.length : 'undefined');
+    console.log('Products received:', products ? products.length : 'undefined');
+    
+    if (users && users.length > 0) {
+      console.log('Sample user:', { id: users[0]._id, name: users[0].name, role: users[0].role });
+      console.log('All users:', users.map(u => ({ id: u._id, name: u.name, role: u.role, email: u.email })));
+    }
+    
     // Clear existing transactions
     await Transaction.deleteMany({});
     
-    // Create sample transactions
-    const transactions = createSampleTransactions(users, customers, products);
+    // Create sample transactions with tenant context
+    const transactions = createSampleTransactions(tenants, users, customers, products);
     
     // Insert new transactions
     const createdTransactions = await Transaction.insertMany(transactions);
