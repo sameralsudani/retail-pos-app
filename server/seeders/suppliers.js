@@ -34,7 +34,7 @@ const createSuppliers = (tenants) => {
     paymentTerms: 'Net 15'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Global Beverages Inc.',
     contactPerson: 'Mike Davis',
     email: 'mike@globalbev.com',
@@ -49,7 +49,7 @@ const createSuppliers = (tenants) => {
     paymentTerms: 'Net 45'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Office Supplies Pro',
     contactPerson: 'Lisa Wilson',
     email: 'lisa@officesupplies.com',
@@ -64,7 +64,7 @@ const createSuppliers = (tenants) => {
     paymentTerms: 'Net 30'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Fashion Forward',
     contactPerson: 'Emma Brown',
     email: 'emma@fashionforward.com',
@@ -79,7 +79,7 @@ const createSuppliers = (tenants) => {
     paymentTerms: 'Net 60'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Healthy Living Distributors',
     contactPerson: 'David Chen',
     email: 'david@healthyliving.com',
@@ -94,7 +94,7 @@ const createSuppliers = (tenants) => {
     paymentTerms: 'Net 30'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Snack Attack Wholesale',
     contactPerson: 'Maria Rodriguez',
     email: 'maria@snackattack.com',
@@ -109,7 +109,7 @@ const createSuppliers = (tenants) => {
     paymentTerms: 'Net 15'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Organic Farms Direct',
     contactPerson: 'Robert Green',
     email: 'robert@organicfarms.com',
@@ -135,7 +135,7 @@ const seedSuppliers = async () => {
     // Clear existing suppliers
     await Supplier.deleteMany({});
     
-    // Get tenants to create suppliers
+    // Get tenants
     const tenants = await Tenant.find({});
     const suppliers = createSuppliers(tenants);
     
