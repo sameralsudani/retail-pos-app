@@ -49,7 +49,7 @@ exports.protect = async (req, res, next) => {
       }
 
       // Check if user's tenant is active
-      if (!req.user.tenantId || !req.user.tenantId.isActive) {
+      if (req.user.tenantId && req.user.tenantId.isActive === false) {
         return res.status(401).json({
           success: false,
           message: 'Store account is deactivated'
