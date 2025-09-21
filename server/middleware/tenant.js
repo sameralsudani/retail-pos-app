@@ -105,7 +105,33 @@ const requireTenant = (req, res, next) => {
 
 // Validate user belongs to tenant
 const validateUserTenant = (req, res, next) => {
-  if (req.user && req.tenantId && req.user.tenantId.toString() !== req.tenantId.toString()) {
+  if (req.user && req.tenantId) {
+    const userTenantId = req.user.tenantId ? req.user.tenantId.toString() : null;
+    const requestTenantId = req.tenantId.toString();
+    
+    console.log('=== TENANT VALIDATION ===');
+    console.log('User tenant ID:', userTenantId);
+    console.log('Request tenant ID:', requestTenantId);
+    console.log('User object:', {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      tenantId: req.user.tenantId
+    });
+    
+    if (userTenantId && userTenantId !== requestTenantId) {
+      console.log('❌ Tenant validation failed - user does not belong to this store');
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: User does not belong to this store'
+      });
+    }
+    
+    console.log('✅ Tenant validation passed');
+  }
+  
+  next();
+};
     return res.status(403).json({
       success: false,
       message: 'Access denied: User does not belong to this store'
