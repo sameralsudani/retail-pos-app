@@ -48,6 +48,17 @@ const extractTenant = async (req, res, next) => {
       tenantIdentifier = req.query.tenant;
     }
 
+    // Extract from path (for Render deployment)
+    // URLs like: /store/alistore/api/products or /alistore/api/products
+    if (!tenantIdentifier && req.path) {
+      const pathParts = req.path.split('/').filter(Boolean);
+      if (pathParts[0] === 'store' && pathParts[1]) {
+        tenantIdentifier = pathParts[1]; // /store/alistore/...
+      } else if (pathParts[0] && pathParts[0] !== 'api') {
+        tenantIdentifier = pathParts[0]; // /alistore/...
+      }
+    }
+
     // Extract from subdomain (for production)
     const host = req.get("host") || req.get("x-forwarded-host");
     if (!tenantIdentifier && host && !host.includes("localhost")) {
@@ -57,13 +68,13 @@ const extractTenant = async (req, res, next) => {
       }
     }
 
-    // For localhost development without auth, find first tenant
-    if (!tenantIdentifier && host && host.includes("localhost")) {
+    // For localhost development or Render without auth, find first tenant
+    if (!tenantIdentifier && host && (host.includes("localhost") || host.includes("onrender.com"))) {
       console.log("Localhost detected, finding first available tenant...");
       const firstTenant = await Tenant.findOne({ isActive: true });
       if (firstTenant) {
         tenantIdentifier = firstTenant._id.toString();
-        console.log('Using first available tenant for localhost:', tenantIdentifier, firstTenant.name);
+        console.log('Using first available tenant for development:', tenantIdentifier, firstTenant.name);
       }
     }
 
