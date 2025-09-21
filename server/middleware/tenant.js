@@ -106,20 +106,25 @@ const requireTenant = (req, res, next) => {
 // Validate user belongs to tenant
 const validateUserTenant = (req, res, next) => {
   if (req.user && req.tenantId) {
+    // Handle both ObjectId and string comparisons
     const userTenantId = req.user.tenantId ? req.user.tenantId.toString() : null;
     const requestTenantId = req.tenantId.toString();
     
     console.log('=== TENANT VALIDATION ===');
     console.log('User tenant ID:', userTenantId);
     console.log('Request tenant ID:', requestTenantId);
+    console.log('User tenant ID type:', typeof req.user.tenantId);
+    console.log('Request tenant ID type:', typeof req.tenantId);
     console.log('User object:', {
       id: req.user._id,
       name: req.user.name,
       email: req.user.email,
-      tenantId: req.user.tenantId
+      tenantId: req.user.tenantId,
+      tenantIdType: typeof req.user.tenantId
     });
     
-    if (userTenantId && userTenantId !== requestTenantId) {
+    // Only validate if user has a tenantId
+    if (userTenantId && requestTenantId && userTenantId !== requestTenantId) {
       console.log('❌ Tenant validation failed - user does not belong to this store');
       return res.status(403).json({
         success: false,
