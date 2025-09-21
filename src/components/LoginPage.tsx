@@ -4,7 +4,7 @@ import {
   Eye,
   EyeOff,
   LogIn,
-  Receipt,
+  Store,
   Lock,
   Mail,
   AlertCircle,
@@ -96,7 +96,7 @@ const LoginPage = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <Receipt className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
+            <Store className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
               {t("header.title")}
             </h1>
