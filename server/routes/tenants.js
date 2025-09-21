@@ -96,7 +96,8 @@ router.post('/register', [
         tenant: {
           id: tenant._id,
           name: tenant.name,
-          subdomain: tenant.subdomain
+          subdomain: tenant.subdomain,
+          description: tenant.description
         },
         user: {
           _id: owner._id,

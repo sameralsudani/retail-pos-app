@@ -162,12 +162,14 @@ const TenantRegistrationPage = () => {
           isActive: result.data.user.isActive,
           tenantId: result.data.user.tenantId,
           tenantName: result.data.tenant.name,
+          subdomain: result.data.tenant.subdomain,
           createdAt: result.data.user.createdAt,
           updatedAt: result.data.user.updatedAt
         };
         
         localStorage.setItem('pos_user', JSON.stringify(userData));
-        window.location.href = '/users'; // Force page reload to apply tenant context
+        // Redirect to login with tenant parameter to ensure proper tenant detection
+        window.location.href = `/login?tenant=${result.data.user.tenantId}`;
       } else {
         setError(result.message || 'Registration failed');
       }

@@ -2,8 +2,27 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 // Get tenant identifier (for development, use demo1 as default)
 const getTenantId = () => {
+  // Check if we have a stored tenant from registration
+  const storedUser = localStorage.getItem('pos_user');
+  if (storedUser) {
+    try {
+      const userData = JSON.parse(storedUser);
+      if (userData.tenantId) {
+        return userData.tenantId;
+      }
+    } catch (error) {
+      console.error('Error parsing stored user data:', error);
+    }
+  }
+  
+  // Check URL parameters for tenant (useful for development)
+  const urlParams = new URLSearchParams(window.location.search);
+  const tenantParam = urlParams.get('tenant');
+  if (tenantParam) {
+    return tenantParam;
+  }
+  
   // In production, this would extract from subdomain
-  // For development, we'll use a default tenant
   const host = window.location.hostname;
   if (host.includes('demo1')) return 'demo1';
   if (host.includes('demo2')) return 'demo2';

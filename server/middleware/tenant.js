@@ -29,21 +29,27 @@ const extractTenant = async (req, res, next) => {
       tenantIdentifier = 'demo1';
     }
     
+    console.log('Tenant identifier extracted:', tenantIdentifier);
+    
     if (tenantIdentifier) {
       // Find tenant by subdomain or ID
       let tenant;
       if (tenantIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
         // It's an ObjectId
         tenant = await Tenant.findById(tenantIdentifier);
+        console.log('Found tenant by ID:', tenant ? tenant.name : 'Not found');
       } else {
         // It's a subdomain
         tenant = await Tenant.findOne({ subdomain: tenantIdentifier, isActive: true });
+        console.log('Found tenant by subdomain:', tenant ? tenant.name : 'Not found');
       }
       
       if (tenant) {
         req.tenant = tenant;
         req.tenantId = tenant._id;
+        console.log('Tenant set:', tenant.name, tenant._id);
       } else {
+        console.log('Tenant not found for identifier:', tenantIdentifier);
         return res.status(404).json({
           success: false,
           message: 'Store not found'
