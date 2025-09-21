@@ -119,7 +119,8 @@ router.post('/login', extractTenant, async (req, res) => {
     }
 
     // Simple email format check
-    if (!email.includes('@') || !email.includes('.')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
         message: 'Please enter a valid email address'
@@ -128,7 +129,7 @@ router.post('/login', extractTenant, async (req, res) => {
 
     // Check for user and include password
     const user = await User.findOne({
-      email: email.toLowerCase(),
+      email: email.toLowerCase().trim(),
       tenantId: req.tenantId 
     }).select('+password').populate('tenantId', 'name subdomain');
 

@@ -33,17 +33,28 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
     
-    // Basic validation - just check if fields are filled
-    if (!formData.email || !formData.password) {
+    // Trim inputs
+    const email = formData.email.trim();
+    const password = formData.password.trim();
+    
+    // Basic validation
+    if (!email || !password) {
       setError("Please enter both email and password");
+      return;
+    }
+    
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
       return;
     }
     
     setIsSubmitting(true);
 
     try {
-      console.log('Attempting login with:', formData.email);
-      const result = await login(formData.email, formData.password);
+      console.log('Attempting login with:', email);
+      const result = await login(email, password);
       console.log('Login result:', result);
 
       if (!result.success) {
