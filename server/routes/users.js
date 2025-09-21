@@ -2,14 +2,13 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
-const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
 
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private (Admin/Manager)
-router.get('/', protect, extractTenant, requireTenant, validateUserTenant, authorize('admin', 'manager'), [
+router.get('/', protect, authorize('admin', 'manager'), [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
@@ -25,12 +24,24 @@ router.get('/', protect, extractTenant, requireTenant, validateUserTenant, autho
       });
     }
 
+    console.log('=== USERS GET REQUEST ===');
+    console.log('User:', req.user ? { id: req.user._id, email: req.user.email, tenantId: req.user.tenantId } : 'No user');
+
+    // Use the authenticated user's tenantId
+    const userTenantId = req.user.tenantId;
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    // Build query
-    let query = { isActive: true, tenantId: req.tenantId };
+    // Build query using user's tenantId
+    let query = { isActive: true, tenantId: userTenantId };
 
     // Role filter
     if (req.query.role) {
@@ -46,12 +57,16 @@ router.get('/', protect, extractTenant, requireTenant, validateUserTenant, autho
       ];
     }
 
+    console.log('Query:', query);
+
     const users = await User.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
     const total = await User.countDocuments(query);
+
+    console.log('Found users:', users.length);
 
     res.json({
       success: true,
@@ -62,6 +77,7 @@ router.get('/', protect, extractTenant, requireTenant, validateUserTenant, autho
       data: users
     });
   } catch (error) {
+    console.error('Users GET error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',
@@ -73,11 +89,19 @@ router.get('/', protect, extractTenant, requireTenant, validateUserTenant, autho
 // @desc    Get single user
 // @route   GET /api/users/:id
 // @access  Private (Admin/Manager)
-router.get('/:id', protect, extractTenant, requireTenant, validateUserTenant, authorize('admin', 'manager'), async (req, res) => {
+router.get('/:id', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
+    const userTenantId = req.user.tenantId;
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const user = await User.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!user) {
@@ -103,7 +127,7 @@ router.get('/:id', protect, extractTenant, requireTenant, validateUserTenant, au
 // @desc    Create new user
 // @route   POST /api/users
 // @access  Private (Admin)
-router.post('/', protect, extractTenant, requireTenant, validateUserTenant, authorize('admin'), [
+router.post('/', protect, authorize('admin'), [
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -121,11 +145,19 @@ router.post('/', protect, extractTenant, requireTenant, validateUserTenant, auth
       });
     }
 
+    const userTenantId = req.user.tenantId;
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const { name, email, password, employeeId, role, phone } = req.body;
 
-    // Check if user already exists
+    // Check if user already exists in this tenant
     const existingUser = await User.findOne({
-      tenantId: req.tenantId,
+      tenantId: userTenantId,
       $or: [{ email }, { employeeId }]
     });
 
@@ -137,7 +169,7 @@ router.post('/', protect, extractTenant, requireTenant, validateUserTenant, auth
     }
 
     const user = await User.create({
-      tenantId: req.tenantId,
+      tenantId: userTenantId,
       name,
       email,
       password,
@@ -163,7 +195,7 @@ router.post('/', protect, extractTenant, requireTenant, validateUserTenant, auth
 // @desc    Update user
 // @route   PUT /api/users/:id
 // @access  Private (Admin)
-router.put('/:id', protect, extractTenant, requireTenant, validateUserTenant, authorize('admin'), [
+router.put('/:id', protect, authorize('admin'), [
   body('name').optional().trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
@@ -180,9 +212,17 @@ router.put('/:id', protect, extractTenant, requireTenant, validateUserTenant, au
       });
     }
 
+    const userTenantId = req.user.tenantId;
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     let user = await User.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!user) {
@@ -196,7 +236,7 @@ router.put('/:id', protect, extractTenant, requireTenant, validateUserTenant, au
     if (req.body.email && req.body.email !== user.email) {
       const existingUser = await User.findOne({ 
         email: req.body.email,
-        tenantId: req.tenantId
+        tenantId: userTenantId
       });
       if (existingUser) {
         return res.status(400).json({
@@ -210,7 +250,7 @@ router.put('/:id', protect, extractTenant, requireTenant, validateUserTenant, au
     delete req.body.password;
 
     user = await User.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -232,11 +272,19 @@ router.put('/:id', protect, extractTenant, requireTenant, validateUserTenant, au
 // @desc    Delete user (soft delete)
 // @route   DELETE /api/users/:id
 // @access  Private (Admin)
-router.delete('/:id', protect, extractTenant, requireTenant, validateUserTenant, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
+    const userTenantId = req.user.tenantId;
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const user = await User.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
 
     if (!user) {
@@ -256,7 +304,7 @@ router.delete('/:id', protect, extractTenant, requireTenant, validateUserTenant,
 
     // Soft delete - set isActive to false
     await User.findOneAndUpdate(
-      { _id: req.params.id, tenantId: req.tenantId },
+      { _id: req.params.id, tenantId: userTenantId },
       { isActive: false }
     );
 
@@ -276,10 +324,18 @@ router.delete('/:id', protect, extractTenant, requireTenant, validateUserTenant,
 // @desc    Get user statistics
 // @route   GET /api/users/stats/summary
 // @access  Private (Admin/Manager)
-router.get('/stats/summary', protect, extractTenant, requireTenant, validateUserTenant, authorize('admin', 'manager'), async (req, res) => {
+router.get('/stats/summary', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
+    const userTenantId = req.user.tenantId;
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const stats = await User.aggregate([
-      { $match: { isActive: true, tenantId: req.tenantId } },
+      { $match: { isActive: true, tenantId: userTenantId } },
       {
         $group: {
           _id: '$role',
@@ -290,11 +346,11 @@ router.get('/stats/summary', protect, extractTenant, requireTenant, validateUser
 
     const totalUsers = await User.countDocuments({ 
       isActive: true, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     });
     const activeUsers = await User.countDocuments({ 
       isActive: true, 
-      tenantId: req.tenantId,
+      tenantId: userTenantId,
       lastLogin: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } 
     });
 
