@@ -5,88 +5,94 @@ const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 // @desc    Get all users
-router.get('/', protect, authorize('admin', 'manager'), [
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-  query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
-  query('search').optional().trim()
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
+router.get(
+  '/',
+  protect,
+  authorize('admin', 'manager'),
+  [
+    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
+    query('search').optional().trim()
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
+
+      console.log('=== USERS GET REQUEST ===');
+      console.log('User:', req.user ? { id: req.user._id, email: req.user.email, tenantId: req.user.tenantId } : 'No user');
+
+      // Extract tenantId from user (handle both populated and non-populated)
+      let userTenantId;
+      if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+        userTenantId = req.user.tenantId._id;
+      } else {
+        userTenantId = req.user.tenantId;
+      }
+      
+      if (!userTenantId) {
+        return res.status(400).json({
+          success: false,
+          message: 'User is not associated with any store'
+        });
+      }
+
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+
+      // Build query using user's tenantId
+      let queryObj = { isActive: true, tenantId: userTenantId };
+
+      // Role filter
+      if (req.query.role) {
+        queryObj.role = req.query.role;
+      }
+
+      // Search functionality
+      if (req.query.search) {
+        queryObj.$or = [
+          { name: { $regex: req.query.search, $options: 'i' } },
+          { email: { $regex: req.query.search, $options: 'i' } },
+          { employeeId: { $regex: req.query.search, $options: 'i' } }
+        ];
+      }
+
+      console.log('Query:', queryObj);
+
+      const users = await User.find(queryObj)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      const total = await User.countDocuments(queryObj);
+
+      console.log('Found users:', users.length);
+
+      res.json({
+        success: true,
+        count: users.length,
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        data: users
+      });
+    } catch (error) {
+      console.error('Users GET error:', error);
+      res.status(500).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: 'Server error',
+        error: error.message
       });
     }
-
-    console.log('=== USERS GET REQUEST ===');
-    console.log('User:', req.user ? { id: req.user._id, email: req.user.email, tenantId: req.user.tenantId } : 'No user');
-
-    // Extract tenantId from user (handle both populated and non-populated)
-    let userTenantId;
-    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
-      userTenantId = req.user.tenantId._id;
-    } else {
-      userTenantId = req.user.tenantId;
-    }
-    
-    if (!userTenantId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User is not associated with any store'
-      });
-    }
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = (page - 1) * limit;
-
-    // Build query using user's tenantId
-    let query = { isActive: true, tenantId: userTenantId };
-
-    // Role filter
-    if (req.query.role) {
-      query.role = req.query.role;
-    }
-
-    // Search functionality
-    if (req.query.search) {
-      query.$or = [
-        { name: { $regex: req.query.search, $options: 'i' } },
-        { email: { $regex: req.query.search, $options: 'i' } },
-        { employeeId: { $regex: req.query.search, $options: 'i' } }
-      ];
-    }
-
-    console.log('Query:', query);
-
-    const users = await User.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await User.countDocuments(query);
-
-    console.log('Found users:', users.length);
-
-    res.json({
-      success: true,
-      count: users.length,
-      total,
-      page,
-      pages: Math.ceil(total / limit),
-      data: users
-    });
-  } catch (error) {
-    console.error('Users GET error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
   }
-});
+);
 
 // @desc    Get single user
 // @route   GET /api/users/:id
