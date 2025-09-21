@@ -98,10 +98,7 @@ router.post('/register', extractTenant, [
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-router.post('/login', extractTenant, [
-  body('email').isEmail().withMessage('Please enter a valid email'),
-  body('password').exists().withMessage('Password is required')
-], async (req, res) => {
+router.post('/login', extractTenant, async (req, res) => {
   try {
     // Require tenant for login
     if (!req.tenantId) {
@@ -111,17 +108,23 @@ router.post('/login', extractTenant, [
       });
     }
 
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const { email, password } = req.body;
+
+    // Basic validation
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Validation failed',
-        errors: errors.array()
+        message: 'Email and password are required'
       });
     }
 
-    const { email, password } = req.body;
+    // Simple email format check
+    if (!email.includes('@') || !email.includes('.')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
 
     // Check for user and include password
     const user = await User.findOne({

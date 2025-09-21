@@ -33,10 +33,9 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
     
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+    // Basic validation - just check if fields are filled
+    if (!formData.email || !formData.password) {
+      setError("Please enter both email and password");
       return;
     }
     
