@@ -283,14 +283,7 @@ router.put('/:id', protect, authorize('admin'), [
 // @access  Private (Admin)
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
-    // Extract tenantId from user (handle both populated and non-populated)
-    let userTenantId;
-    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
-      userTenantId = req.user.tenantId._id;
-    } else {
-      userTenantId = req.user.tenantId;
-    }
-    
+    const userTenantId = req.user.tenantId;
     if (!userTenantId) {
       return res.status(400).json({
         success: false,
