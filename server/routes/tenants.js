@@ -202,7 +202,7 @@ router.put('/settings', protect, authorize('admin'), [
       });
     }
 
-    const tenant = await Tenant.findByIdAndUpdate(
+    const updatedTenant = await Tenant.findByIdAndUpdate(
       userTenantId,
       req.body,
       { new: true, runValidators: true }
@@ -211,7 +211,7 @@ router.put('/settings', protect, authorize('admin'), [
     res.json({
       success: true,
       message: 'Store settings updated successfully',
-      data: tenant
+      data: updatedTenant
     });
   } catch (error) {
     res.status(500).json({
