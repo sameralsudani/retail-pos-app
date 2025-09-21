@@ -29,10 +29,14 @@ const transactionItemSchema = new mongoose.Schema({
 });
 
 const transactionSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    required: [true, 'Tenant ID is required']
+  },
   transactionId: {
     type: String,
     required: true,
-    unique: true
   },
   items: [transactionItemSchema],
   customer: {
@@ -98,10 +102,10 @@ const transactionSchema = new mongoose.Schema({
 });
 
 // Index for search and reporting
-transactionSchema.index({ transactionId: 1 });
-transactionSchema.index({ cashier: 1 });
-transactionSchema.index({ customer: 1 });
-transactionSchema.index({ createdAt: -1 });
-transactionSchema.index({ status: 1 });
+transactionSchema.index({ tenantId: 1, transactionId: 1 }, { unique: true });
+transactionSchema.index({ tenantId: 1, cashier: 1 });
+transactionSchema.index({ tenantId: 1, customer: 1 });
+transactionSchema.index({ tenantId: 1, createdAt: -1 });
+transactionSchema.index({ tenantId: 1, status: 1 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

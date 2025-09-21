@@ -5,15 +5,23 @@ const Category = require('../models/Category');
 const { protect, authorize } = require('../middleware/auth');
 const { upload, handleUploadError } = require('../middleware/upload');
 const { uploadImage, deleteImage } = require('../config/cloudinary');
+const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
+
+// Apply tenant middleware to all routes
+router.use(extractTenant);
+router.use(requireTenant);
 
 // @desc    Get all categories
 // @route   GET /api/categories
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, validateUserTenant, async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true })
+    const categories = await Category.find({ 
+      isActive: true, 
+      tenantId: req.tenantId 
+    })
       .populate('productCount')
       .sort({ name: 1 });
 
@@ -34,9 +42,12 @@ router.get('/', protect, async (req, res) => {
 // @desc    Get single category
 // @route   GET /api/categories/:id
 // @access  Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, validateUserTenant, async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id).populate('productCount');
+    const category = await Category.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    }).populate('productCount');
 
     if (!category) {
       return res.status(404).json({
@@ -61,7 +72,7 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new category
 // @route   POST /api/categories
 // @access  Private (Admin)
-router.post('/', protect, authorize('admin'), upload.single('image'), handleUploadError, [
+router.post('/', protect, validateUserTenant, authorize('admin'), upload.single('image'), handleUploadError, [
   body('name').trim().isLength({ min: 1 }).withMessage('Category name is required'),
   body('color').optional().matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).withMessage('Invalid hex color format')
 ], async (req, res) => {
@@ -77,6 +88,7 @@ router.post('/', protect, authorize('admin'), upload.single('image'), handleUplo
 
     // Check if category already exists
     const existingCategory = await Category.findOne({ 
+      tenantId: req.tenantId,
       name: { $regex: new RegExp(`^${req.body.name}$`, 'i') }
     });
 
@@ -87,7 +99,10 @@ router.post('/', protect, authorize('admin'), upload.single('image'), handleUplo
       });
     }
 
-    const category = await Category.create(req.body);
+    const category = await Category.create({
+      ...req.body,
+      tenantId: req.tenantId
+    });
 
     res.status(201).json({
       success: true,
@@ -106,7 +121,7 @@ router.post('/', protect, authorize('admin'), upload.single('image'), handleUplo
 // @desc    Update category
 // @route   PUT /api/categories/:id
 // @access  Private (Admin)
-router.put('/:id', protect, authorize('admin'), [
+router.put('/:id', protect, validateUserTenant, authorize('admin'), [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Category name cannot be empty'),
   body('color').optional().matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).withMessage('Invalid hex color format')
 ], async (req, res) => {
@@ -120,7 +135,10 @@ router.put('/:id', protect, authorize('admin'), [
       });
     }
 
-    let category = await Category.findById(req.params.id);
+    let category = await Category.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!category) {
       return res.status(404).json({
@@ -132,6 +150,7 @@ router.put('/:id', protect, authorize('admin'), [
     // Check for duplicate name if updating name
     if (req.body.name && req.body.name.toLowerCase() !== category.name.toLowerCase()) {
       const existingCategory = await Category.findOne({ 
+        tenantId: req.tenantId,
         name: { $regex: new RegExp(`^${req.body.name}$`, 'i') }
       });
 
@@ -168,8 +187,8 @@ router.put('/:id', protect, authorize('admin'), [
       }
     }
 
-    category = await Category.findByIdAndUpdate(
-      req.params.id,
+    category = await Category.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -191,9 +210,12 @@ router.put('/:id', protect, authorize('admin'), [
 // @desc    Delete category
 // @route   DELETE /api/categories/:id
 // @access  Private (Admin)
-router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!category) {
       return res.status(404).json({
@@ -204,7 +226,11 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 
     // Check if category has products
     const Product = require('../models/Product');
-    const productCount = await Product.countDocuments({ category: req.params.id, isActive: true });
+    const productCount = await Product.countDocuments({ 
+      category: req.params.id, 
+      tenantId: req.tenantId,
+      isActive: true 
+    });
 
     if (productCount > 0) {
       return res.status(400).json({
@@ -214,7 +240,10 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     }
 
     // Soft delete - set isActive to false
-    await Category.findByIdAndUpdate(req.params.id, { isActive: false });
+    await Category.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
+      { isActive: false }
+    );
 
     res.json({
       success: true,

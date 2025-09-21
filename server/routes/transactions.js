@@ -5,20 +5,26 @@ const Transaction = require('../models/Transaction');
 const Product = require('../models/Product');
 const Customer = require('../models/Customer');
 const { protect } = require('../middleware/auth');
+const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
 
+// Apply tenant middleware to all routes
+router.use(extractTenant);
+router.use(requireTenant);
+
 // Generate unique transaction ID
-const generateTransactionId = () => {
+const generateTransactionId = (tenantId) => {
   const timestamp = Date.now().toString();
   const random = Math.random().toString(36).substr(2, 5).toUpperCase();
-  return `TXN-${timestamp}-${random}`;
+  const tenantPrefix = tenantId.toString().slice(-4).toUpperCase();
+  return `${tenantPrefix}-${timestamp}-${random}`;
 };
 
 // @desc    Get all transactions
 // @route   GET /api/transactions
 // @access  Private
-router.get('/', protect, [
+router.get('/', protect, validateUserTenant, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
@@ -41,7 +47,7 @@ router.get('/', protect, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = {};
+    let query = { tenantId: req.tenantId };
 
     // Date range filter
     if (req.query.startDate || req.query.endDate) {
@@ -94,9 +100,12 @@ router.get('/', protect, [
 // @desc    Get single transaction
 // @route   GET /api/transactions/:id
 // @access  Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, validateUserTenant, async (req, res) => {
   try {
-    const transaction = await Transaction.findById(req.params.id)
+    const transaction = await Transaction.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    })
       .populate('customer', 'name email phone')
       .populate('cashier', 'name employeeId')
       .populate('items.product', 'name sku category');
@@ -124,7 +133,7 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new transaction
 // @route   POST /api/transactions
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, validateUserTenant, async (req, res) => {
   try {
     console.log('=== TRANSACTION REQUEST START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -185,7 +194,10 @@ router.post('/', protect, async (req, res) => {
         });
       }
 
-      const product = await Product.findById(item.product);
+      const product = await Product.findOne({ 
+        _id: item.product, 
+        tenantId: req.tenantId 
+      });
       
       if (!product) {
         console.log(`Product not found: ${item.product}`);
@@ -219,9 +231,12 @@ router.post('/', protect, async (req, res) => {
       });
 
       // Update product stock
-      await Product.findByIdAndUpdate(product._id, {
+      await Product.findOneAndUpdate(
+        { _id: product._id, tenantId: req.tenantId },
+        {
         $inc: { stock: -item.quantity }
-      });
+        }
+      );
     }
 
     // Calculate totals
@@ -241,7 +256,8 @@ router.post('/', protect, async (req, res) => {
 
     // Create transaction
     const transaction = await Transaction.create({
-      transactionId: generateTransactionId(),
+      tenantId: req.tenantId,
+      transactionId: generateTransactionId(req.tenantId),
       items: processedItems,
       customer: customer || undefined,
       cashier: req.user._id,
@@ -257,13 +273,16 @@ router.post('/', protect, async (req, res) => {
 
     // Update customer loyalty points if customer exists
     if (customer) {
-      await Customer.findByIdAndUpdate(customer, {
+      await Customer.findOneAndUpdate(
+        { _id: customer, tenantId: req.tenantId },
+        {
         $inc: { 
           loyaltyPoints: loyaltyPointsEarned,
           totalSpent: total
         },
         lastVisit: new Date()
-      });
+        }
+      );
     }
 
     // Populate transaction for response
@@ -294,7 +313,7 @@ router.post('/', protect, async (req, res) => {
 // @desc    Get transaction statistics
 // @route   GET /api/transactions/stats
 // @access  Private
-router.get('/stats/summary', protect, [
+router.get('/stats/summary', protect, validateUserTenant, [
   query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
   query('endDate').optional().isISO8601().withMessage('Invalid end date format')
 ], async (req, res) => {
@@ -309,7 +328,7 @@ router.get('/stats/summary', protect, [
     }
 
     // Build date query
-    let dateQuery = {};
+    let dateQuery = { tenantId: req.tenantId };
     if (req.query.startDate || req.query.endDate) {
       dateQuery.createdAt = {};
       if (req.query.startDate) {

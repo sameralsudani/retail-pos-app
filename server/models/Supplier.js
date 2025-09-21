@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const supplierSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    required: [true, 'Tenant ID is required']
+  },
   name: {
     type: String,
     required: [true, 'Supplier name is required'],
@@ -60,6 +65,7 @@ supplierSchema.virtual('productCount', {
 supplierSchema.set('toJSON', { virtuals: true });
 
 // Index for search functionality
-supplierSchema.index({ name: 'text', contactPerson: 'text', email: 'text' });
+supplierSchema.index({ tenantId: 1, name: 'text', contactPerson: 'text', email: 'text' });
+supplierSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 
 module.exports = mongoose.model('Supplier', supplierSchema);

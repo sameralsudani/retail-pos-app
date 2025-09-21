@@ -31,7 +31,7 @@ exports.protect = async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Get user from token
-      req.user = await User.findById(decoded.id);
+      req.user = await User.findById(decoded.id).populate('tenantId', 'name subdomain');
 
       if (!req.user) {
         return res.status(401).json({
@@ -45,6 +45,14 @@ exports.protect = async (req, res, next) => {
         return res.status(401).json({
           success: false,
           message: 'User account is deactivated'
+        });
+      }
+
+      // Check if user's tenant is active
+      if (!req.user.tenantId || !req.user.tenantId.isActive) {
+        return res.status(401).json({
+          success: false,
+          message: 'Store account is deactivated'
         });
       }
 

@@ -2,15 +2,20 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Settings = require('../models/Settings');
 const { protect, authorize } = require('../middleware/auth');
+const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
+
+// Apply tenant middleware to all routes
+router.use(extractTenant);
+router.use(requireTenant);
 
 // @desc    Get system settings
 // @route   GET /api/settings
 // @access  Private (Admin/Manager)
-router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
+router.get('/', protect, validateUserTenant, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const settings = await Settings.getSettings();
+    const settings = await Settings.getSettings(req.tenantId);
 
     res.json({
       success: true,
@@ -28,7 +33,7 @@ router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
 // @desc    Update system settings
 // @route   PUT /api/settings
 // @access  Private (Admin only)
-router.put('/', protect, authorize('admin'), [
+router.put('/', protect, validateUserTenant, authorize('admin'), [
   body('storeName').optional().trim().isLength({ min: 1, max: 100 }).withMessage('Store name must be between 1 and 100 characters'),
   body('storeAddress').optional().trim().isLength({ max: 200 }).withMessage('Store address cannot exceed 200 characters'),
   body('storePhone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
@@ -63,7 +68,7 @@ router.put('/', protect, authorize('admin'), [
       });
     }
 
-    const settings = await Settings.getSettings();
+    const settings = await Settings.getSettings(req.tenantId);
     
     // Update settings with provided data
     Object.keys(req.body).forEach(key => {
@@ -91,11 +96,11 @@ router.put('/', protect, authorize('admin'), [
 // @desc    Reset settings to defaults
 // @route   POST /api/settings/reset
 // @access  Private (Admin only)
-router.post('/reset', protect, authorize('admin'), async (req, res) => {
+router.post('/reset', protect, validateUserTenant, authorize('admin'), async (req, res) => {
   try {
     // Delete existing settings and create new with defaults
-    await Settings.deleteMany({});
-    const settings = await Settings.create({});
+    await Settings.deleteMany({ tenantId: req.tenantId });
+    const settings = await Settings.create({ tenantId: req.tenantId });
 
     res.json({
       success: true,

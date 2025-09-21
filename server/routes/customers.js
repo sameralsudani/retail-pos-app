@@ -2,13 +2,18 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const Customer = require('../models/Customer');
 const { protect } = require('../middleware/auth');
+const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
+
+// Apply tenant middleware to all routes
+router.use(extractTenant);
+router.use(requireTenant);
 
 // @desc    Get all customers
 // @route   GET /api/customers
 // @access  Private
-router.get('/', protect, [
+router.get('/', protect, validateUserTenant, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('search').optional().trim()
@@ -28,7 +33,7 @@ router.get('/', protect, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true };
+    let query = { isActive: true, tenantId: req.tenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -62,9 +67,12 @@ router.get('/', protect, [
 // @desc    Get single customer
 // @route   GET /api/customers/:id
 // @access  Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, validateUserTenant, async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!customer) {
       return res.status(404).json({
@@ -89,7 +97,7 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new customer
 // @route   POST /api/customers
 // @access  Private
-router.post('/', protect, [
+router.post('/', protect, validateUserTenant, [
   body('name').trim().isLength({ min: 1 }).withMessage('Customer name is required'),
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('phone').optional().trim()
@@ -105,7 +113,10 @@ router.post('/', protect, [
     }
 
     // Check if customer already exists
-    const existingCustomer = await Customer.findOne({ email: req.body.email });
+    const existingCustomer = await Customer.findOne({ 
+      email: req.body.email,
+      tenantId: req.tenantId
+    });
     if (existingCustomer) {
       return res.status(400).json({
         success: false,
@@ -113,7 +124,10 @@ router.post('/', protect, [
       });
     }
 
-    const customer = await Customer.create(req.body);
+    const customer = await Customer.create({
+      ...req.body,
+      tenantId: req.tenantId
+    });
 
     res.status(201).json({
       success: true,
@@ -132,7 +146,7 @@ router.post('/', protect, [
 // @desc    Update customer
 // @route   PUT /api/customers/:id
 // @access  Private
-router.put('/:id', protect, [
+router.put('/:id', protect, validateUserTenant, [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Customer name cannot be empty'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('phone').optional().trim()
@@ -147,7 +161,10 @@ router.put('/:id', protect, [
       });
     }
 
-    let customer = await Customer.findById(req.params.id);
+    let customer = await Customer.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!customer) {
       return res.status(404).json({
@@ -158,7 +175,10 @@ router.put('/:id', protect, [
 
     // Check for duplicate email if updating email
     if (req.body.email && req.body.email !== customer.email) {
-      const existingCustomer = await Customer.findOne({ email: req.body.email });
+      const existingCustomer = await Customer.findOne({ 
+        email: req.body.email,
+        tenantId: req.tenantId
+      });
       if (existingCustomer) {
         return res.status(400).json({
           success: false,
@@ -167,8 +187,8 @@ router.put('/:id', protect, [
       }
     }
 
-    customer = await Customer.findByIdAndUpdate(
-      req.params.id,
+    customer = await Customer.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -190,7 +210,7 @@ router.put('/:id', protect, [
 // @desc    Update customer loyalty points
 // @route   PUT /api/customers/:id/loyalty
 // @access  Private
-router.put('/:id/loyalty', protect, [
+router.put('/:id/loyalty', protect, validateUserTenant, [
   body('points').isInt({ min: 0 }).withMessage('Points must be a non-negative integer'),
   body('totalSpent').optional().isFloat({ min: 0 }).withMessage('Total spent must be non-negative')
 ], async (req, res) => {
@@ -204,7 +224,10 @@ router.put('/:id/loyalty', protect, [
       });
     }
 
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!customer) {
       return res.status(404).json({
@@ -222,8 +245,8 @@ router.put('/:id/loyalty', protect, [
       updateData.totalSpent = customer.totalSpent + req.body.totalSpent;
     }
 
-    const updatedCustomer = await Customer.findByIdAndUpdate(
-      req.params.id,
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
       updateData,
       { new: true, runValidators: true }
     );

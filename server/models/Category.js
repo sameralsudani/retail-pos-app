@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    required: [true, 'Tenant ID is required']
+  },
   name: {
     type: String,
     required: [true, 'Category name is required'],
-    unique: true,
     trim: true,
     maxlength: [50, 'Category name cannot exceed 50 characters']
   },
@@ -25,6 +29,9 @@ const categorySchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Index for tenant-based queries
+categorySchema.index({ tenantId: 1, name: 1 }, { unique: true });
 
 // Virtual for product count
 categorySchema.virtual('productCount', {

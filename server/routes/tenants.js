@@ -1,0 +1,232 @@
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const Tenant = require('../models/Tenant');
+const User = require('../models/User');
+const { protect, authorize, generateToken } = require('../middleware/auth');
+const { extractTenant } = require('../middleware/tenant');
+
+const router = express.Router();
+
+// @desc    Register new tenant (store)
+// @route   POST /api/tenants/register
+// @access  Public
+router.post('/register', [
+  body('storeName').trim().isLength({ min: 1 }).withMessage('Store name is required'),
+  body('subdomain').trim().isLength({ min: 3 }).withMessage('Subdomain must be at least 3 characters')
+    .matches(/^[a-z0-9-]+$/).withMessage('Subdomain can only contain lowercase letters, numbers, and hyphens'),
+  body('ownerName').trim().isLength({ min: 2 }).withMessage('Owner name must be at least 2 characters'),
+  body('ownerEmail').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
+  body('ownerPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('phone').optional().trim(),
+  body('address.street').optional().trim(),
+  body('address.city').optional().trim(),
+  body('address.state').optional().trim(),
+  body('address.zipCode').optional().trim(),
+  body('address.country').optional().trim()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { 
+      storeName, 
+      subdomain, 
+      description,
+      ownerName, 
+      ownerEmail, 
+      ownerPassword, 
+      phone,
+      address 
+    } = req.body;
+
+    // Check if subdomain is already taken
+    const existingTenant = await Tenant.findOne({ subdomain: subdomain.toLowerCase() });
+    if (existingTenant) {
+      return res.status(400).json({
+        success: false,
+        message: 'This store name is already taken'
+      });
+    }
+
+    // Check if owner email is already used
+    const existingUser = await User.findOne({ email: ownerEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'A user with this email already exists'
+      });
+    }
+
+    // Create tenant
+    const tenant = await Tenant.create({
+      name: storeName,
+      subdomain: subdomain.toLowerCase(),
+      description,
+      address,
+      contact: {
+        phone,
+        email: ownerEmail
+      }
+    });
+
+    // Create owner user (admin)
+    const owner = await User.create({
+      tenantId: tenant._id,
+      name: ownerName,
+      email: ownerEmail,
+      password: ownerPassword,
+      role: 'admin',
+      employeeId: 'OWNER001',
+      phone
+    });
+
+    // Generate token for immediate login
+    const token = generateToken(owner._id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Store registered successfully',
+      data: {
+        tenant: {
+          id: tenant._id,
+          name: tenant.name,
+          subdomain: tenant.subdomain
+        },
+        user: {
+          _id: owner._id,
+          id: owner._id,
+          name: owner.name,
+          email: owner.email,
+          role: owner.role,
+          employeeId: owner.employeeId,
+          phone: owner.phone,
+          isActive: owner.isActive,
+          tenantId: owner.tenantId,
+          createdAt: owner.createdAt,
+          updatedAt: owner.updatedAt
+        },
+        token
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Get tenant info
+// @route   GET /api/tenants/info
+// @access  Private
+router.get('/info', extractTenant, protect, async (req, res) => {
+  try {
+    if (!req.tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Store not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: req.tenant
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Update tenant settings
+// @route   PUT /api/tenants/settings
+// @access  Private (Admin only)
+router.put('/settings', extractTenant, protect, authorize('admin'), [
+  body('name').optional().trim().isLength({ min: 1 }).withMessage('Store name cannot be empty'),
+  body('description').optional().trim(),
+  body('contact.phone').optional().trim(),
+  body('contact.email').optional().isEmail().withMessage('Please enter a valid email'),
+  body('settings.currency').optional().isIn(['USD', 'EUR', 'GBP', 'SAR', 'AED']).withMessage('Invalid currency'),
+  body('settings.language').optional().isIn(['en', 'ar']).withMessage('Invalid language')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    if (!req.tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Store not found'
+      });
+    }
+
+    const tenant = await Tenant.findByIdAndUpdate(
+      req.tenant._id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Store settings updated successfully',
+      data: tenant
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Check subdomain availability
+// @route   GET /api/tenants/check-subdomain/:subdomain
+// @access  Public
+router.get('/check-subdomain/:subdomain', async (req, res) => {
+  try {
+    const subdomain = req.params.subdomain.toLowerCase();
+    
+    // Check format
+    if (!subdomain.match(/^[a-z0-9-]+$/)) {
+      return res.json({
+        success: false,
+        available: false,
+        message: 'Subdomain can only contain lowercase letters, numbers, and hyphens'
+      });
+    }
+
+    // Check if taken
+    const existingTenant = await Tenant.findOne({ subdomain });
+    
+    res.json({
+      success: true,
+      available: !existingTenant,
+      message: existingTenant ? 'This store name is already taken' : 'Store name is available'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;

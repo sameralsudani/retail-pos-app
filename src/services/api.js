@@ -1,5 +1,12 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Get tenant identifier (for development, use demo1 as default)
+const getTenantId = () => {
+  // In production, this would extract from subdomain
+  // For development, we'll use a default tenant
+  return 'demo1';
+};
+
 // Get auth token from localStorage
 const getAuthToken = () => {
   const user = localStorage.getItem('pos_user');
@@ -18,11 +25,13 @@ const getAuthToken = () => {
 // API request helper
 const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
+  const tenantId = getTenantId();
   
   const config = {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
+      ...(tenantId && { 'X-Tenant-Id': tenantId }),
       ...options.headers,
     },
     ...options,
@@ -60,15 +69,23 @@ const apiRequest = async (endpoint, options = {}) => {
 // Auth API
 export const authAPI = {
   login: async (email, password) => {
+    const tenantId = getTenantId();
     return apiRequest('/auth/login', {
       method: 'POST',
+      headers: {
+        'X-Tenant-Id': tenantId
+      },
       body: JSON.stringify({ email, password }),
     });
   },
 
   register: async (userData) => {
+    const tenantId = getTenantId();
     return apiRequest('/auth/register', {
       method: 'POST',
+      headers: {
+        'X-Tenant-Id': tenantId
+      },
       body: JSON.stringify(userData),
     });
   },
@@ -92,6 +109,54 @@ export const authAPI = {
         newPassword,
         confirmPassword
       }),
+    });
+  },
+};
+
+// Tenants API
+export const tenantsAPI = {
+  register: async (tenantData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tenants/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tenantData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'API request failed');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Tenant registration error:', error);
+      throw error;
+    }
+  },
+
+  checkSubdomain: async (subdomain) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tenants/check-subdomain/${subdomain}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Subdomain check error:', error);
+      throw error;
+    }
+  },
+
+  getInfo: async () => {
+    return apiRequest('/tenants/info');
+  },
+
+  updateSettings: async (settingsData) => {
+    return apiRequest('/tenants/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settingsData),
     });
   },
 };

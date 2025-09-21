@@ -1,5 +1,4 @@
 const Category = require('../models/Category');
-const Tenant = require('../models/Tenant');
 
 const createCategories = (tenants) => {
   const categoriesForTenant1 = [
@@ -56,12 +55,15 @@ const createCategories = (tenants) => {
   return categoriesForTenant1;
 };
 
-const seedCategories = async () => {
+const seedCategories = async (tenants) => {
   try {
     console.log('🏷️  Seeding categories...');
     
     // Clear existing categories
     await Category.deleteMany({});
+    
+    // Get tenants
+    const categories = createCategories(tenants);
     
     // Insert new categories
     const createdCategories = await Category.insertMany(categories);

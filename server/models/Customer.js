@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    required: [true, 'Tenant ID is required']
+  },
   name: {
     type: String,
     required: [true, 'Customer name is required'],
@@ -51,6 +56,7 @@ const customerSchema = new mongoose.Schema({
 });
 
 // Index for search functionality
-customerSchema.index({ name: 'text', email: 'text', phone: 'text' });
+customerSchema.index({ tenantId: 1, name: 'text', email: 'text', phone: 'text' });
+customerSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 
 module.exports = mongoose.model('Customer', customerSchema);

@@ -1,6 +1,7 @@
 const Product = require('../models/Product');
 
-const createProducts = (categories, suppliers) => {
+const createProducts = (tenants, categories, suppliers) => {
+  // Get categories and suppliers for tenant 1
   const beverageCategory = categories.find(c => c.name === 'Beverages')._id;
   const bakeryCategory = categories.find(c => c.name === 'Bakery')._id;
   const electronicsCategory = categories.find(c => c.name === 'Electronics')._id;
@@ -22,6 +23,7 @@ const createProducts = (categories, suppliers) => {
   return [
     // Beverages
     {
+      tenantId: tenants[0]._id,
       name: 'Premium Coffee Beans',
       description: 'Rich, aromatic coffee beans sourced from premium farms',
       price: 24.99,
@@ -36,6 +38,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['premium', 'organic', 'fair-trade']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Organic Green Tea',
       description: 'Pure organic green tea leaves with natural antioxidants',
       price: 12.99,
@@ -50,6 +53,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['organic', 'antioxidants', 'healthy']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Fresh Orange Juice',
       description: 'Freshly squeezed orange juice, 100% natural',
       price: 4.99,
@@ -64,6 +68,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['fresh', 'natural', 'vitamin-c']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Sparkling Water',
       description: 'Premium sparkling water with natural minerals',
       price: 2.49,
@@ -80,6 +85,7 @@ const createProducts = (categories, suppliers) => {
 
     // Bakery
     {
+      tenantId: tenants[0]._id,
       name: 'Artisan Bread',
       description: 'Freshly baked artisan bread with crispy crust',
       price: 6.50,
@@ -94,6 +100,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['artisan', 'fresh', 'daily-baked']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Fresh Croissants',
       description: 'Buttery, flaky croissants baked fresh daily',
       price: 3.75,
@@ -108,6 +115,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['buttery', 'flaky', 'french']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Chocolate Muffins',
       description: 'Rich chocolate muffins with chocolate chips',
       price: 4.25,
@@ -124,6 +132,7 @@ const createProducts = (categories, suppliers) => {
 
     // Electronics
     {
+      tenantId: tenants[0]._id,
       name: 'Wireless Headphones',
       description: 'High-quality wireless headphones with noise cancellation',
       price: 89.99,
@@ -138,6 +147,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['wireless', 'noise-cancellation', 'premium']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Smartphone Case',
       description: 'Protective case for smartphones with premium materials',
       price: 29.99,
@@ -152,6 +162,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['protective', 'premium', 'durable']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'USB Charging Cable',
       description: 'Fast charging USB-C cable, 6 feet long',
       price: 15.99,
@@ -166,6 +177,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['fast-charging', 'usb-c', 'durable']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Bluetooth Speaker',
       description: 'Portable Bluetooth speaker with excellent sound quality',
       price: 59.99,
@@ -182,6 +194,7 @@ const createProducts = (categories, suppliers) => {
 
     // Produce
     {
+      tenantId: tenants[0]._id,
       name: 'Organic Apples',
       description: 'Fresh organic apples, crisp and sweet',
       price: 4.99,
@@ -196,6 +209,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['organic', 'fresh', 'local']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Fresh Bananas',
       description: 'Ripe yellow bananas, perfect for snacking',
       price: 2.99,
@@ -210,6 +224,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['fresh', 'potassium', 'healthy']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Cherry Tomatoes',
       description: 'Sweet cherry tomatoes, perfect for salads',
       price: 3.99,
@@ -224,6 +239,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['cherry', 'sweet', 'salad']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Fresh Spinach',
       description: 'Organic baby spinach leaves, nutrient-rich',
       price: 3.49,
@@ -240,6 +256,7 @@ const createProducts = (categories, suppliers) => {
 
     // Stationery
     {
+      tenantId: tenants[0]._id,
       name: 'Notebook Set',
       description: 'High-quality notebook set for writing and sketching',
       price: 15.99,
@@ -254,6 +271,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['writing', 'sketching', 'quality']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Premium Pens',
       description: 'Smooth-writing premium ballpoint pens, pack of 5',
       price: 8.99,
@@ -268,6 +286,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['ballpoint', 'smooth', 'pack']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Sticky Notes',
       description: 'Colorful sticky notes for reminders and organization',
       price: 5.99,
@@ -284,6 +303,7 @@ const createProducts = (categories, suppliers) => {
 
     // Clothing
     {
+      tenantId: tenants[0]._id,
       name: 'Designer T-Shirt',
       description: 'Comfortable cotton t-shirt with modern design',
       price: 34.99,
@@ -298,6 +318,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['cotton', 'comfortable', 'modern']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Denim Jeans',
       description: 'Classic fit denim jeans in premium quality',
       price: 79.99,
@@ -312,6 +333,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['denim', 'classic', 'premium']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Cotton Hoodie',
       description: 'Warm and comfortable cotton hoodie',
       price: 49.99,
@@ -328,6 +350,7 @@ const createProducts = (categories, suppliers) => {
 
     // Snacks
     {
+      tenantId: tenants[0]._id,
       name: 'Mixed Nuts',
       description: 'Premium mixed nuts with almonds, cashews, and walnuts',
       price: 12.99,
@@ -342,6 +365,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['premium', 'protein', 'healthy']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Potato Chips',
       description: 'Crispy potato chips with sea salt',
       price: 3.99,
@@ -356,6 +380,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['crispy', 'sea-salt', 'snack']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Granola Bars',
       description: 'Healthy granola bars with oats and honey',
       price: 8.99,
@@ -372,6 +397,7 @@ const createProducts = (categories, suppliers) => {
 
     // Health & Beauty
     {
+      tenantId: tenants[0]._id,
       name: 'Hand Sanitizer',
       description: '70% alcohol hand sanitizer, 8 oz bottle',
       price: 6.99,
@@ -386,6 +412,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['sanitizer', 'antibacterial', 'protection']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Face Masks',
       description: 'Disposable face masks, pack of 50',
       price: 19.99,
@@ -400,6 +427,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['disposable', 'protection', 'pack']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Vitamin C Tablets',
       description: 'Vitamin C supplement tablets, 60 count',
       price: 14.99,
@@ -416,6 +444,7 @@ const createProducts = (categories, suppliers) => {
 
     // Additional Products for variety
     {
+      tenantId: tenants[0]._id,
       name: 'Energy Drink',
       description: 'Natural energy drink with vitamins and caffeine',
       price: 3.49,
@@ -430,6 +459,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['energy', 'vitamins', 'caffeine']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Bagels',
       description: 'Fresh everything bagels, pack of 6',
       price: 5.99,
@@ -444,6 +474,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['everything', 'fresh', 'breakfast']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Wireless Mouse',
       description: 'Ergonomic wireless mouse with precision tracking',
       price: 39.99,
@@ -458,6 +489,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['wireless', 'ergonomic', 'precision']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Avocados',
       description: 'Fresh ripe avocados, perfect for guacamole',
       price: 1.99,
@@ -472,6 +504,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['fresh', 'ripe', 'healthy']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Highlighter Set',
       description: 'Fluorescent highlighter markers, set of 4 colors',
       price: 7.99,
@@ -486,6 +519,7 @@ const createProducts = (categories, suppliers) => {
       tags: ['fluorescent', 'colors', 'office']
     },
     {
+      tenantId: tenants[0]._id,
       name: 'Baseball Cap',
       description: 'Adjustable baseball cap with embroidered logo',
       price: 24.99,
@@ -502,7 +536,7 @@ const createProducts = (categories, suppliers) => {
   ];
 };
 
-const seedProducts = async (categories, suppliers) => {
+const seedProducts = async (tenants, categories, suppliers) => {
   try {
     console.log('📦 Seeding products...');
     
@@ -510,7 +544,7 @@ const seedProducts = async (categories, suppliers) => {
     await Product.deleteMany({});
     
     // Create products with category and supplier references
-    const products = createProducts(categories, suppliers);
+    const products = createProducts(tenants, categories, suppliers);
     
     // Insert new products
     const createdProducts = await Product.insertMany(products);

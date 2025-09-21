@@ -185,6 +185,19 @@ const LoginPage = () => {
                 {t("auth.signup.link")}
               </a>
             </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              Need a new store?{' '}
+              <a
+                href="/register-store"
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/register-store';
+                }}
+              >
+                Register your store
+              </a>
+            </p>
           </div>
         </div>
 
@@ -193,6 +206,9 @@ const LoginPage = () => {
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             {t("auth.demo.credentials")}
           </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Demo Store 1 (demo1.retailpos.com):
+          </p>
           <div className="space-y-3">
             {demoCredentials.map((cred, index) => (
               <div

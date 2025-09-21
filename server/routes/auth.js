@@ -4,13 +4,14 @@ const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect, generateToken } = require('../middleware/auth');
+const { extractTenant } = require('../middleware/tenant');
 
 const router = express.Router();
 
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
-router.post('/register', [
+router.post('/register', extractTenant, [
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -18,6 +19,14 @@ router.post('/register', [
   body('role').isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role')
 ], async (req, res) => {
   try {
+    // Require tenant for user registration
+    if (!req.tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Store identification required'
+      });
+    }
+
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -32,6 +41,7 @@ router.post('/register', [
 
     // Check if user already exists
     const existingUser = await User.findOne({
+      tenantId: req.tenantId,
       $or: [{ email }, { employeeId }]
     });
 
@@ -46,6 +56,7 @@ router.post('/register', [
 
     // Create user
     const user = await User.create({
+      tenantId: req.tenantId,
       name,
       email,
       password,
@@ -70,6 +81,7 @@ router.post('/register', [
         employeeId: user.employeeId,
         phone: user.phone,
         isActive: user.isActive,
+        tenantId: user.tenantId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -86,11 +98,19 @@ router.post('/register', [
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
-router.post('/login', [
+router.post('/login', extractTenant, [
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('password').exists().withMessage('Password is required')
 ], async (req, res) => {
   try {
+    // Require tenant for login
+    if (!req.tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Store identification required'
+      });
+    }
+
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -104,7 +124,10 @@ router.post('/login', [
     const { email, password } = req.body;
 
     // Check for user and include password
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ 
+      email, 
+      tenantId: req.tenantId 
+    }).select('+password').populate('tenantId', 'name subdomain');
 
     if (!user) {
       return res.status(401).json({
@@ -118,6 +141,14 @@ router.post('/login', [
       return res.status(401).json({
         success: false,
         message: 'Account is deactivated'
+      });
+    }
+
+    // Check if tenant is active
+    if (!user.tenantId || !user.tenantId.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Store account is deactivated'
       });
     }
 
@@ -151,6 +182,8 @@ router.post('/login', [
         employeeId: user.employeeId,
         phone: user.phone,
         isActive: user.isActive,
+        tenantId: user.tenantId._id,
+        tenantName: user.tenantId.name,
         lastLogin: user.lastLogin,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt

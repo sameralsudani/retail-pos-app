@@ -9,6 +9,8 @@ export interface User {
   employeeId: string;
   phone?: string;
   isActive: boolean;
+  tenantId: string;
+  tenantName?: string;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -32,6 +34,7 @@ interface SignupData {
   password: string;
   role: 'admin' | 'cashier' | 'manager';
   employeeId: string;
+  tenantId?: string;
   phone?: string;
 }
 
@@ -63,6 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 employeeId: parsed.employeeId,
                 phone: parsed.phone,
                 isActive: parsed.isActive,
+                tenantId: parsed.tenantId,
+                tenantName: parsed.tenantName,
                 lastLogin: parsed.lastLogin ? new Date(parsed.lastLogin) : undefined,
                 createdAt: new Date(parsed.createdAt),
                 updatedAt: new Date(parsed.updatedAt)
@@ -109,6 +114,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           employeeId: result.user.employeeId,
           phone: result.user.phone,
           isActive: result.user.isActive,
+          tenantId: result.user.tenantId,
+          tenantName: result.user.tenantName,
           lastLogin: result.user.lastLogin,
           createdAt: result.user.createdAt,
           updatedAt: result.user.updatedAt
@@ -125,6 +132,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           employeeId: userData.employeeId,
           phone: userData.phone,
           isActive: userData.isActive,
+          tenantId: userData.tenantId,
+          tenantName: userData.tenantName,
           lastLogin: userData.lastLogin ? new Date(userData.lastLogin) : undefined,
           createdAt: new Date(userData.createdAt),
           updatedAt: new Date(userData.updatedAt)
@@ -156,6 +165,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           employeeId: result.user.employeeId,
           phone: result.user.phone,
           isActive: result.user.isActive,
+          tenantId: result.user.tenantId,
+          tenantName: result.user.tenantName,
           lastLogin: result.user.lastLogin,
           createdAt: result.user.createdAt,
           updatedAt: result.user.updatedAt
@@ -172,6 +183,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           employeeId: userDataToStore.employeeId,
           phone: userDataToStore.phone,
           isActive: userDataToStore.isActive,
+          tenantId: userDataToStore.tenantId,
+          tenantName: userDataToStore.tenantName,
           lastLogin: userDataToStore.lastLogin ? new Date(userDataToStore.lastLogin) : undefined,
           createdAt: new Date(userDataToStore.createdAt),
           updatedAt: new Date(userDataToStore.updatedAt)

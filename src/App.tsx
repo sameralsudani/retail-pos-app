@@ -13,6 +13,7 @@ import SupplierPage from './components/SupplierPage';
 import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
+import TenantRegistrationPage from './components/TenantRegistrationPage';
 
 // Component to block admin access to POS
 const AdminBlockedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,6 +36,7 @@ function App() {
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/register-store" element={<TenantRegistrationPage />} />
           
           {/* Default route - redirect based on user role */}
           <Route 

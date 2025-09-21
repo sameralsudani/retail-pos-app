@@ -1,5 +1,4 @@
 const Customer = require('../models/Customer');
-const Tenant = require('../models/Tenant');
 
 const createCustomers = (tenants) => {
   const customersForTenant1 = [
@@ -178,7 +177,7 @@ const createCustomers = (tenants) => {
   return customersForTenant1;
 };
 
-const seedCustomers = async () => {
+const seedCustomers = async (tenants) => {
   try {
     console.log('👥 Seeding customers...');
     
@@ -188,7 +187,7 @@ const seedCustomers = async () => {
     // Get tenants
     const tenants = await Tenant.find({});
     
-    // Create customers
+    // Create customers with tenant references
     const customers = createCustomers(tenants);
     
     // Insert new customers

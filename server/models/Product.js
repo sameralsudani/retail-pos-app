@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    required: [true, 'Tenant ID is required']
+  },
   name: {
     type: String,
     required: [true, 'Product name is required'],
@@ -69,8 +74,8 @@ const productSchema = new mongoose.Schema({
 });
 
 // Index for search functionality
-productSchema.index({ name: 'text', description: 'text', sku: 'text' });
-productSchema.index({ category: 1 });
-productSchema.index({ sku: 1 });
+productSchema.index({ tenantId: 1, name: 'text', description: 'text', sku: 'text' });
+productSchema.index({ tenantId: 1, category: 1 });
+productSchema.index({ tenantId: 1, sku: 1 }, { unique: true });
 
 module.exports = mongoose.model('Product', productSchema);

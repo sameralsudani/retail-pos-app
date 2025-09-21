@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const settingsSchema = new mongoose.Schema({
+  tenantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Tenant',
+    required: [true, 'Tenant ID is required'],
+    unique: true
+  },
   // Store Information
   storeName: {
     type: String,
@@ -130,12 +136,15 @@ const settingsSchema = new mongoose.Schema({
 });
 
 // Ensure only one settings document exists
-settingsSchema.statics.getSettings = async function() {
-  let settings = await this.findOne();
+settingsSchema.statics.getSettings = async function(tenantId) {
+  let settings = await this.findOne({ tenantId });
   if (!settings) {
-    settings = await this.create({});
+    settings = await this.create({ tenantId });
   }
   return settings;
 };
+
+// Index for tenant-based queries
+settingsSchema.index({ tenantId: 1 });
 
 module.exports = mongoose.model('Settings', settingsSchema);

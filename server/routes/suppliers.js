@@ -2,13 +2,18 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const Supplier = require('../models/Supplier');
 const { protect, authorize } = require('../middleware/auth');
+const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
+
+// Apply tenant middleware to all routes
+router.use(extractTenant);
+router.use(requireTenant);
 
 // @desc    Get all suppliers
 // @route   GET /api/suppliers
 // @access  Private
-router.get('/', protect, [
+router.get('/', protect, validateUserTenant, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('search').optional().trim()
@@ -28,7 +33,7 @@ router.get('/', protect, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true };
+    let query = { isActive: true, tenantId: req.tenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -63,9 +68,12 @@ router.get('/', protect, [
 // @desc    Get single supplier
 // @route   GET /api/suppliers/:id
 // @access  Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, validateUserTenant, async (req, res) => {
   try {
-    const supplier = await Supplier.findById(req.params.id).populate('productCount');
+    const supplier = await Supplier.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    }).populate('productCount');
 
     if (!supplier) {
       return res.status(404).json({
@@ -90,7 +98,7 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new supplier
 // @route   POST /api/suppliers
 // @access  Private (Admin)
-router.post('/', protect, authorize('admin'), [
+router.post('/', protect, validateUserTenant, authorize('admin'), [
   body('name').trim().isLength({ min: 1 }).withMessage('Supplier name is required'),
   body('contactPerson').trim().isLength({ min: 1 }).withMessage('Contact person is required'),
   body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
@@ -108,7 +116,10 @@ router.post('/', protect, authorize('admin'), [
     }
 
     // Check if supplier already exists
-    const existingSupplier = await Supplier.findOne({ email: req.body.email });
+    const existingSupplier = await Supplier.findOne({ 
+      email: req.body.email,
+      tenantId: req.tenantId
+    });
     if (existingSupplier) {
       return res.status(400).json({
         success: false,
@@ -116,7 +127,10 @@ router.post('/', protect, authorize('admin'), [
       });
     }
 
-    const supplier = await Supplier.create(req.body);
+    const supplier = await Supplier.create({
+      ...req.body,
+      tenantId: req.tenantId
+    });
 
     res.status(201).json({
       success: true,
@@ -135,7 +149,7 @@ router.post('/', protect, authorize('admin'), [
 // @desc    Update supplier
 // @route   PUT /api/suppliers/:id
 // @access  Private (Admin)
-router.put('/:id', protect, authorize('admin'), [
+router.put('/:id', protect, validateUserTenant, authorize('admin'), [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Supplier name cannot be empty'),
   body('contactPerson').optional().trim().isLength({ min: 1 }).withMessage('Contact person cannot be empty'),
   body('email').optional().isEmail().normalizeEmail().withMessage('Please enter a valid email'),
@@ -152,7 +166,10 @@ router.put('/:id', protect, authorize('admin'), [
       });
     }
 
-    let supplier = await Supplier.findById(req.params.id);
+    let supplier = await Supplier.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!supplier) {
       return res.status(404).json({
@@ -163,7 +180,10 @@ router.put('/:id', protect, authorize('admin'), [
 
     // Check for duplicate email if updating email
     if (req.body.email && req.body.email !== supplier.email) {
-      const existingSupplier = await Supplier.findOne({ email: req.body.email });
+      const existingSupplier = await Supplier.findOne({ 
+        email: req.body.email,
+        tenantId: req.tenantId
+      });
       if (existingSupplier) {
         return res.status(400).json({
           success: false,
@@ -172,8 +192,8 @@ router.put('/:id', protect, authorize('admin'), [
       }
     }
 
-    supplier = await Supplier.findByIdAndUpdate(
-      req.params.id,
+    supplier = await Supplier.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
       req.body,
       { new: true, runValidators: true }
     );
@@ -195,9 +215,12 @@ router.put('/:id', protect, authorize('admin'), [
 // @desc    Delete supplier
 // @route   DELETE /api/suppliers/:id
 // @access  Private (Admin)
-router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (req, res) => {
   try {
-    const supplier = await Supplier.findById(req.params.id);
+    const supplier = await Supplier.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!supplier) {
       return res.status(404).json({
@@ -208,7 +231,11 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 
     // Check if supplier has products
     const Product = require('../models/Product');
-    const productCount = await Product.countDocuments({ supplier: req.params.id, isActive: true });
+    const productCount = await Product.countDocuments({ 
+      supplier: req.params.id, 
+      tenantId: req.tenantId,
+      isActive: true 
+    });
 
     if (productCount > 0) {
       return res.status(400).json({
@@ -218,7 +245,10 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     }
 
     // Soft delete - set isActive to false
-    await Supplier.findByIdAndUpdate(req.params.id, { isActive: false });
+    await Supplier.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
+      { isActive: false }
+    );
 
     res.json({
       success: true,

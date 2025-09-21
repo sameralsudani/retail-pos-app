@@ -5,13 +5,18 @@ const Product = require('../models/Product');
 const { protect, authorize } = require('../middleware/auth');
 const { upload, handleUploadError } = require('../middleware/upload');
 const { uploadImage, deleteImage } = require('../config/cloudinary');
+const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
+
+// Apply tenant middleware to all routes
+router.use(extractTenant);
+router.use(requireTenant);
 
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Private
-router.get('/', protect, [
+router.get('/', protect, validateUserTenant, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('search').optional().trim(),
@@ -33,7 +38,7 @@ router.get('/', protect, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true };
+    let query = { isActive: true, tenantId: req.tenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -81,9 +86,12 @@ router.get('/', protect, [
 // @desc    Get single product
 // @route   GET /api/products/:id
 // @access  Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, validateUserTenant, async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
+    const product = await Product.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    })
       .populate('category', 'name color')
       .populate('supplier', 'name contactPerson');
 
@@ -110,7 +118,7 @@ router.get('/:id', protect, async (req, res) => {
 // @desc    Create new product
 // @route   POST /api/products
 // @access  Private (Admin/Manager)
-router.post('/', protect, authorize('admin', 'manager'), upload.single('image'), handleUploadError, [
+router.post('/', protect, validateUserTenant, authorize('admin', 'manager'), upload.single('image'), handleUploadError, [
   body('name').trim().isLength({ min: 1 }).withMessage('Product name is required'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('category').isMongoId().withMessage('Valid category ID is required'),
@@ -129,7 +137,10 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
     }
 
     // Check if SKU already exists
-    const existingProduct = await Product.findOne({ sku: req.body.sku.toUpperCase() });
+    const existingProduct = await Product.findOne({ 
+      sku: req.body.sku.toUpperCase(),
+      tenantId: req.tenantId
+    });
     if (existingProduct) {
       return res.status(400).json({
         success: false,
@@ -165,6 +176,7 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
 
     const product = await Product.create({
       ...req.body,
+      tenantId: req.tenantId,
       sku: req.body.sku.toUpperCase(),
       image: imageUrl
     });
@@ -190,7 +202,7 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
 // @desc    Update product
 // @route   PUT /api/products/:id
 // @access  Private (Admin/Manager)
-router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'), handleUploadError, [
+router.put('/:id', protect, validateUserTenant, authorize('admin', 'manager'), upload.single('image'), handleUploadError, [
   body('name').optional().trim().isLength({ min: 1 }).withMessage('Product name cannot be empty'),
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('stock').optional().isInt({ min: 0 }).withMessage('Stock must be a non-negative integer')
@@ -205,7 +217,10 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
       });
     }
 
-    let product = await Product.findById(req.params.id);
+    let product = await Product.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!product) {
       return res.status(404).json({
@@ -216,7 +231,10 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
 
     // If updating SKU, check for duplicates
     if (req.body.sku && req.body.sku.toUpperCase() !== product.sku) {
-      const existingProduct = await Product.findOne({ sku: req.body.sku.toUpperCase() });
+      const existingProduct = await Product.findOne({ 
+        sku: req.body.sku.toUpperCase(),
+        tenantId: req.tenantId
+      });
       if (existingProduct) {
         return res.status(400).json({
           success: false,
@@ -274,9 +292,12 @@ router.put('/:id', protect, authorize('admin', 'manager'), upload.single('image'
 // @desc    Delete product
 // @route   DELETE /api/products/:id
 // @access  Private (Admin)
-router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findOne({ 
+      _id: req.params.id, 
+      tenantId: req.tenantId 
+    });
 
     if (!product) {
       return res.status(404).json({
@@ -286,7 +307,10 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     }
 
     // Soft delete - set isActive to false
-    await Product.findByIdAndUpdate(req.params.id, { isActive: false });
+    await Product.findOneAndUpdate(
+      { _id: req.params.id, tenantId: req.tenantId },
+      { isActive: false }
+    );
 
     res.json({
       success: true,
@@ -304,9 +328,10 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 // @desc    Get product by SKU/Barcode
 // @route   GET /api/products/barcode/:code
 // @access  Private
-router.get('/barcode/:code', protect, async (req, res) => {
+router.get('/barcode/:code', protect, validateUserTenant, async (req, res) => {
   try {
     const product = await Product.findOne({
+      tenantId: req.tenantId,
       $or: [
         { sku: req.params.code.toUpperCase() },
         { barcode: req.params.code }

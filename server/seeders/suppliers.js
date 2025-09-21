@@ -1,5 +1,4 @@
 const Supplier = require('../models/Supplier');
-const Tenant = require('../models/Tenant');
 
 const createSuppliers = (tenants) => {
   const suppliersForTenant1 = [
@@ -128,7 +127,7 @@ const createSuppliers = (tenants) => {
   return suppliersForTenant1;
 };
 
-const seedSuppliers = async () => {
+const seedSuppliers = async (tenants) => {
   try {
     console.log('🚚 Seeding suppliers...');
     
@@ -136,7 +135,7 @@ const seedSuppliers = async () => {
     await Supplier.deleteMany({});
     
     // Get tenants
-    const tenants = await Tenant.find({});
+    // Create suppliers with tenant references
     const suppliers = createSuppliers(tenants);
     
     // Insert new suppliers
