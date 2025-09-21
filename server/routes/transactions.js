@@ -5,13 +5,8 @@ const Transaction = require('../models/Transaction');
 const Product = require('../models/Product');
 const Customer = require('../models/Customer');
 const { protect } = require('../middleware/auth');
-const { extractTenant, requireTenant, validateUserTenant } = require('../middleware/tenant');
 
 const router = express.Router();
-
-// Apply tenant middleware to all routes
-router.use(extractTenant);
-router.use(requireTenant);
 
 // Generate unique transaction ID
 const generateTransactionId = (tenantId) => {
@@ -24,7 +19,7 @@ const generateTransactionId = (tenantId) => {
 // @desc    Get all transactions
 // @route   GET /api/transactions
 // @access  Private
-router.get('/', protect, validateUserTenant, [
+router.get('/', protect, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
@@ -42,12 +37,27 @@ router.get('/', protect, validateUserTenant, [
       });
     }
 
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { tenantId: req.tenantId };
+    let query = { tenantId: userTenantId };
 
     // Date range filter
     if (req.query.startDate || req.query.endDate) {
@@ -100,11 +110,26 @@ router.get('/', protect, validateUserTenant, [
 // @desc    Get single transaction
 // @route   GET /api/transactions/:id
 // @access  Private
-router.get('/:id', protect, validateUserTenant, async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const transaction = await Transaction.findOne({ 
       _id: req.params.id, 
-      tenantId: req.tenantId 
+      tenantId: userTenantId 
     })
       .populate('customer', 'name email phone')
       .populate('cashier', 'name employeeId')
@@ -133,11 +158,26 @@ router.get('/:id', protect, validateUserTenant, async (req, res) => {
 // @desc    Create new transaction
 // @route   POST /api/transactions
 // @access  Private
-router.post('/', protect, validateUserTenant, async (req, res) => {
+router.post('/', protect, async (req, res) => {
   try {
     console.log('=== TRANSACTION REQUEST START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     console.log('User:', req.user ? { id: req.user._id, name: req.user.name } : 'No user');
+
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
 
     const { items, customer, paymentMethod, amountPaid, discount = 0 } = req.body;
 
@@ -196,7 +236,7 @@ router.post('/', protect, validateUserTenant, async (req, res) => {
 
       const product = await Product.findOne({ 
         _id: item.product, 
-        tenantId: req.tenantId 
+        tenantId: userTenantId 
       });
       
       if (!product) {
@@ -232,7 +272,7 @@ router.post('/', protect, validateUserTenant, async (req, res) => {
 
       // Update product stock
       await Product.findOneAndUpdate(
-        { _id: product._id, tenantId: req.tenantId },
+        { _id: product._id, tenantId: userTenantId },
         {
         $inc: { stock: -item.quantity }
         }
@@ -256,8 +296,8 @@ router.post('/', protect, validateUserTenant, async (req, res) => {
 
     // Create transaction
     const transaction = await Transaction.create({
-      tenantId: req.tenantId,
-      transactionId: generateTransactionId(req.tenantId),
+      tenantId: userTenantId,
+      transactionId: generateTransactionId(userTenantId),
       items: processedItems,
       customer: customer || undefined,
       cashier: req.user._id,
@@ -274,7 +314,7 @@ router.post('/', protect, validateUserTenant, async (req, res) => {
     // Update customer loyalty points if customer exists
     if (customer) {
       await Customer.findOneAndUpdate(
-        { _id: customer, tenantId: req.tenantId },
+        { _id: customer, tenantId: userTenantId },
         {
         $inc: { 
           loyaltyPoints: loyaltyPointsEarned,
@@ -313,7 +353,7 @@ router.post('/', protect, validateUserTenant, async (req, res) => {
 // @desc    Get transaction statistics
 // @route   GET /api/transactions/stats
 // @access  Private
-router.get('/stats/summary', protect, validateUserTenant, [
+router.get('/stats/summary', protect, [
   query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
   query('endDate').optional().isISO8601().withMessage('Invalid end date format')
 ], async (req, res) => {
@@ -327,8 +367,23 @@ router.get('/stats/summary', protect, validateUserTenant, [
       });
     }
 
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     // Build date query
-    let dateQuery = { tenantId: req.tenantId };
+    let dateQuery = { tenantId: userTenantId };
     if (req.query.startDate || req.query.endDate) {
       dateQuery.createdAt = {};
       if (req.query.startDate) {
