@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  tenantId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tenant',
-    required: [true, 'Tenant ID is required']
-  },
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -62,8 +57,8 @@ const userSchema = new mongoose.Schema({
 });
 
 // Index for tenant-based queries
-userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
-userSchema.index({ tenantId: 1, employeeId: 1 }, { unique: true });
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ employeeId: 1 }, { unique: true });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
