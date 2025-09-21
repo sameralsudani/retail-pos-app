@@ -5,10 +5,11 @@ const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 // @desc    Get all users
+router.get('/', protect, authorize('admin', 'manager'), [
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
   query('search').optional().trim()
-router.get('/', protect, authorize('admin', 'manager'), [
+], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -92,14 +93,7 @@ router.get('/', protect, authorize('admin', 'manager'), [
 // @access  Private (Admin/Manager)
 router.get('/:id', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    // Extract tenantId from user (handle both populated and non-populated)
-    let userTenantId;
-    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
-      userTenantId = req.user.tenantId._id;
-    } else {
-      userTenantId = req.user.tenantId;
-    }
-    
+    const userTenantId = req.user.tenantId;
     if (!userTenantId) {
       return res.status(400).json({
         success: false,
@@ -334,14 +328,7 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 // @access  Private (Admin/Manager)
 router.get('/stats/summary', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    // Extract tenantId from user (handle both populated and non-populated)
-    let userTenantId;
-    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
-      userTenantId = req.user.tenantId._id;
-    } else {
-      userTenantId = req.user.tenantId;
-    }
-    
+    const userTenantId = req.user.tenantId;
     if (!userTenantId) {
       return res.status(400).json({
         success: false,
