@@ -16,37 +16,37 @@ const createCategories = (tenants) => {
     color: '#F59E0B'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Electronics',
     description: 'Phones, accessories, headphones, and electronic devices',
     color: '#8B5CF6'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Produce',
     description: 'Fresh fruits, vegetables, and organic produce',
     color: '#10B981'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Stationery',
     description: 'Office supplies, pens, notebooks, and paper products',
     color: '#EF4444'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Clothing',
     description: 'Apparel, fashion items, and accessories',
     color: '#EC4899'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Snacks',
     description: 'Chips, crackers, nuts, and quick snacks',
     color: '#F97316'
   },
   {
-    tenantId: tenants[0]._id, // Demo Store 1
+    tenantId: tenants[0]._id,
     name: 'Health & Beauty',
     description: 'Personal care, cosmetics, and health products',
     color: '#06B6D4'
@@ -62,6 +62,10 @@ const seedCategories = async () => {
     
     // Clear existing categories
     await Category.deleteMany({});
+    
+    // Get tenants
+    const tenants = await Tenant.find({});
+    const categories = createCategories(tenants);
     
     // Insert new categories
     const createdCategories = await Category.insertMany(categories);
