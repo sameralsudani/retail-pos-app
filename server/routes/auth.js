@@ -99,7 +99,7 @@ router.post('/register', extractTenant, [
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', extractTenant, [
-  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
+  body('email').isEmail().withMessage('Please enter a valid email'),
   body('password').exists().withMessage('Password is required')
 ], async (req, res) => {
   try {
@@ -124,8 +124,8 @@ router.post('/login', extractTenant, [
     const { email, password } = req.body;
 
     // Check for user and include password
-    const user = await User.findOne({ 
-      email, 
+    const user = await User.findOne({
+      email: email.toLowerCase(),
       tenantId: req.tenantId 
     }).select('+password').populate('tenantId', 'name subdomain');
 
