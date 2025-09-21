@@ -281,7 +281,7 @@ router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (re
 // @desc    Get user statistics
 // @route   GET /api/users/stats/summary
 // @access  Private (Admin/Manager)
-router.get('/stats/summary', protect, validateUserTenant, authorize('admin', 'manager'), async (req, res) => {
+router.get('/stats/summary', authorize('admin', 'manager'), async (req, res) => {
   try {
     const stats = await User.aggregate([
       { $match: { isActive: true, tenantId: req.tenantId } },
