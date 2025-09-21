@@ -15,6 +15,7 @@ router.use(validateUserTenant);
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private (Admin/Manager)
+router.get('/', protect, validateUserTenant, authorize('admin', 'manager'), [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
@@ -281,7 +282,7 @@ router.delete('/:id', protect, validateUserTenant, authorize('admin'), async (re
 // @desc    Get user statistics
 // @route   GET /api/users/stats/summary
 // @access  Private (Admin/Manager)
-router.get('/stats/summary', authorize('admin', 'manager'), async (req, res) => {
+router.get('/stats/summary', protect, validateUserTenant, authorize('admin', 'manager'), async (req, res) => {
   try {
     const stats = await User.aggregate([
       { $match: { isActive: true, tenantId: req.tenantId } },
