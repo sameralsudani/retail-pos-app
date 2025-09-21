@@ -106,26 +106,34 @@ const requireTenant = (req, res, next) => {
 // Validate user belongs to tenant
 const validateUserTenant = (req, res, next) => {
   if (req.user && req.tenantId) {
-    // Handle both ObjectId and string comparisons
-    const userTenantId = req.user.tenantId ? req.user.tenantId.toString() : null;
+    // Handle both ObjectId and populated object comparisons
+    let userTenantId = null;
+    if (req.user.tenantId) {
+      // If tenantId is populated (object with _id), extract the _id
+      if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+        userTenantId = req.user.tenantId._id.toString();
+      } else {
+        // If tenantId is just an ObjectId or string
+        userTenantId = req.user.tenantId.toString();
+      }
+    }
+    
     const requestTenantId = req.tenantId.toString();
     
     console.log('=== TENANT VALIDATION ===');
     console.log('User tenant ID:', userTenantId);
     console.log('Request tenant ID:', requestTenantId);
-    console.log('User tenant ID type:', typeof req.user.tenantId);
+    console.log('Raw user tenantId:', req.user.tenantId);
+    console.log('User tenant ID type:', typeof userTenantId);
     console.log('Request tenant ID type:', typeof req.tenantId);
-    console.log('User object:', {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      tenantId: req.user.tenantId,
-      tenantIdType: typeof req.user.tenantId
-    });
     
     // Only validate if user has a tenantId
     if (userTenantId && requestTenantId && userTenantId !== requestTenantId) {
       console.log('❌ Tenant validation failed - user does not belong to this store');
+      console.log('Comparison details:');
+      console.log('  userTenantId:', userTenantId, typeof userTenantId);
+      console.log('  requestTenantId:', requestTenantId, typeof requestTenantId);
+      console.log('  Are equal?:', userTenantId === requestTenantId);
       return res.status(403).json({
         success: false,
         message: 'Access denied: User does not belong to this store'
