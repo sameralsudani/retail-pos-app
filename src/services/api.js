@@ -160,14 +160,8 @@ export const tenantsAPI = {
   },
 
   checkSubdomain: async (subdomain) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/tenants/check-subdomain/${subdomain}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Subdomain check error:', error);
-      throw error;
-    }
+    // Subdomain checking removed - not needed for single URL approach
+    return { success: true, available: true };
   },
 
   getInfo: async () => {
