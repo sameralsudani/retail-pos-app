@@ -1,13 +1,40 @@
 const Transaction = require('../models/Transaction');
 
 const createSampleTransactions = (users, customers, products) => {
-  const adminUser = users.find(u => u.role === 'admin')._id;
-  const cashierUser = users.find(u => u.role === 'cashier')._id;
-  const managerUser = users.find(u => u.role === 'manager')._id;
+  const adminUser = users.find(u => u.role === 'admin');
+  const cashierUser = users.find(u => u.role === 'cashier');
+  const managerUser = users.find(u => u.role === 'manager');
+
+  if (!adminUser || !cashierUser || !managerUser) {
+    console.error('❌ Missing required users for transaction seeding');
+    console.log('Available users:', users.map(u => ({ role: u.role, name: u.name })));
+    throw new Error('Required users (admin, cashier, manager) not found');
+  }
+
+  const adminUserId = adminUser._id;
+  const cashierUserId = cashierUser._id;
+  const managerUserId = managerUser._id;
+
+  if (customers.length < 3) {
+    console.error('❌ Not enough customers for transaction seeding');
+    console.log('Available customers:', customers.length);
+    throw new Error('At least 3 customers required for transaction seeding');
+  }
 
   const customer1 = customers[0]._id;
   const customer2 = customers[1]._id;
   const customer3 = customers[2]._id;
+
+  // Helper function to find product by SKU safely
+  const findProductBySku = (sku) => {
+    const product = products.find(p => p.sku === sku);
+    if (!product) {
+      console.error(`❌ Product not found with SKU: ${sku}`);
+      console.log('Available products:', products.map(p => ({ sku: p.sku, name: p.name })));
+      throw new Error(`Product with SKU ${sku} not found`);
+    }
+    return product;
+  };
 
   // Helper function to generate transaction ID
   const generateTransactionId = (index) => {
@@ -22,7 +49,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(1),
       items: [
         {
-          product: products.find(p => p.sku === 'BEV001')._id,
+          product: findProductBySku('BEV001')._id,
           productSnapshot: {
             name: 'Premium Coffee Beans',
             price: 24.99,
@@ -33,7 +60,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 24.99
         },
         {
-          product: products.find(p => p.sku === 'BAK002')._id,
+          product: findProductBySku('BAK002')._id,
           productSnapshot: {
             name: 'Fresh Croissants',
             price: 3.75,
@@ -45,7 +72,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: customer1,
-      cashier: cashierUser,
+      cashier: cashierUserId,
       subtotal: 32.49,
       tax: 2.60,
       total: 35.09,
@@ -60,7 +87,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(2),
       items: [
         {
-          product: products.find(p => p.sku === 'ELE001')._id,
+          product: findProductBySku('ELE001')._id,
           productSnapshot: {
             name: 'Wireless Headphones',
             price: 89.99,
@@ -71,7 +98,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 89.99
         },
         {
-          product: products.find(p => p.sku === 'ELE002')._id,
+          product: findProductBySku('ELE002')._id,
           productSnapshot: {
             name: 'Smartphone Case',
             price: 29.99,
@@ -83,7 +110,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: customer2,
-      cashier: managerUser,
+      cashier: managerUserId,
       subtotal: 119.98,
       tax: 9.60,
       total: 129.58,
@@ -98,7 +125,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(3),
       items: [
         {
-          product: products.find(p => p.sku === 'PRO001')._id,
+          product: findProductBySku('PRO001')._id,
           productSnapshot: {
             name: 'Organic Apples',
             price: 4.99,
@@ -109,7 +136,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 14.97
         },
         {
-          product: products.find(p => p.sku === 'PRO002')._id,
+          product: findProductBySku('PRO002')._id,
           productSnapshot: {
             name: 'Fresh Bananas',
             price: 2.99,
@@ -120,7 +147,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 5.98
         },
         {
-          product: products.find(p => p.sku === 'PRO005')._id,
+          product: findProductBySku('PRO005')._id,
           productSnapshot: {
             name: 'Avocados',
             price: 1.99,
@@ -132,7 +159,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: customer3,
-      cashier: cashierUser,
+      cashier: cashierUserId,
       subtotal: 28.91,
       tax: 2.31,
       total: 31.22,
@@ -147,7 +174,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(4),
       items: [
         {
-          product: products.find(p => p.sku === 'STA001')._id,
+          product: findProductBySku('STA001')._id,
           productSnapshot: {
             name: 'Notebook Set',
             price: 15.99,
@@ -158,7 +185,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 31.98
         },
         {
-          product: products.find(p => p.sku === 'STA002')._id,
+          product: findProductBySku('STA002')._id,
           productSnapshot: {
             name: 'Premium Pens',
             price: 8.99,
@@ -169,7 +196,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 26.97
         },
         {
-          product: products.find(p => p.sku === 'STA004')._id,
+          product: findProductBySku('STA004')._id,
           productSnapshot: {
             name: 'Highlighter Set',
             price: 7.99,
@@ -181,7 +208,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: null, // Walk-in customer
-      cashier: adminUser,
+      cashier: adminUserId,
       subtotal: 66.94,
       tax: 5.36,
       total: 72.30,
@@ -196,7 +223,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(5),
       items: [
         {
-          product: products.find(p => p.sku === 'CLO001')._id,
+          product: findProductBySku('CLO001')._id,
           productSnapshot: {
             name: 'Designer T-Shirt',
             price: 34.99,
@@ -207,7 +234,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 69.98
         },
         {
-          product: products.find(p => p.sku === 'CLO004')._id,
+          product: findProductBySku('CLO004')._id,
           productSnapshot: {
             name: 'Baseball Cap',
             price: 24.99,
@@ -219,7 +246,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: customers[4]._id,
-      cashier: cashierUser,
+      cashier: cashierUserId,
       subtotal: 94.97,
       tax: 7.60,
       total: 102.57,
@@ -234,7 +261,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(6),
       items: [
         {
-          product: products.find(p => p.sku === 'HLT001')._id,
+          product: findProductBySku('HLT001')._id,
           productSnapshot: {
             name: 'Hand Sanitizer',
             price: 6.99,
@@ -245,7 +272,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 20.97
         },
         {
-          product: products.find(p => p.sku === 'HLT003')._id,
+          product: findProductBySku('HLT003')._id,
           productSnapshot: {
             name: 'Vitamin C Tablets',
             price: 14.99,
@@ -257,7 +284,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: customers[5]._id,
-      cashier: managerUser,
+      cashier: managerUserId,
       subtotal: 35.96,
       tax: 2.88,
       total: 38.84,
@@ -272,7 +299,7 @@ const createSampleTransactions = (users, customers, products) => {
       transactionId: generateTransactionId(7),
       items: [
         {
-          product: products.find(p => p.sku === 'SNK001')._id,
+          product: findProductBySku('SNK001')._id,
           productSnapshot: {
             name: 'Mixed Nuts',
             price: 12.99,
@@ -283,7 +310,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 12.99
         },
         {
-          product: products.find(p => p.sku === 'SNK002')._id,
+          product: findProductBySku('SNK002')._id,
           productSnapshot: {
             name: 'Potato Chips',
             price: 3.99,
@@ -294,7 +321,7 @@ const createSampleTransactions = (users, customers, products) => {
           totalPrice: 7.98
         },
         {
-          product: products.find(p => p.sku === 'BEV005')._id,
+          product: findProductBySku('BEV005')._id,
           productSnapshot: {
             name: 'Energy Drink',
             price: 3.49,
@@ -306,7 +333,7 @@ const createSampleTransactions = (users, customers, products) => {
         }
       ],
       customer: customers[6]._id,
-      cashier: cashierUser,
+      cashier: cashierUserId,
       subtotal: 24.46,
       tax: 1.96,
       total: 26.42,
