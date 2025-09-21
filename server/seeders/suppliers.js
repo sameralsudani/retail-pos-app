@@ -1,7 +1,10 @@
 const Supplier = require('../models/Supplier');
+const Tenant = require('../models/Tenant');
 
-const suppliers = [
+const createSuppliers = (tenants) => {
+  const suppliersForTenant1 = [
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Fresh Foods Co.',
     contactPerson: 'John Smith',
     email: 'john@freshfoods.com',
@@ -16,6 +19,7 @@ const suppliers = [
     paymentTerms: 'Net 30'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Tech Solutions Ltd.',
     contactPerson: 'Sarah Johnson',
     email: 'sarah@techsolutions.com',
@@ -30,6 +34,7 @@ const suppliers = [
     paymentTerms: 'Net 15'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Global Beverages Inc.',
     contactPerson: 'Mike Davis',
     email: 'mike@globalbev.com',
@@ -44,6 +49,7 @@ const suppliers = [
     paymentTerms: 'Net 45'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Office Supplies Pro',
     contactPerson: 'Lisa Wilson',
     email: 'lisa@officesupplies.com',
@@ -58,6 +64,7 @@ const suppliers = [
     paymentTerms: 'Net 30'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Fashion Forward',
     contactPerson: 'Emma Brown',
     email: 'emma@fashionforward.com',
@@ -72,6 +79,7 @@ const suppliers = [
     paymentTerms: 'Net 60'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Healthy Living Distributors',
     contactPerson: 'David Chen',
     email: 'david@healthyliving.com',
@@ -86,6 +94,7 @@ const suppliers = [
     paymentTerms: 'Net 30'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Snack Attack Wholesale',
     contactPerson: 'Maria Rodriguez',
     email: 'maria@snackattack.com',
@@ -100,6 +109,7 @@ const suppliers = [
     paymentTerms: 'Net 15'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Organic Farms Direct',
     contactPerson: 'Robert Green',
     email: 'robert@organicfarms.com',
@@ -115,12 +125,19 @@ const suppliers = [
   }
 ];
 
+  return suppliersForTenant1;
+};
+
 const seedSuppliers = async () => {
   try {
     console.log('🚚 Seeding suppliers...');
     
     // Clear existing suppliers
     await Supplier.deleteMany({});
+    
+    // Get tenants to create suppliers
+    const tenants = await Tenant.find({});
+    const suppliers = createSuppliers(tenants);
     
     // Insert new suppliers
     const createdSuppliers = await Supplier.insertMany(suppliers);
@@ -133,4 +150,4 @@ const seedSuppliers = async () => {
   }
 };
 
-module.exports = { seedSuppliers, suppliers };
+module.exports = { seedSuppliers, createSuppliers };
