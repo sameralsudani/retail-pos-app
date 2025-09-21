@@ -1,7 +1,10 @@
 const Customer = require('../models/Customer');
+const Tenant = require('../models/Tenant');
 
-const customers = [
+const createCustomers = (tenants) => {
+  const customersForTenant1 = [
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Alice Johnson',
     email: 'alice.johnson@email.com',
     phone: '(555) 111-2222',
@@ -18,6 +21,7 @@ const customers = [
     notes: 'Frequent customer, prefers organic products'
   },
   {
+    tenantId: tenants[0]._id, // Demo Store 1
     name: 'Bob Smith',
     email: 'bob.smith@email.com',
     phone: '(555) 333-4444',
@@ -34,6 +38,7 @@ const customers = [
     notes: 'Likes electronics and gadgets'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Carol Davis',
     email: 'carol.davis@email.com',
     phone: '(555) 555-6666',
@@ -50,6 +55,7 @@ const customers = [
     notes: 'VIP customer, bulk buyer'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Daniel Wilson',
     email: 'daniel.wilson@email.com',
     phone: '(555) 777-8888',
@@ -66,6 +72,7 @@ const customers = [
     notes: 'New customer, interested in beverages'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Eva Martinez',
     email: 'eva.martinez@email.com',
     phone: '(555) 999-0000',
@@ -82,6 +89,7 @@ const customers = [
     notes: 'Regular customer, fashion enthusiast'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Frank Thompson',
     email: 'frank.thompson@email.com',
     phone: '(555) 123-9876',
@@ -98,6 +106,7 @@ const customers = [
     notes: 'Office manager, buys stationery in bulk'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Grace Lee',
     email: 'grace.lee@email.com',
     phone: '(555) 456-1234',
@@ -114,6 +123,7 @@ const customers = [
     notes: 'Health-conscious, prefers organic and natural products'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Henry Clark',
     email: 'henry.clark@email.com',
     phone: '(555) 789-4567',
@@ -130,6 +140,7 @@ const customers = [
     notes: 'Tech enthusiast, frequent electronics buyer'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Isabella Rodriguez',
     email: 'isabella.rodriguez@email.com',
     phone: '(555) 234-7890',
@@ -146,6 +157,7 @@ const customers = [
     notes: 'Fashion blogger, loves new clothing arrivals'
   },
   {
+    tenantId: tenants[0]._id,
     name: 'Jack Miller',
     email: 'jack.miller@email.com',
     phone: '(555) 567-8901',
@@ -162,6 +174,9 @@ const customers = [
     notes: 'Coffee lover, visits daily for beverages'
   }
 ];
+
+  return customersForTenant1;
+};
 
 const seedCustomers = async () => {
   try {
@@ -181,4 +196,4 @@ const seedCustomers = async () => {
   }
 };
 
-module.exports = { seedCustomers, customers };
+module.exports = { seedCustomers, createCustomers };
