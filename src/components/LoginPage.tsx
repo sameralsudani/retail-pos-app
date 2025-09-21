@@ -54,13 +54,9 @@ const LoginPage = () => {
   };
 
   const demoCredentials = [
-    { email: "sameralsudani@yahoo.com", password: "Monk@104", role: "Admin" },
-    { email: "intisiar@gmail.com", password: "Monk@104", role: "Cashier" },
-    {
-      email: "alixxxalsudani@gmail.com",
-      password: "Monk@104",
-      role: "Manager",
-    },
+    { email: "admin@demo1.com", password: "admin123", role: "Admin" },
+    { email: "manager@demo1.com", password: "manager123", role: "Manager" },
+    { email: "cashier@demo1.com", password: "cashier123", role: "Cashier" },
   ];
 
   if (isLoading) {

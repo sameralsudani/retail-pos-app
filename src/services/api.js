@@ -4,6 +4,12 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const getTenantId = () => {
   // In production, this would extract from subdomain
   // For development, we'll use a default tenant
+  const host = window.location.hostname;
+  if (host.includes('demo1')) return 'demo1';
+  if (host.includes('demo2')) return 'demo2';
+  if (host.includes('demo3')) return 'demo3';
+  
+  // Default to demo1 for localhost development
   return 'demo1';
 };
 
