@@ -7,10 +7,6 @@ const { upload, handleUploadError } = require('../middleware/upload');
 const { uploadImage, deleteImage } = require('../config/cloudinary');
 
 const router = express.Router();
-
-// @desc    Get all products
-// @route   GET /api/products
-// @access  Private
 router.get('/', protect, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
@@ -33,7 +29,22 @@ router.get('/', protect, [
     const skip = (page - 1) * limit;
 
     // Build query
-    let query = { isActive: true, tenantId: req.user.tenantId };
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
+    let query = { isActive: true, tenantId: userTenantId };
 
     // Search functionality
     if (req.query.search) {
@@ -83,9 +94,24 @@ router.get('/', protect, [
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const product = await Product.findOne({ 
       _id: req.params.id, 
-      tenantId: req.user.tenantId 
+      tenantId: userTenantId 
     })
       .populate('category', 'name color')
       .populate('supplier', 'name contactPerson');
@@ -132,9 +158,24 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
     }
 
     // Check if SKU already exists
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
     const existingProduct = await Product.findOne({ 
       sku: req.body.sku.toUpperCase(),
-      tenantId: req.user.tenantId
+      tenantId: userTenantId
     });
     if (existingProduct) {
       return res.status(400).json({
@@ -171,7 +212,7 @@ router.post('/', protect, authorize('admin', 'manager'), upload.single('image'),
 
     const product = await Product.create({
       ...req.body,
-      tenantId: req.user.tenantId,
+      tenantId: userTenantId,
       sku: req.body.sku.toUpperCase(),
       image: imageUrl
     });
