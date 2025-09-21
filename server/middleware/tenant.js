@@ -3,24 +3,52 @@ const Tenant = require("../models/Tenant");
 // Extract tenant from request (subdomain, header, or query param)
 const extractTenant = async (req, res, next) => {
   try {
-    let tenantIdentifier = null;
-
-    // Method 0: If user is authenticated, use their tenant ID
+    // Priority 1: If user is authenticated, ALWAYS use their tenant ID
     if (req.user && req.user.tenantId) {
-      tenantIdentifier = req.user.tenantId.toString();
+      let userTenantId;
+      
+      // Handle populated tenantId object
+      if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+        userTenantId = req.user.tenantId._id;
+      } else {
+        userTenantId = req.user.tenantId;
+      }
+
+      console.log('Using authenticated user tenant ID:', userTenantId);
+      
+      const tenant = await Tenant.findOne({
+        _id: userTenantId,
+        isActive: true
+      });
+
+      if (tenant) {
+        req.tenant = tenant;
+        req.tenantId = tenant._id;
+        console.log('✅ Tenant set from authenticated user:', tenant.name);
+        return next();
+      } else {
+        console.log('❌ User tenant not found or inactive:', userTenantId);
+        return res.status(404).json({
+          success: false,
+          message: 'Your store is not found or inactive'
+        });
+      }
     }
 
-    // Method 1: Extract from custom header (for development/testing)
-    if (!tenantIdentifier && req.headers["x-tenant-id"]) {
+    // Priority 2: For unauthenticated requests, try other methods
+    let tenantIdentifier = null;
+
+    // Extract from custom header (for development/testing)
+    if (req.headers["x-tenant-id"]) {
       tenantIdentifier = req.headers["x-tenant-id"];
     }
 
-    // Method 2: Extract from query parameter
+    // Extract from query parameter
     if (!tenantIdentifier && req.query.tenant) {
       tenantIdentifier = req.query.tenant;
     }
 
-    // Method 3: Extract from subdomain (for production)
+    // Extract from subdomain (for production)
     const host = req.get("host") || req.get("x-forwarded-host");
     if (!tenantIdentifier && host && !host.includes("localhost")) {
       const subdomain = host.split(".")[0];
@@ -29,36 +57,25 @@ const extractTenant = async (req, res, next) => {
       }
     }
 
-    // Method 4: For localhost development, try to find any tenant if none specified
+    // For localhost development without auth, find first tenant
     if (!tenantIdentifier && host && host.includes("localhost")) {
-      // For localhost development, find the first available tenant
       console.log("Localhost detected, finding first available tenant...");
       const firstTenant = await Tenant.findOne({ isActive: true });
       if (firstTenant) {
         tenantIdentifier = firstTenant._id.toString();
+        console.log('Using first available tenant for localhost:', tenantIdentifier, firstTenant.name);
       }
-    }
-
-    // Method 5: If no tenant found, return error
-    if (!tenantIdentifier) {
-      console.log("No tenant identifier found");
-      return res.status(400).json({
-        success: false,
-        message: "Store identification required",
-      });
     }
 
     if (tenantIdentifier) {
       // Find tenant by subdomain or ID
       let tenant;
       if (tenantIdentifier.match(/^[0-9a-fA-F]{24}$/)) {
-        // It's an ObjectId
         tenant = await Tenant.findOne({
           _id: tenantIdentifier,
           isActive: true,
         });
       } else {
-        // It's a subdomain
         tenant = await Tenant.findOne({
           subdomain: tenantIdentifier,
           isActive: true,
@@ -68,16 +85,18 @@ const extractTenant = async (req, res, next) => {
       if (tenant) {
         req.tenant = tenant;
         req.tenantId = tenant._id;
+        console.log('✅ Tenant set from identifier:', tenant.name);
       } else {
-        console.log(
-          "Tenant not found or inactive for identifier:",
-          tenantIdentifier
-        );
         return res.status(404).json({
           success: false,
           message: "Store not found or inactive",
         });
       }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Store identification required",
+      });
     }
 
     next();
@@ -104,29 +123,9 @@ const requireTenant = (req, res, next) => {
 // Validate user belongs to tenant
 const validateUserTenant = (req, res, next) => {
   if (req.user && req.tenantId) {
-    // Handle both ObjectId and populated object comparisons
-    let userTenantId = null;
-    if (req.user.tenantId) {
-      // If tenantId is populated (object with _id), extract the _id
-      if (typeof req.user.tenantId === "object" && req.user.tenantId._id) {
-        userTenantId = req.user.tenantId._id.toString();
-      } else {
-        // If tenantId is just an ObjectId or string
-        userTenantId = req.user.tenantId.toString();
-      }
-    }
-
-    const requestTenantId = req.tenantId.toString();
-
-    // Only validate if user has a tenantId
-    if (userTenantId && requestTenantId && userTenantId !== requestTenantId) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied: User does not belong to this store",
-      });
-    }
-
-    console.log("✅ Tenant validation passed");
+    // Since extractTenant now prioritizes user's tenantId, 
+    // validation should always pass for authenticated users
+    console.log("✅ Tenant validation passed - using user's tenant");
   }
 
   next();

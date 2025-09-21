@@ -367,7 +367,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
   return transactions;
 };
 
-const seedTransactions = async (users, customers, products) => {
+const seedTransactions = async (tenants, users, customers, products) => {
   try {
     console.log('🧾 Seeding transactions...');
     
