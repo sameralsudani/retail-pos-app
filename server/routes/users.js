@@ -2,18 +2,13 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
-
 const router = express.Router();
 
 // @desc    Get all users
-// @route   GET /api/users
-// @access  Private (Admin/Manager)
-router.get('/', protect, authorize('admin', 'manager'), [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
   query('role').optional().isIn(['admin', 'manager', 'cashier']).withMessage('Invalid role'),
   query('search').optional().trim()
-], async (req, res) => {
+router.get('/', protect, authorize('admin', 'manager'), [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -27,8 +22,14 @@ router.get('/', protect, authorize('admin', 'manager'), [
     console.log('=== USERS GET REQUEST ===');
     console.log('User:', req.user ? { id: req.user._id, email: req.user.email, tenantId: req.user.tenantId } : 'No user');
 
-    // Use the authenticated user's tenantId
-    const userTenantId = req.user.tenantId;
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
     if (!userTenantId) {
       return res.status(400).json({
         success: false,
@@ -91,7 +92,14 @@ router.get('/', protect, authorize('admin', 'manager'), [
 // @access  Private (Admin/Manager)
 router.get('/:id', protect, authorize('admin', 'manager'), async (req, res) => {
   try {
-    const userTenantId = req.user.tenantId;
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
     if (!userTenantId) {
       return res.status(400).json({
         success: false,
