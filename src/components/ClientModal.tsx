@@ -147,12 +147,12 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
               ) : (
                 <>
                   {/* No Client Option */}
-                  <div
+                  <button
                     onClick={() => {
                       onSelectClient(null);
                       onClose();
                     }}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`w-full p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
                       !currentClient
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                         : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -167,18 +167,18 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
                         <p className="text-sm text-gray-500 dark:text-gray-400">{t('client.modal.walkIn')}</p>
                       </div>
                     </div>
-                  </div>
+                  </button>
 
                   {/* Client List */}
                   <div className="max-h-64 overflow-y-auto space-y-2">
                     {filteredClients.map((client) => (
-                      <div
+                      <button
                         key={client.id}
                         onClick={() => {
                           onSelectClient(client);
                           onClose();
                         }}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`w-full p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
                           currentClient?.id === client.id
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                             : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -196,7 +196,7 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
                             )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
 
