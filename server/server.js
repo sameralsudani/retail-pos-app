@@ -113,12 +113,7 @@ const connectDB = async () => {
     
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/retail_pos', {
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      minPoolSize: 5, // Maintain a minimum of 5 socket connections
-      maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
-      bufferCommands: false, // Disable mongoose buffering
-      bufferMaxEntries: 0 // Disable mongoose buffering
+      socketTimeoutMS: 45000 // Close sockets after 45s of inactivity
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
