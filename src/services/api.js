@@ -105,34 +105,6 @@ const apiRequest = async (endpoint, options = {}) => {
     throw error;
   }
 };
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    
-    // Handle CORS and network errors
-    if (!response.ok && response.status === 0) {
-      throw new Error('Network error - please check your connection');
-    }
-    
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Handle authentication errors
-      if (response.status === 401) {
-        localStorage.removeItem('pos_user');
-        window.location.href = '/login';
-        return;
-      }
-      throw new Error(data.message || 'API request failed');
-    }
-
-    return data;
-  } catch (error) {
-    // Handle network errors gracefully
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('Unable to connect to server. Please check your internet connection.');
-    }
-    throw error;
-  }
-};
 
 // Auth API
 export const authAPI = {

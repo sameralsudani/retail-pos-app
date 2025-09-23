@@ -52,8 +52,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Add a small delay to prevent race conditions
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Prevent multiple simultaneous initializations
+        if (initializeAuth.isRunning) {
+          return;
+        }
+        initializeAuth.isRunning = true;
         
         const userData = localStorage.getItem('pos_user');
         if (userData) {
@@ -77,26 +80,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               };
               setUser(userFromStorage);
               
-              // Validate token in background with better error handling
-              setTimeout(async () => {
-                try {
-                  const profileResult = await authAPI.getProfile();
-                  if (!profileResult.success) {
-                    console.warn('Token validation failed, clearing session');
-                    localStorage.removeItem('pos_user');
-                    setUser(null);
-                  }
-                } catch (error) {
-                  // Only clear session if it's definitely an auth error
-                  if (error.message.includes('401') || error.message.includes('unauthorized')) {
-                    console.warn('Token validation failed, clearing session:', error);
-                    localStorage.removeItem('pos_user');
-                    setUser(null);
-                  } else {
-                    console.warn('Network error during token validation, keeping session:', error);
-                  }
-                }
-              }, 500); // Delay validation to prevent race conditions
+              // Skip token validation on refresh to prevent CORS issues
+              // Token will be validated on first API call instead
+              console.log('User loaded from localStorage, skipping immediate validation');
             } else {
               localStorage.removeItem('pos_user');
             }
@@ -108,6 +94,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.error('Auth initialization error:', error);
       } finally {
+        // Mark initialization as complete
+        initializeAuth.isRunning = false;
         setIsLoading(false);
       }
     };

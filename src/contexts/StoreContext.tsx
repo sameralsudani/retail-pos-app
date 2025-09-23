@@ -111,10 +111,14 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   useEffect(() => {
     if (user) {
       console.log('User authenticated, loading initial data...');
-      // Add delay to prevent race conditions on page refresh
+      // Add longer delay and prevent multiple loads
+      if (loadInitialData.isRunning) {
+        return;
+      }
+      
       const timer = setTimeout(() => {
         loadInitialData();
-      }, 200);
+      }, 500);
       
       return () => clearTimeout(timer);
     }
@@ -122,6 +126,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const loadInitialData = async () => {
     try {
+      if (loadInitialData.isRunning) {
+        return;
+      }
+      loadInitialData.isRunning = true;
+      
       console.log('Starting to load initial data...');
       setLoading(true);
       await Promise.all([
@@ -136,6 +145,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       console.error('Error loading initial data:', error);
       setError('Failed to load store data');
     } finally {
+      loadInitialData.isRunning = false;
       setLoading(false);
     }
   };
