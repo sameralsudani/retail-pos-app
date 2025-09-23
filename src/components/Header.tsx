@@ -1,9 +1,8 @@
 import React from 'react';
-import { Menu, User, Store, Bell } from 'lucide-react';
+import { Menu, User, Store } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
-import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -67,15 +66,8 @@ const Header: React.FC<HeaderProps> = ({
           
           {showActions && (
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-              {/* Notifications */}
-              <button className="relative p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:scale-105">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                </span>
-              </button>
+             
               
-              <ThemeToggle />
               <LanguageSwitcher />
               
               {/* User Profile */}
