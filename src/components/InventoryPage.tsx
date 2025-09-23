@@ -579,25 +579,25 @@ const InventoryPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.product")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.sku")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.category")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.stock")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.price")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.supplier")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.actions")}
                   </th>
                 </tr>
@@ -609,14 +609,14 @@ const InventoryPage = () => {
 
                   return (
                     <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center ltr:flex-row rtl:flex-row-reverse rtl:justify-end">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="h-10 w-10 rounded-lg object-cover mx-3"
+                            className="h-10 w-10 rounded-lg object-cover mx-3 ltr:order-1 rtl:order-2"
                           />
-                          <div className="ml-3">
+                          <div className="ltr:ml-3 rtl:mr-3 ltr:order-2 rtl:order-1">
                             <div className="text-sm font-medium text-gray-900">
                               {item.name}
                             </div>
@@ -626,18 +626,18 @@ const InventoryPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-mono text-gray-900">
                           {item.sku}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
                         <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full capitalize">
                           {t(`category.${item.category}`)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center ltr:space-x-2 rtl:space-x-reverse">
                           <span
                             className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${stockStatus.color}`}
                           >
@@ -649,7 +649,7 @@ const InventoryPage = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           ${item.price.toFixed(2)}
                         </div>
@@ -657,18 +657,18 @@ const InventoryPage = () => {
                           Cost: ${item.costPrice.toFixed(2)}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {item.supplier}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {t("inventory.last.restocked")}:{" "}
-                          {item.lastRestocked.toLocaleDateString()}
+                          {t("inventory.last.restocked")}: {item.lastRestocked.toLocaleDateString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          {canEdit ? (
+                      {/* Actions */}
+                    <td className="w-48 py-4 whitespace-nowrap text-sm font-medium ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
+                      <div className="flex items-center ltr:space-x-2 rtl:space-x-reverse rtl:space-x-2 ltr:flex-row rtl:flex-row-reverse rtl:justify-end">
+                        {canEdit ? (
                             <>
                               <button
                                 onClick={() => {

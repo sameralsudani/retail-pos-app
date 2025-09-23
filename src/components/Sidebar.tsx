@@ -23,6 +23,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const menuItems = [
+     {
+      icon: Package,
+      label: t('sidebar.inventory'),
+      onClick: () => {
+        navigate('/inventory');
+        onClose();
+      }
+    },
     {
       icon: Package,
       label: t('sidebar.orders'),
@@ -55,14 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       }
     },
-    {
-      icon: Package,
-      label: t('sidebar.inventory'),
-      onClick: () => {
-        navigate('/inventory');
-        onClose();
-      }
-    }
+   
   ];
 
   // Add Reports and Settings menu items only for Admin and Manager

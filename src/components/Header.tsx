@@ -1,8 +1,8 @@
-import React from 'react';
-import { Menu, User, Store } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
-import LanguageSwitcher from './LanguageSwitcher';
+import React from "react";
+import { Menu, User, Store } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -10,10 +10,10 @@ interface HeaderProps {
   showActions?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  onMenuClick, 
+const Header: React.FC<HeaderProps> = ({
+  onMenuClick,
   title,
-  showActions = true 
+  showActions = true,
 }) => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({
               >
                 <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
-              
+
               {/* App Icon with gradient background */}
               <div className="relative flex-shrink-0">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl shadow-lg flex items-center justify-center transform hover:scale-105 transition-all duration-200">
@@ -44,35 +44,36 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
               </div>
-              
+
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
-                  {title || t('header.title')}
+                  {title || t("header.title")}
                 </h1>
                 <div className="hidden sm:block text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {t('header.subtitle')}
+                  {t("header.subtitle")}
                 </div>
               </div>
             </div>
-            
+
             {/* Live Clock */}
             <div className="hidden lg:flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {currentTime.toLocaleDateString()} • {currentTime.toLocaleTimeString()}
+                {currentTime.toLocaleDateString()} •{" "}
+                {currentTime.toLocaleTimeString()}
               </div>
             </div>
           </div>
-          
+
           {showActions && (
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-             
-              
               <LanguageSwitcher />
-              
               {/* User Profile */}
               <div className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-all duration-200 space-x-3">
-                <div className={`relative ${document.documentElement.dir === 'rtl' ? 'mr-3' : 'ml-3'}`}>
+                <div
+                  className={`relative ${
+                    document.documentElement.dir === "rtl" ? "mr-3" : "ml-3"
+                  }`}
+                >
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />
                   </div>
@@ -80,14 +81,14 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
-                    {user?.name || t('header.cashier')}
+                    {user?.name || t("header.cashier")}
                   </div>
                   <div className="text-xs text-blue-600 dark:text-blue-400 capitalize font-medium">
-                    {t(`auth.role.${user?.role || 'cashier'}`)}
+                    {t(`auth.role.${user?.role || "cashier"}`)}
                   </div>
                 </div>
               </div>
-              
+
               {/* Mobile User Avatar */}
               <div className="sm:hidden relative">
                 <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">

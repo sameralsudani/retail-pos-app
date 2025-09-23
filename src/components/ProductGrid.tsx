@@ -1,7 +1,7 @@
-import React from 'react';
-import { Plus, Package } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { Product } from '../types';
+import React from "react";
+import { Plus, Package } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { Product } from "../types";
 
 interface ProductGridProps {
   products: Product[];
@@ -17,15 +17,19 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
         <div className="text-gray-400 mb-4">
           <Package className="mx-auto h-12 w-12" />
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No products available</h3>
-        <p className="text-gray-500">Products are being loaded or there's a connection issue.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          No products available
+        </h3>
+        <p className="text-gray-500">
+          Products are being loaded or there's a connection issue.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="p-2 sm:p-2 lg:p-3">
-  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-9 gap-y-3 gap-x-1 sm:gap-y-3 sm:gap-x-2 lg:gap-y-4 lg:gap-x-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-9 gap-y-3 gap-x-1 sm:gap-y-3 sm:gap-x-2 lg:gap-y-4 lg:gap-x-2">
         {products.map((product) => (
           <div
             key={product.id}
@@ -40,12 +44,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
               />
               {product.stock <= 10 && (
                 <div className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-red-500 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
-                  {t('cart.low.stock')}
+                  {t("cart.low.stock")}
                 </div>
               )}
               <button
                 onClick={() => {
-                  console.log('Product clicked:', product);
+                  console.log("Product clicked:", product);
                   onAddToCart(product);
                 }}
                 className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 bg-blue-600 text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
@@ -53,7 +57,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
                 <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
               </button>
             </div>
-            
+
             <div className="p-1.5 sm:p-2">
               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                 <span>{product.sku}</span>
@@ -62,17 +66,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
                   <span>{product.stock}</span>
                 </div>
               </div>
-              
+
               <h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 leading-tight">
                 {product.name}
               </h3>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400">
                   ${product.price.toFixed(2)}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 capitalize px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded">
-                 {t(`category.${product.category}`)}
+                  {t(`category.${product.category}`)}
                 </span>
               </div>
             </div>

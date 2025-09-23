@@ -341,7 +341,11 @@ const UsersPage = () => {
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
+             <div
+                className={`p-2 bg-green-100 rounded-lg ${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <Shield className="h-6 w-6 text-red-600" />
               </div>
               <div className="ml-4">
@@ -355,7 +359,11 @@ const UsersPage = () => {
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
+              <div
+                className={`p-2 bg-green-100 rounded-lg ${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <User className="h-6 w-6 text-purple-600" />
               </div>
               <div className="ml-4">
@@ -425,22 +433,22 @@ const UsersPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 w-48 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("users.table.user")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 w-48 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("users.table.contact")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 w-48 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("users.table.role")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 w-48 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("users.table.status")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 w-48 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("users.table.last.login")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3 w-48 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("users.table.actions")}
                   </th>
                 </tr>
@@ -448,14 +456,15 @@ const UsersPage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredUsers.map((systemUser) => (
                   <tr key={systemUser.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
+                    {/* User Info */}
+                    <td className="w-48 py-4 align-top whitespace-nowrap ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
+                      <div className="flex w-full items-center ltr:flex-row rtl:flex-row-reverse rtl:justify-end">
+                        <div className="flex-shrink-0 h-10 w-10 ltr:order-1 rtl:order-2">
                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
                             <User className="h-5 w-5 text-gray-500" />
                           </div>
                         </div>
-                        <div className="ml-4">
+                        <div className="flex flex-col ltr:items-start rtl:items-end ltr:order-2 rtl:order-1">
                           <div className="text-sm font-medium text-gray-900">
                             {systemUser.name}
                           </div>
@@ -465,7 +474,8 @@ const UsersPage = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* Contact */}
+                    <td className="w-48 py-4 whitespace-nowrap ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
                       <div className="text-sm text-gray-900">
                         {systemUser.email}
                       </div>
@@ -473,30 +483,26 @@ const UsersPage = () => {
                         {systemUser.phone}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getRoleColor(
-                          systemUser.role
-                        )}`}
-                      >
+                    {/* Role */}
+                    <td className="w-48 py-4 whitespace-nowrap ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getRoleColor(systemUser.role)}`}>
                         {t(`auth.role.${systemUser.role}`)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(
-                          systemUser.status
-                        )}`}
-                      >
+                    {/* Status */}
+                    <td className="w-48 py-4 whitespace-nowrap ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(systemUser.status)}`}>
                         {t(`users.status.${systemUser.status}`)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {/* Last Login */}
+                    <td className="w-48 py-4 whitespace-nowrap text-sm text-gray-500 ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
                       <div>{systemUser.lastLogin.toLocaleDateString()}</div>
                       <div>{systemUser.lastLogin.toLocaleTimeString()}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                    {/* Actions */}
+                    <td className="w-48 py-4 whitespace-nowrap text-sm font-medium ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
+                      <div className="flex items-center ltr:space-x-2 rtl:space-x-reverse rtl:space-x-2 ltr:flex-row rtl:flex-row-reverse rtl:justify-end">
                         {canEdit ? (
                           <>
                             <button
