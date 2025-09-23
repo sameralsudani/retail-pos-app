@@ -463,7 +463,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     'suppliers.info.updated': 'Updated',
 
     // Users Page
-    'users.title': 'User Management',
+    'suppliers.delete.confirm': 'Are you sure you want to delete this supplier?',
     'users.stats.total': 'Total Users',
     'users.stats.active': 'Active',
     'users.stats.admins': 'Admins',
