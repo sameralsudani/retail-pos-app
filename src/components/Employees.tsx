@@ -11,10 +11,12 @@ import {
   DollarSign,
   Award
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
 const Employees: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -126,21 +128,21 @@ const Employees: React.FC = () => {
     <div className="space-y-6">
       {/* Employee Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Employees</p>
-              <p className="text-2xl font-bold text-gray-900">{totalEmployees}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('employees.stats.total')}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalEmployees}</p>
             </div>
             <div className="p-3 bg-blue-100 rounded-lg">
               <Users className="w-6 h-6 text-blue-600" />
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Active Today</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('employees.stats.active.today')}</p>
               <p className="text-2xl font-bold text-green-600">{activeEmployees}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -148,10 +150,10 @@ const Employees: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Weekly Payroll</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('employees.stats.weekly.payroll')}</p>
               <p className="text-2xl font-bold text-purple-600">${totalPayroll.toFixed(2)}</p>
             </div>
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -159,10 +161,10 @@ const Employees: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Avg Performance</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('employees.stats.avg.performance')}</p>
               <p className="text-2xl font-bold text-orange-600">{avgPerformance.toFixed(1)}%</p>
             </div>
             <div className="p-3 bg-orange-100 rounded-lg">
@@ -173,28 +175,28 @@ const Employees: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <Search className={`w-5 h-5 text-gray-400 absolute top-1/2 transform -translate-y-1/2 ${document.documentElement.dir === 'rtl' ? 'right-3' : 'left-3'}`} />
               <input
                 type="text"
-                placeholder="Search employees..."
+                placeholder={t('employees.search.placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${document.documentElement.dir === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4'}`}
               />
             </div>
           </div>
           <select
             value={filterDepartment}
             onChange={(e) => setFilterDepartment(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             {departments.map(dept => (
               <option key={dept} value={dept}>
-                {dept === 'all' ? 'All Departments' : dept}
+                {dept === 'all' ? t('employees.filter.all.departments') : t(`employees.department.${dept.toLowerCase()}`)}
               </option>
             ))}
           </select>
@@ -204,16 +206,16 @@ const Employees: React.FC = () => {
       {/* Employee Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredEmployees.map((employee) => (
-          <div key={employee.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+          <div key={employee.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
+                <div className={`flex items-center ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-semibold text-sm">{employee.avatar}</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{employee.name}</h3>
-                    <p className="text-sm text-gray-600">{employee.position}</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">{employee.name}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{employee.position}</p>
                   </div>
                 </div>
                 <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
@@ -226,45 +228,45 @@ const Employees: React.FC = () => {
               </div>
 
               <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                <div className={`flex items-center text-sm text-gray-600 dark:text-gray-400 ${document.documentElement.dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                  <Mail className={`w-4 h-4 text-gray-400 ${document.documentElement.dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
                   {employee.email}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                <div className={`flex items-center text-sm text-gray-600 dark:text-gray-400 ${document.documentElement.dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                  <Phone className={`w-4 h-4 text-gray-400 ${document.documentElement.dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
                   {employee.phone}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                <div className={`flex items-center text-sm text-gray-600 dark:text-gray-400 ${document.documentElement.dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                  <Clock className={`w-4 h-4 text-gray-400 ${document.documentElement.dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
                   {employee.shift}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Hourly Rate</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.hourly.rate')}</p>
                   <p className="font-semibold text-green-600">${employee.hourlyRate}/hr</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">This Week</p>
-                  <p className="font-semibold text-gray-900">{employee.hoursThisWeek}h</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.this.week')}</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">{employee.hoursThisWeek}h</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Department</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.department')}</p>
                   <p className="font-semibold text-blue-600">{employee.department}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Performance</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.performance')}</p>
                   <p className="font-semibold text-orange-600">{employee.performance}%</p>
                 </div>
               </div>
 
-              <div className="flex space-x-2">
-                <button className="flex-1 bg-blue-50 text-blue-600 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 transition-colors">
-                  Edit Details
+              <div className={`flex ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
+                <button className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                  {t('employees.edit.details')}
                 </button>
-                <button className="flex-1 bg-gray-50 text-gray-600 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  View Schedule
+                <button className="flex-1 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                  {t('employees.view.schedule')}
                 </button>
               </div>
             </div>
@@ -275,45 +277,45 @@ const Employees: React.FC = () => {
   );
 
   const renderSchedule = () => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Weekly Schedule</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('employees.weekly.schedule')}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Employee
+              <th className={`px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${document.documentElement.dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+                {t('employees.employee')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Monday
+                {t('employees.monday')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tuesday
+                {t('employees.tuesday')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Wednesday
+                {t('employees.wednesday')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thursday
+                {t('employees.thursday')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Friday
+                {t('employees.friday')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Saturday
+                {t('employees.saturday')}
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Sunday
+                {t('employees.sunday')}
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {schedules.map((schedule) => (
-              <tr key={schedule.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={schedule.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="font-medium text-gray-900">{schedule.employee}</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">{schedule.employee}</div>
                 </td>
                 {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
                   <td key={day} className="px-6 py-4 whitespace-nowrap text-center">
@@ -322,7 +324,7 @@ const Employees: React.FC = () => {
                         ? 'bg-gray-100 text-gray-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {schedule[day as keyof typeof schedule]}
+                      {schedule[day as keyof typeof schedule] === 'Off' ? t('employees.off') : schedule[day as keyof typeof schedule]}
                     </span>
                   </td>
                 ))}
@@ -338,48 +340,48 @@ const Employees: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Header 
         onMenuClick={() => setShowSidebar(true)} 
-        title="Employee Management"
+        title={t('employees.title')}
       />
 
       <div className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Employee Management</h1>
-            <p className="text-gray-600 mt-1">Manage your workforce and schedules</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{t('employees.title')}</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">{t('employees.subtitle')}</p>
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Employee
+            {t('employees.add.employee')}
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="flex space-x-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <div className={`flex ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
             <button
               onClick={() => setActiveTab('employees')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'employees'
                   ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              <Users className="w-4 h-4 inline mr-2" />
-              Employees
+              <Users className={`w-4 h-4 inline ${document.documentElement.dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+              {t('employees.tab.employees')}
             </button>
             <button
               onClick={() => setActiveTab('schedule')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'schedule'
                   ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              <Calendar className="w-4 h-4 inline mr-2" />
-              Schedule
+              <Calendar className={`w-4 h-4 inline ${document.documentElement.dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+              {t('employees.tab.schedule')}
             </button>
           </div>
         </div>
@@ -391,90 +393,90 @@ const Employees: React.FC = () => {
       {/* Add Employee Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Add New Employee</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">{t('employees.add.title')}</h2>
             <form className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.full.name')}</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter full name"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.full.name.placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.position')}</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Job position"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.position.placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>Management</option>
-                    <option>Sales</option>
-                    <option>Inventory</option>
-                    <option>Pharmacy</option>
-                    <option>Security</option>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.department')}</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <option>{t('employees.department.management')}</option>
+                    <option>{t('employees.department.sales')}</option>
+                    <option>{t('employees.department.inventory')}</option>
+                    <option>{t('employees.department.pharmacy')}</option>
+                    <option>{t('employees.department.security')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.hourly.rate')}</label>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.hourly.rate.placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.email')}</label>
                   <input
                     type="email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="employee@store.com"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.email.placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.phone')}</label>
                   <input
                     type="tel"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="+1 (555) 123-4567"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.phone.placeholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hire Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.hire.date')}</label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.shift')}</label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="9:00 AM - 5:00 PM"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.shift.placeholder')}
                   />
                 </div>
               </div>
-              <div className="flex space-x-3 pt-6">
+              <div className={`flex pt-6 ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  Cancel
+                  {t('employees.form.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Add Employee
+                  {t('employees.form.add')}
                 </button>
               </div>
             </form>
