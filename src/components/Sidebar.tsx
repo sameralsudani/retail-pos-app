@@ -1,8 +1,23 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { X, LogOut, User, Settings, BarChart3, Package, Store, UserCircle, AlertTriangle, Tag, Users, Truck } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  X,
+  LogOut,
+  User,
+  Settings,
+  BarChart3,
+  Package,
+  Store,
+  UserCircle,
+  AlertTriangle,
+  Tag,
+  Users,
+  Truck,
+  LayoutDashboard,
+  FileText
+} from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -17,110 +32,138 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
     onClose();
     setShowLogoutModal(false);
   };
 
   const menuItems = [
-     {
-      icon: Package,
-      label: t('sidebar.inventory'),
+    {
+      label: "Dashboard",
+      icon: LayoutDashboard,
       onClick: () => {
-        navigate('/inventory');
+        navigate("/dashboard");
         onClose();
-      }
+      },
     },
+
+    {
+      label: "Employees",
+      icon: Users,
+      onClick: () => {
+        navigate("/employees");
+        onClose();
+      },
+    },
+
+    {
+      label: "Clients",
+      icon: Users,
+      onClick: () => {
+        navigate("/clients");
+        onClose();
+      },
+    },
+
     {
       icon: Package,
-      label: t('sidebar.orders'),
+      label: t("sidebar.inventory"),
       onClick: () => {
-        navigate('/orders');
+        navigate("/inventory");
         onClose();
-      }
+      },
+    },
+    {
+      icon: FileText,
+      label: t("sidebar.orders"),
+      onClick: () => {
+        navigate("/orders");
+        onClose();
+      },
     },
     {
       icon: Tag,
-      label: t('sidebar.categories'),
+      label: t("sidebar.categories"),
       onClick: () => {
-        navigate('/categories');
+        navigate("/categories");
         onClose();
-      }
+      },
     },
     {
       icon: Truck,
-      label: t('sidebar.suppliers'),
+      label: t("sidebar.suppliers"),
       onClick: () => {
-        navigate('/suppliers');
+        navigate("/suppliers");
         onClose();
-      }
+      },
     },
     {
       icon: UserCircle,
-      label: t('sidebar.profile'),
+      label: t("sidebar.profile"),
       onClick: () => {
-        navigate('/profile');
+        navigate("/profile");
         onClose();
-      }
+      },
     },
-   
   ];
 
   // Add Reports and Settings menu items only for Admin and Manager
-  if (user?.role === 'admin' || user?.role === 'manager') {
+  if (user?.role === "admin" || user?.role === "manager") {
     // Add Reports at the beginning
     menuItems.unshift({
       icon: BarChart3,
-      label: t('sidebar.reports'),
+      label: t("sidebar.reports"),
       onClick: () => {
-        navigate('/reports');
+        navigate("/reports");
         onClose();
-      }
+      },
     });
 
     // Add Settings at the end
     menuItems.push({
       icon: Settings,
-      label: t('sidebar.settings'),
+      label: t("sidebar.settings"),
       onClick: () => {
-        navigate('/settings');
+        navigate("/settings");
         onClose();
-      }
+      },
     });
   }
 
   // Add Users menu item only for Admin and Manager
-  if (user?.role === 'admin' || user?.role === 'manager') {
-    const insertIndex = user?.role === 'admin' || user?.role === 'manager' ? 3 : 2; // After Categories
+  if (user?.role === "admin" || user?.role === "manager") {
+    const insertIndex =
+      user?.role === "admin" || user?.role === "manager" ? 3 : 2; // After Categories
     menuItems.splice(insertIndex, 0, {
       icon: Users,
-      label: t('sidebar.users'),
+      label: t("sidebar.users"),
       onClick: () => {
-        navigate('/users');
+        navigate("/users");
         onClose();
-      }
+      },
     });
   }
 
   const handlePOSClick = () => {
     // Block admin access to POS
-    if (user?.role === 'admin') {
+    if (user?.role === "admin") {
       // Show notification that admin cannot access POS
-      const notification = document.createElement('div');
-      notification.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 bg-red-500 text-white';
-      notification.textContent = 'Admin users cannot access POS system';
+      const notification = document.createElement("div");
+      notification.className =
+        "fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 bg-red-500 text-white";
+      notification.textContent = "Admin users cannot access POS system";
       document.body.appendChild(notification);
-      
+
       setTimeout(() => {
         if (document.body.contains(notification)) {
           document.body.removeChild(notification);
         }
       }, 3000);
-      
+
       return;
     }
-    
-    navigate('/pos');
+
+    navigate("/pos");
     onClose();
   };
 
@@ -137,23 +180,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Sidebar */}
       <div
         className={`fixed top-0 h-full w-80 bg-white dark:bg-gray-800 shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
-          language === 'ar' ? 'right-0' : 'left-0'
+          language === "ar" ? "right-0" : "left-0"
         } ${
-          isOpen 
-            ? 'translate-x-0' 
-            : language === 'ar' 
-              ? 'translate-x-full' 
-              : '-translate-x-full'
+          isOpen
+            ? "translate-x-0"
+            : language === "ar"
+            ? "translate-x-full"
+            : "-translate-x-full"
         }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-          <button 
+          <button
             onClick={handlePOSClick}
             className="flex items-center space-x-2 sm:space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-2 -m-2 transition-colors min-w-0 flex-1"
           >
             <Store className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{t('header.title')}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+              {t("header.title")}
+            </h2>
           </button>
           <button
             onClick={onClose}
@@ -170,8 +215,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">{user?.name || t('header.cashier')}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300 capitalize">{user?.role || t('sidebar.cashier.role')}</div>
+              <div className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
+                {user?.name || t("header.cashier")}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300 capitalize">
+                {user?.role || t("sidebar.cashier.role")}
+              </div>
             </div>
           </div>
         </div>
@@ -186,7 +235,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 className="w-full flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse px-3 sm:px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left rtl:text-right"
               >
                 <item.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                <span className="font-medium text-sm sm:text-base truncate">{item.label}</span>
+                <span className="font-medium text-sm sm:text-base truncate">
+                  {item.label}
+                </span>
               </button>
             ))}
           </nav>
@@ -199,7 +250,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             className="w-full flex items-center space-x-2 sm:space-x-3 rtl:space-x-reverse px-3 sm:px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left rtl:text-right"
           >
             <LogOut className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-            <span className="font-medium text-sm sm:text-base">{t('sidebar.logout')}</span>
+            <span className="font-medium text-sm sm:text-base">
+              {t("sidebar.logout")}
+            </span>
           </button>
         </div>
       </div>
@@ -212,13 +265,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
-              
+
               <div className="text-center mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  {t('sidebar.logout.confirm.title')}
+                  {t("sidebar.logout.confirm.title")}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  {t('sidebar.logout.confirm.message')}
+                  {t("sidebar.logout.confirm.message")}
                 </p>
               </div>
 
@@ -227,13 +280,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   onClick={() => setShowLogoutModal(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                 >
-                  {t('sidebar.logout.cancel')}
+                  {t("sidebar.logout.cancel")}
                 </button>
                 <button
                   onClick={handleLogout}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                 >
-                  {t('sidebar.logout.confirm.button')}
+                  {t("sidebar.logout.confirm.button")}
                 </button>
               </div>
             </div>

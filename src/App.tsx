@@ -14,19 +14,27 @@ import ProfilePage from './components/ProfilePage';
 import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
 import TenantRegistrationPage from './components/TenantRegistrationPage';
+import Dashboard from './components/Dashboard';
+import Employees from './components/Employees';
+import Clients from './components/Clients';
 
 // Error boundary component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<React.PropsWithChildren<object>, ErrorBoundaryState> {
+  constructor(props: React.PropsWithChildren<object>) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error('App Error Boundary caught an error:', error, errorInfo);
   }
 
@@ -114,6 +122,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <InventoryPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/clients" 
+              element={
+                <ProtectedRoute>
+                  <Clients />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/employees" 
+              element={
+                <ProtectedRoute>
+                  <Employees />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
                 </ProtectedRoute>
               } 
             />
