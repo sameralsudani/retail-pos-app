@@ -46,8 +46,18 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
       const response = await clientsAPI.getAll();
       
       if (response.success) {
-        const mappedClients = response.data.map(apiClient => ({
-          id: apiClient._id || apiClient.id,
+        interface ApiClient {
+          _id?: string;
+          id?: string;
+          name: string;
+          email: string;
+          phone?: string;
+          totalRevenue?: number;
+          projects?: number;
+        }
+
+        const mappedClients: Client[] = (response.data as ApiClient[]).map((apiClient: ApiClient): Client => ({
+          id: apiClient._id || apiClient.id || '',
           name: apiClient.name,
           email: apiClient.email,
           phone: apiClient.phone || '',
@@ -86,8 +96,14 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
             name: response.data.name,
             email: response.data.email,
             phone: response.data.phone || '',
-            totalRevenue: response.data.totalRevenue || 0,
-            projects: response.data.projects || 0
+            loyaltyPoints: response.data.loyaltyPoints ?? 0,
+            address: response.data.address,
+            totalSpent: response.data.totalSpent,
+            lastVisit: response.data.lastVisit ? new Date(response.data.lastVisit) : undefined,
+            notes: response.data.notes,
+            // Optionally keep these for local list display, but not part of Customer type
+            // totalRevenue: response.data.totalRevenue || 0,
+            // projects: response.data.projects || 0
           };
           
           setClients(prev => [...prev, createdClient]);
@@ -175,7 +191,18 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
                       <button
                         key={client.id}
                         onClick={() => {
-                          onSelectClient(client);
+                          // Map Client to Customer type
+                          onSelectClient({
+                            id: client.id,
+                            name: client.name,
+                            email: client.email,
+                            phone: client.phone,
+                            loyaltyPoints: 0,
+                            address: undefined,
+                            totalSpent: undefined,
+                            lastVisit: undefined,
+                            notes: undefined
+                          });
                           onClose();
                         }}
                         className={`w-full p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
