@@ -39,43 +39,42 @@ const getAuthToken = () => {
 // API request helper
 const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
-  const tenantId = getTenantId();
   
   const config = {
     headers: {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
-      ...(tenantId && { 'X-Tenant-Id': tenantId }),
       ...options.headers,
     },
     ...options,
   };
 
   try {
-    console.log(`=== API REQUEST ===`);
-    console.log(`URL: ${API_BASE_URL}${endpoint}`);
-    console.log('Method:', config.method || 'GET');
-    console.log('Headers:', config.headers);
-    if (config.body) {
-      console.log('Body:', config.body);
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    
+    // Handle CORS and network errors
+    if (!response.ok && response.status === 0) {
+      throw new Error('Network error - please check your connection');
     }
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
     const data = await response.json();
 
-    console.log(`=== API RESPONSE ===`);
-    console.log(`Status: ${response.status}`);
-    console.log('Data:', data);
-    
     if (!response.ok) {
+      // Handle authentication errors
+      if (response.status === 401) {
+        localStorage.removeItem('pos_user');
+        window.location.href = '/login';
+        return;
+      }
       throw new Error(data.message || 'API request failed');
     }
 
     return data;
   } catch (error) {
-    console.error('=== API REQUEST ERROR ===');
-    console.error('Endpoint:', endpoint);
-    console.error('Error:', error);
+    // Handle network errors gracefully
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Unable to connect to server. Please check your internet connection.');
+    }
     throw error;
   }
 };
@@ -83,30 +82,17 @@ const apiRequest = async (endpoint, options = {}) => {
 // Auth API
 export const authAPI = {
   login: async (email, password) => {
-    console.log('authAPI.login called with:', { email, password: '***' });
-    const tenantId = getTenantId();
-    console.log('Attempting login with tenant:', tenantId);
-    
     const requestData = { email, password };
-    console.log('Sending login request with data:', { email, password: '***' });
     
     return apiRequest('/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(tenantId && { 'X-Tenant-Id': tenantId })
-      },
       body: JSON.stringify(requestData),
     });
   },
 
   register: async (userData) => {
-    const tenantId = getTenantId();
     return apiRequest('/auth/register', {
       method: 'POST',
-      headers: {
-        'X-Tenant-Id': tenantId
-      },
       body: JSON.stringify(userData),
     });
   },
@@ -159,10 +145,6 @@ export const tenantsAPI = {
     }
   },
 
-  checkSubdomain: async (subdomain) => {
-    // Subdomain checking removed - not needed for single URL approach
-    return { success: true, available: true };
-  },
 
   getInfo: async () => {
     return apiRequest('/tenants/info');

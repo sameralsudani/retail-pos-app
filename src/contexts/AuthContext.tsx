@@ -74,11 +74,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               };
               setUser(userFromStorage);
               
-              // Validate token in background (optional)
+              // Validate token in background with error handling
               try {
-                await authAPI.getProfile();
+                const profileResult = await authAPI.getProfile();
+                if (!profileResult.success) {
+                  console.warn('Token validation failed, clearing session');
+                  localStorage.removeItem('pos_user');
+                  setUser(null);
+                }
               } catch (error) {
-                console.warn('Token validation failed, but keeping user logged in:', error);
+                console.warn('Token validation failed, clearing session:', error);
+                localStorage.removeItem('pos_user');
+                setUser(null);
               }
             } else {
               localStorage.removeItem('pos_user');
