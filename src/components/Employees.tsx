@@ -11,12 +11,15 @@ import {
   DollarSign,
   Award
 } from 'lucide-react';
+import Header from './Header';
+import Sidebar from './Sidebar';
 
 const Employees: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('employees');
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const employees = [
     {
@@ -332,51 +335,58 @@ const Employees: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Employee Management</h1>
-          <p className="text-gray-600 mt-1">Manage your workforce and schedules</p>
-        </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Employee
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        onMenuClick={() => setShowSidebar(true)} 
+        title="Employee Management"
+      />
 
-      {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setActiveTab('employees')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'employees'
-                ? 'bg-blue-100 text-blue-600'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Employee Management</h1>
+            <p className="text-gray-600 mt-1">Manage your workforce and schedules</p>
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Users className="w-4 h-4 inline mr-2" />
-            Employees
-          </button>
-          <button
-            onClick={() => setActiveTab('schedule')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'schedule'
-                ? 'bg-blue-100 text-blue-600'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <Calendar className="w-4 h-4 inline mr-2" />
-            Schedule
+            <Plus className="w-4 h-4 mr-2" />
+            Add Employee
           </button>
         </div>
-      </div>
 
-      {/* Tab Content */}
-      {activeTab === 'employees' ? renderEmployeeList() : renderSchedule()}
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="flex space-x-4">
+            <button
+              onClick={() => setActiveTab('employees')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'employees'
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Users className="w-4 h-4 inline mr-2" />
+              Employees
+            </button>
+            <button
+              onClick={() => setActiveTab('schedule')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'schedule'
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Calendar className="w-4 h-4 inline mr-2" />
+              Schedule
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'employees' ? renderEmployeeList() : renderSchedule()}
+      </div>
 
       {/* Add Employee Modal */}
       {showAddModal && (
@@ -466,8 +476,23 @@ const Employees: React.FC = () => {
                 >
                   Add Employee
                 </button>
+                </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={showSidebar} 
+        onClose={() => setShowSidebar(false)}
+      />
+    </div>
+  );
+};
+
+export default Employees;
           </div>
         </div>
       )}

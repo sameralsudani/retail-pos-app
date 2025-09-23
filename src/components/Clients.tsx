@@ -12,10 +12,13 @@ import {
   Trash2,
   User
 } from 'lucide-react';
+import Header from './Header';
+import Sidebar from './Sidebar';
 
 const Clients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   const clients = [
     {
@@ -95,166 +98,173 @@ const Clients: React.FC = () => {
   const totalActiveInvoices = clients.reduce((sum, c) => sum + c.activeInvoices, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
-          <p className="text-gray-600 mt-1">Manage your client relationships</p>
-        </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Client
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        onMenuClick={() => setShowSidebar(true)} 
+        title="Clients"
+      />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Clients</p>
-              <p className="text-2xl font-bold text-blue-600">{totalActiveClients}</p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <User className="w-6 h-6 text-blue-600" />
-            </div>
+      <div className="p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
+            <p className="text-gray-600 mt-1">Manage your client relationships</p>
           </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Client
+          </button>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-lg">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Invoices</p>
-              <p className="text-2xl font-bold text-orange-600">{totalActiveInvoices}</p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-lg">
-              <FileText className="w-6 h-6 text-orange-600" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">This Month</p>
-              <p className="text-2xl font-bold text-purple-600">+3</p>
-              <p className="text-xs text-gray-500">New clients</p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <Plus className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="relative">
-          <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search clients..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Clients</p>
+                <p className="text-2xl font-bold text-blue-600">{totalActiveClients}</p>
+              </div>
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Invoices</p>
+                <p className="text-2xl font-bold text-orange-600">{totalActiveInvoices}</p>
+              </div>
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <FileText className="w-6 h-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">This Month</p>
+                <p className="text-2xl font-bold text-purple-600">+3</p>
+                <p className="text-xs text-gray-500">New clients</p>
+              </div>
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Plus className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Clients Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredClients.map((client) => (
-          <div key={client.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">{client.avatar}</span>
+        {/* Search */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="relative">
+            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Clients Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClients.map((client) => (
+            <div key={client.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold text-sm">{client.avatar}</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{client.name}</h3>
+                      <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
+                        client.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {client.status}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{client.name}</h3>
-                    <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                      client.status === 'active'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {client.status}
-                    </span>
+                  <div className="flex space-x-2">
+                    <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
-                    <Edit className="w-4 h-4" />
+
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                    {client.email}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                    {client.phone}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                    {client.address}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Total Revenue</p>
+                      <p className="font-semibold text-green-600">${client.totalRevenue.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Projects</p>
+                      <p className="font-semibold text-gray-900">{client.projects}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-2">
+                    <div>
+                      <p className="text-sm text-gray-500">Active Invoices</p>
+                      <p className="font-semibold text-orange-600">{client.activeInvoices}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Last Transaction</p>
+                      <p className="font-semibold text-gray-900 text-xs">
+                        {new Date(client.lastTransaction).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
+                  <button className="flex-1 bg-blue-50 text-blue-600 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 transition-colors">
+                    Create Invoice
                   </button>
-                  <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
-                    <Trash2 className="w-4 h-4" />
+                  <button className="flex-1 bg-gray-50 text-gray-600 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    View Details
                   </button>
                 </div>
               </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                  {client.email}
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                  {client.phone}
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                  {client.address}
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Total Revenue</p>
-                    <p className="font-semibold text-green-600">${client.totalRevenue.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Projects</p>
-                    <p className="font-semibold text-gray-900">{client.projects}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <p className="text-sm text-gray-500">Active Invoices</p>
-                    <p className="font-semibold text-orange-600">{client.activeInvoices}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Last Transaction</p>
-                    <p className="font-semibold text-gray-900 text-xs">
-                      {new Date(client.lastTransaction).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
-                <button className="flex-1 bg-blue-50 text-blue-600 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 transition-colors">
-                  Create Invoice
-                </button>
-                <button className="flex-1 bg-gray-50 text-gray-600 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  View Details
-                </button>
-              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Add Client Modal */}
@@ -317,6 +327,22 @@ const Clients: React.FC = () => {
                 >
                   Add Client
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={showSidebar} 
+        onClose={() => setShowSidebar(false)}
+      />
+    </div>
+  );
+};
+
+export default Clients;
               </div>
             </form>
           </div>
