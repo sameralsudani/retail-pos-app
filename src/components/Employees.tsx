@@ -476,7 +476,6 @@ const Employees: React.FC = () => {
                 >
                   Add Employee
                 </button>
-                </div>
               </div>
             </form>
           </div>
@@ -488,14 +487,6 @@ const Employees: React.FC = () => {
         isOpen={showSidebar} 
         onClose={() => setShowSidebar(false)}
       />
-    </div>
-  );
-};
-
-export default Employees;
-          </div>
-        </div>
-      )}
     </div>
   );
 };
