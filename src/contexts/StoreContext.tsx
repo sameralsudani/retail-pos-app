@@ -111,7 +111,12 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   useEffect(() => {
     if (user) {
       console.log('User authenticated, loading initial data...');
-      loadInitialData();
+      // Add delay to prevent race conditions on page refresh
+      const timer = setTimeout(() => {
+        loadInitialData();
+      }, 200);
+      
+      return () => clearTimeout(timer);
     }
   }, [user]);
 

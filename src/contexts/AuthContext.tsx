@@ -52,6 +52,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        // Add a small delay to prevent race conditions
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const userData = localStorage.getItem('pos_user');
         if (userData) {
           try {
@@ -74,19 +77,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               };
               setUser(userFromStorage);
               
-              // Validate token in background with error handling
-              try {
-                const profileResult = await authAPI.getProfile();
-                if (!profileResult.success) {
-                  console.warn('Token validation failed, clearing session');
-                  localStorage.removeItem('pos_user');
-                  setUser(null);
+              // Validate token in background with better error handling
+              setTimeout(async () => {
+                try {
+                  const profileResult = await authAPI.getProfile();
+                  if (!profileResult.success) {
+                    console.warn('Token validation failed, clearing session');
+                    localStorage.removeItem('pos_user');
+                    setUser(null);
+                  }
+                } catch (error) {
+                  // Only clear session if it's definitely an auth error
+                  if (error.message.includes('401') || error.message.includes('unauthorized')) {
+                    console.warn('Token validation failed, clearing session:', error);
+                    localStorage.removeItem('pos_user');
+                    setUser(null);
+                  } else {
+                    console.warn('Network error during token validation, keeping session:', error);
+                  }
                 }
-              } catch (error) {
-                console.warn('Token validation failed, clearing session:', error);
-                localStorage.removeItem('pos_user');
-                setUser(null);
-              }
+              }, 500); // Delay validation to prevent race conditions
             } else {
               localStorage.removeItem('pos_user');
             }
