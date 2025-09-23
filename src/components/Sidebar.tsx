@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     {
-      label: "Dashboard",
+      label: t("sidebar.dashboard"),
       icon: LayoutDashboard,
       onClick: () => {
         navigate("/dashboard");
@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
 
     {
-      label: "Employees",
+      label: t("sidebar.employees"),
       icon: Users,
       onClick: () => {
         navigate("/employees");
@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
 
     {
-      label: "Clients",
+      label: t("sidebar.clients"),
       icon: Users,
       onClick: () => {
         navigate("/clients");
