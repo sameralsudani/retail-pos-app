@@ -89,9 +89,7 @@ function App() {
               path="/" 
               element={
                 isAuthenticated ? 
-                  user?.role === 'admin' ? 
-                    <Navigate to="/dashboard" replace /> : 
-                    <Navigate to="/pos" replace /> : 
+                  <Navigate to="/pos" replace /> : 
                   <Navigate to="/login" replace />
               } 
             />
@@ -101,11 +99,7 @@ function App() {
               path="/pos" 
               element={
                 <ProtectedRoute>
-                  {user?.role === 'admin' ? (
-                    <Navigate to="/dashboard" replace />
-                  ) : (
-                    <POSPage />
-                  )}
+                  <POSPage />
                 </ProtectedRoute>
               } 
             />
@@ -211,9 +205,7 @@ function App() {
               path="*" 
               element={
                 isAuthenticated ? 
-                  user?.role === 'admin' ? 
-                    <Navigate to="/dashboard" replace /> : 
-                    <Navigate to="/pos" replace /> : 
+                  <Navigate to="/pos" replace /> : 
                   <Navigate to="/login" replace />
               } 
             />
