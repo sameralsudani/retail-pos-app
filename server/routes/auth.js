@@ -108,7 +108,10 @@ router.post(
 router.post("/login", async (req, res) => {
   try {
     console.log("=== LOGIN REQUEST ===");
+    console.log("Content-Type:", req.headers['content-type']);
     console.log("Request body:", req.body);
+    console.log("Raw body exists:", !!req.body);
+    console.log("Body keys:", Object.keys(req.body || {}));
 
     const { email, password } = req.body;
 
@@ -117,10 +120,12 @@ router.post("/login", async (req, res) => {
       console.log("Missing email or password:", {
         email: !!email,
         password: !!password,
+        bodyExists: !!req.body,
+        bodyType: typeof req.body
       });
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email and password are required. Body parsing may have failed.",
       });
     }
 
