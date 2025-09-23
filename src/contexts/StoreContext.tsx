@@ -111,41 +111,65 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   useEffect(() => {
     if (user) {
       console.log('User authenticated, loading initial data...');
-      // Add longer delay and prevent multiple loads
-      if (loadInitialData.isRunning) {
+      
+      // Prevent multiple simultaneous loads with a more robust check
+      if (window.storeDataLoading) {
+        console.log('Store data loading already in progress, skipping...');
         return;
       }
       
+      // Add delay to prevent race conditions and CORS issues on refresh
       const timer = setTimeout(() => {
         loadInitialData();
-      }, 500);
+      }, 1000); // Increased delay
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        window.storeDataLoading = false;
+      };
     }
   }, [user]);
 
   const loadInitialData = async () => {
     try {
-      if (loadInitialData.isRunning) {
+      if (window.storeDataLoading) {
+        console.log('Store data loading already in progress, aborting...');
         return;
       }
-      loadInitialData.isRunning = true;
+      window.storeDataLoading = true;
       
       console.log('Starting to load initial data...');
       setLoading(true);
-      await Promise.all([
-        loadProducts(),
-        loadCategories(),
-        loadCustomers(),
-        loadSuppliers(),
-        loadTransactions()
-      ]);
+      
+      // Load data sequentially to prevent overwhelming the server
+      try {
+        await loadProducts();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        await loadCategories();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        await loadCustomers();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        await loadSuppliers();
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        await loadTransactions();
+      } catch (error) {
+        console.error('Error in sequential loading:', error);
+        throw error;
+      }
+      
       console.log('Initial data loading completed');
     } catch (error) {
       console.error('Error loading initial data:', error);
-      setError('Failed to load store data');
+      // Don't set error on refresh, just log it
+      if (!window.location.pathname.includes('/login')) {
+        setError('Failed to load store data - please refresh');
+      }
     } finally {
-      loadInitialData.isRunning = false;
+      window.storeDataLoading = false;
       setLoading(false);
     }
   };

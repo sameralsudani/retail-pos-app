@@ -52,12 +52,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Prevent multiple simultaneous initializations
-        if (initializeAuth.isRunning) {
+        // Prevent multiple simultaneous initializations with a more robust check
+        if (window.authInitializing) {
+          console.log('Auth initialization already in progress, skipping...');
           return;
         }
-        initializeAuth.isRunning = true;
+        window.authInitializing = true;
         
+        console.log('Starting auth initialization...');
         const userData = localStorage.getItem('pos_user');
         if (userData) {
           try {
@@ -79,28 +81,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 updatedAt: new Date(parsed.updatedAt)
               };
               setUser(userFromStorage);
+              console.log('User loaded from localStorage successfully');
               
               // Skip token validation on refresh to prevent CORS issues
               // Token will be validated on first API call instead
-              console.log('User loaded from localStorage, skipping immediate validation');
             } else {
+              console.log('Invalid user data in localStorage, clearing...');
               localStorage.removeItem('pos_user');
             }
           } catch (error) {
             console.error('Error parsing stored user data:', error);
             localStorage.removeItem('pos_user');
           }
+        } else {
+          console.log('No user data found in localStorage');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
       } finally {
         // Mark initialization as complete
-        initializeAuth.isRunning = false;
+        window.authInitializing = false;
+        console.log('Auth initialization completed');
         setIsLoading(false);
       }
     };
 
-    initializeAuth();
+    // Add a small delay to prevent race conditions on fast refreshes
+    const timer = setTimeout(initializeAuth, 100);
+    return () => {
+      clearTimeout(timer);
+      window.authInitializing = false;
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {

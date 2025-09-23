@@ -50,18 +50,14 @@ const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
-    // Add retry logic for network errors
-    let retries = 3;
+    // Add retry logic with exponential backoff
+    let retries = 2;
     let lastError;
+    let delay = 1000;
     
     while (retries > 0) {
       try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-        
-        // Handle CORS and network errors
-        if (!response.ok && response.status === 0) {
-          throw new Error('Network error - please check your connection');
-        }
         
         const data = await response.json();
 
@@ -69,8 +65,13 @@ const apiRequest = async (endpoint, options = {}) => {
           // Handle authentication errors
           if (response.status === 401) {
             localStorage.removeItem('pos_user');
-            window.location.href = '/login';
-            return;
+            // Don't redirect immediately on refresh, let the auth context handle it
+            if (!window.location.pathname.includes('/login')) {
+              setTimeout(() => {
+                window.location.href = '/login';
+              }, 100);
+            }
+            throw new Error('Authentication required');
           }
           throw new Error(data.message || 'API request failed');
         }
@@ -79,16 +80,20 @@ const apiRequest = async (endpoint, options = {}) => {
       } catch (error) {
         lastError = error;
         
-        // Don't retry auth errors or client errors
-        if (error.message.includes('401') || error.message.includes('400')) {
+        // Don't retry auth errors, client errors, or CORS errors
+        if (error.message.includes('401') || 
+            error.message.includes('400') || 
+            error.message.includes('CORS') ||
+            error.name === 'TypeError' && error.message.includes('CORS')) {
           throw error;
         }
         
-        // Retry network errors
-        if (retries > 1 && (error.name === 'TypeError' || error.message.includes('Network'))) {
-          console.log(`API request failed, retrying... (${retries - 1} attempts left)`);
+        // Only retry network errors with exponential backoff
+        if (retries > 1 && (error.name === 'TypeError' || error.message.includes('fetch'))) {
+          console.log(`API request failed, retrying in ${delay}ms... (${retries - 1} attempts left)`);
           retries--;
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2; // Exponential backoff
           continue;
         }
         
@@ -98,10 +103,16 @@ const apiRequest = async (endpoint, options = {}) => {
     
     throw lastError;
   } catch (error) {
-    // Handle network errors gracefully
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    // Handle different types of errors gracefully
+    if (error.name === 'TypeError' && (error.message.includes('fetch') || error.message.includes('NetworkError'))) {
       throw new Error('Unable to connect to server. Please check your internet connection.');
     }
+    
+    if (error.message.includes('CORS')) {
+      console.error('CORS error detected:', error);
+      throw new Error('CORS error - please refresh the page');
+    }
+    
     throw error;
   }
 };
