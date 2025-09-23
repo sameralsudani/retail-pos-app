@@ -141,14 +141,23 @@ router.post("/login", async (req, res) => {
     // Check for user and include password
     const user = await User.findOne({
       email: email.toLowerCase().trim(),
-    }).select("+password");
+    }).select("+password").populate('tenantId', 'name');
 
     if (!user) {
+      console.log("User not found for email:", email);
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
       });
     }
+
+    console.log("User found:", {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId
+    });
 
     // Check if user is active
     if (!user.isActive) {
@@ -159,10 +168,10 @@ router.post("/login", async (req, res) => {
     }
 
     // Check if password matches
-    // const isMatch = await user.comparePassword(password);
-    const isMatch = true
+    const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
+      console.log("Password mismatch for user:", email);
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -190,6 +199,8 @@ router.post("/login", async (req, res) => {
         phone: user.phone,
         isActive: user.isActive,
         lastLogin: user.lastLogin,
+        tenantId: user.tenantId,
+        tenantName: user.tenantId?.name,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
