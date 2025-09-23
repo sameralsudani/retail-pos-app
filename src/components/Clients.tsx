@@ -343,13 +343,3 @@ const Clients: React.FC = () => {
 };
 
 export default Clients;
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Clients;
