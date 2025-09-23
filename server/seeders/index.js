@@ -5,6 +5,7 @@ const { seedSuppliers } = require('./suppliers');
 const { seedUsers } = require('./users');
 const { seedCustomers } = require('./customers');
 const { seedProducts } = require('./products');
+const { seedClients } = require('./clients');
 const { seedTransactions } = require('./transactions');
 
 require('dotenv').config();
@@ -35,10 +36,13 @@ const seedDatabase = async () => {
     // 5. Seed customers (depends on tenants)
     const customers = await seedCustomers(tenants);
     
-    // 6. Seed products (depends on tenants, categories and suppliers)
+    // 6. Seed clients (depends on tenants)
+    const clients = await seedClients(tenants);
+    
+    // 7. Seed products (depends on tenants, categories and suppliers)
     const products = await seedProducts(tenants, categories, suppliers);
     
-    // 7. Seed transactions (depends on tenants, users, customers, and products)
+    // 8. Seed transactions (depends on tenants, users, customers, and products)
     const transactions = await seedTransactions(tenants, users, customers, products);
 
     console.log('\n🎉 Database seeding completed successfully!');
@@ -48,6 +52,7 @@ const seedDatabase = async () => {
     console.log(`   Suppliers: ${suppliers.length}`);
     console.log(`   Users: ${users.length}`);
     console.log(`   Customers: ${customers.length}`);
+    console.log(`   Clients: ${clients.length}`);
     console.log(`   Products: ${products.length}`);
     console.log(`   Transactions: ${transactions.length}`);
     

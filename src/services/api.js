@@ -540,3 +540,39 @@ export const settingsAPI = {
     });
   }
 };
+
+// Clients API
+export const clientsAPI = {
+  getAll: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/clients${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id) => {
+    return apiRequest(`/clients/${id}`);
+  },
+
+  create: async (clientData) => {
+    return apiRequest('/clients', {
+      method: 'POST',
+      body: JSON.stringify(clientData),
+    });
+  },
+
+  update: async (id, clientData) => {
+    return apiRequest(`/clients/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(clientData),
+    });
+  },
+
+  delete: async (id) => {
+    return apiRequest(`/clients/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getStats: async () => {
+    return apiRequest('/clients/stats/summary');
+  }
+};
