@@ -532,7 +532,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     'loading.store.data': 'Loading store data...',
     'loading.products': 'Loading products...',
     'loading.customers': 'Loading customers...',
-    'loading.transactions': 'Loading transactions...'
+    'loading.transactions': 'Loading transactions...',
 
     // Dashboard
     'dashboard.title': 'Business Dashboard',
@@ -1164,7 +1164,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     'loading.store.data': 'جاري تحميل بيانات المتجر...',
     'loading.products': 'جاري تحميل المنتجات...',
     'loading.customers': 'جاري تحميل العملاء...',
-    'loading.transactions': 'جاري تحميل المعاملات...'
+    'loading.transactions': 'جاري تحميل المعاملات...',
 
     // Dashboard
     'dashboard.title': 'لوحة تحكم الأعمال',
