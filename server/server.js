@@ -14,12 +14,8 @@ const connectDB = async () => {
     console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
     
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/retail_pos', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-      bufferMaxEntries: 0, // Disable mongoose buffering
-      bufferCommands: false, // Disable mongoose buffering
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
