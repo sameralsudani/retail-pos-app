@@ -7,7 +7,7 @@ import Sidebar from './Sidebar';
 import ProductGrid from './ProductGrid';
 import Cart from './Cart';
 import PaymentModal from './PaymentModal';
-import CustomerModal from './CustomerModal';
+import ClientModal from './ClientModal';
 import ReceiptModal from './ReceiptModal';
 
 const POSPage: React.FC = () => {
@@ -18,7 +18,7 @@ const POSPage: React.FC = () => {
     searchTerm,
     selectedCategory,
     barcodeInput,
-    currentCustomer,
+    currentClient,
     lastTransaction,
     isLoading,
     error,
@@ -28,7 +28,7 @@ const POSPage: React.FC = () => {
     updateCartItemQuantity,
     removeFromCart,
     clearCart,
-    setCurrentCustomer,
+    setCurrentClient,
     completeTransaction,
     setSearchTerm,
     setSelectedCategory,
@@ -44,7 +44,7 @@ const POSPage: React.FC = () => {
   } = useStore();
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
@@ -211,11 +211,11 @@ const POSPage: React.FC = () => {
 
             <div className="space-y-3">
               <button
-                onClick={() => setShowCustomerModal(true)}
+                onClick={() => setShowClientModal(true)}
                 className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
               >
                 <User className="h-5 w-5" />
-                <span>{currentCustomer ? currentCustomer.name : t('cart.select.customer')}</span>
+                <span>{currentClient ? currentClient.name : t('cart.select.client')}</span>
               </button>
 
               <div className="grid grid-cols-1 gap-2">
@@ -242,11 +242,11 @@ const POSPage: React.FC = () => {
         />
       )}
 
-      {showCustomerModal && (
-        <CustomerModal
-          currentCustomer={currentCustomer}
-          onClose={() => setShowCustomerModal(false)}
-          onSelectCustomer={setCurrentCustomer}
+      {showClientModal && (
+        <ClientModal
+          currentClient={currentClient}
+          onClose={() => setShowClientModal(false)}
+          onSelectClient={setCurrentClient}
         />
       )}
 
