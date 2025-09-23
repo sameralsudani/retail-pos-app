@@ -89,7 +89,7 @@ function App() {
               path="/" 
               element={
                 isAuthenticated ? 
-                  <Navigate to="/pos" replace /> : 
+                  <Navigate to={user?.role === 'admin' ? '/dashboard' : '/pos'} replace /> : 
                   <Navigate to="/login" replace />
               } 
             />
@@ -205,7 +205,7 @@ function App() {
               path="*" 
               element={
                 isAuthenticated ? 
-                  <Navigate to="/pos" replace /> : 
+                  <Navigate to={user?.role === 'admin' ? '/dashboard' : '/pos'} replace /> : 
                   <Navigate to="/login" replace />
               } 
             />
