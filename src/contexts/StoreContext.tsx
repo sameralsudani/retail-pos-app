@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Product, CartItem, Customer, Transaction } from '../types';
+import { Product, CartItem, Customer, Transaction, Category, Supplier } from '../types';
 import { 
   productsAPI, 
   categoriesAPI, 
@@ -9,11 +9,18 @@ import {
 } from '../services/api';
 import { useAuth } from './AuthContext';
 
+// Extend the Window interface to include storeDataLoading
+declare global {
+  interface Window {
+    storeDataLoading?: boolean;
+  }
+}
+
 interface StoreState {
   // Products & Inventory
   products: Product[];
-  categories: any[];
-  suppliers: any[];
+  categories: Category[];
+  suppliers: Supplier[];
   
   // Cart Management
   cartItems: CartItem[];
@@ -21,6 +28,7 @@ interface StoreState {
   // Customer Management
   customers: Customer[];
   currentCustomer: Customer | null;
+  currentClient: Customer | null;
   
   // Transaction History
   transactions: Transaction[];
@@ -40,6 +48,7 @@ interface StoreActions {
   // Product Actions
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   addProduct: (product: Product) => void;
+  setCurrentClient: (client: Customer | null) => void;
   removeProduct: (productId: string) => void;
   loadProducts: () => Promise<void>;
   
@@ -98,6 +107,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     cartItems: [],
     customers: [],
     currentCustomer: null,
+  currentClient: null,
     transactions: [],
     lastTransaction: null,
     searchTerm: '',
@@ -191,19 +201,53 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       console.log('Products API response:', response);
       
       if (response.success) {
-        const products = response.data.map(product => {
-          const mappedProduct = {
-            id: product._id || product.id,
+        interface APIProduct {
+          _id?: string;
+          id?: string;
+          name: string;
+          price: number;
+          category?: { name: string } | string;
+          sku: string;
+          stock: number;
+          image?: string;
+          description?: string;
+          costPrice?: number;
+          reorderLevel?: number;
+          supplier?: { name: string } | string;
+        }
+
+        interface MappedProduct {
+          id: string;
+          name: string;
+          price: number;
+          category: string;
+          sku: string;
+          stock: number;
+          image: string;
+          description: string;
+          costPrice?: number;
+          reorderLevel?: number;
+          supplier?: string;
+        }
+
+        const products: MappedProduct[] = response.data.map((product: APIProduct): MappedProduct => {
+          const mappedProduct: MappedProduct = {
+            id: product._id || product.id || '',
             name: product.name,
             price: product.price,
-           category: (product.category?.name || product.category || '').toLowerCase(),
+            category: (typeof product.category === 'object' && product.category !== null
+              ? (product.category as { name: string }).name
+              : product.category || ''
+            ).toLowerCase(),
             sku: product.sku,
             stock: product.stock,
             image: product.image || 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
             description: product.description || '',
             costPrice: product.costPrice,
             reorderLevel: product.reorderLevel,
-            supplier: product.supplier?.name || product.supplier
+            supplier: typeof product.supplier === 'object' && product.supplier !== null
+              ? (product.supplier as { name: string }).name
+              : product.supplier
           };
           console.log('Mapped product:', mappedProduct);
           return mappedProduct;
@@ -250,7 +294,23 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     try {
       const response = await customersAPI.getAll();
       if (response.success) {
-        const customers = response.data.map(customer => ({
+        interface APICustomer {
+          _id: string;
+          name: string;
+          email: string;
+          phone: string;
+          loyaltyPoints: number;
+        }
+
+        interface MappedCustomer {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          loyaltyPoints: number;
+        }
+
+        const customers: MappedCustomer[] = (response.data as APICustomer[]).map((customer: APICustomer): MappedCustomer => ({
           id: customer._id,
           name: customer.name,
           email: customer.email,
@@ -281,11 +341,47 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     try {
       const response = await transactionsAPI.getAll({ limit: 50 });
       if (response.success) {
-        const transactions = response.data.map(transaction => ({
+        interface APITransactionItem {
+          product: { _id?: string } | string;
+          productSnapshot: {
+            name: string;
+            sku: string;
+          };
+          unitPrice: number;
+          quantity: number;
+        }
+
+        interface APITransactionCustomer {
+          _id: string;
+          name: string;
+          email: string;
+          phone?: string;
+          loyaltyPoints?: number;
+        }
+
+        interface APITransactionCashier {
+          name?: string;
+        }
+
+        interface APITransaction {
+          _id: string;
+          items: APITransactionItem[];
+          subtotal: number;
+          tax: number;
+          total: number;
+          paymentMethod: string;
+          amountPaid: number;
+          change: number;
+          customer?: APITransactionCustomer | null;
+          createdAt: string;
+          cashier?: APITransactionCashier;
+        }
+
+        const transactions = (response.data as APITransaction[]).map(transaction => ({
           id: transaction._id,
           items: transaction.items.map(item => ({
             product: {
-              id: item.product._id || item.product,
+              id: (item.product as { _id?: string })._id || (item.product as string),
               name: item.productSnapshot.name,
               price: item.unitPrice,
               category: '',
@@ -463,7 +559,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Error completing transaction:', error);
-      setError(error.message || 'Failed to complete transaction');
+      setError(
+        typeof error === 'object' && error !== null && 'message' in error
+          ? (error as { message?: string }).message || 'Failed to complete transaction'
+          : 'Failed to complete transaction'
+      );
     }
   };
 
@@ -580,6 +680,14 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       currentCustomer: customer
     }));
   };
+  
+  // Client Actions
+  const setCurrentClient = (client: Customer | null) => {
+    setState(prev => ({
+      ...prev,
+      currentClient: client
+    }));
+  };
 
   // Search & Filter Actions
   const setSearchTerm = (term: string) => {
@@ -620,6 +728,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     ...state,
     
     // Actions
+  setCurrentClient,
     updateProduct,
     addProduct,
     removeProduct,
@@ -641,7 +750,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     handleBarcodeScanned,
     setError,
     setLoading,
-    
     // Computed Values
     getFilteredProducts,
     getCartSubtotal,

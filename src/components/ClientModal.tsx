@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Search, User, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clientsAPI } from '../services/api';
+import { Customer } from '../types';
 
 interface Client {
   id: string;
@@ -13,9 +14,9 @@ interface Client {
 }
 
 interface ClientModalProps {
-  currentClient: Client | null;
+  currentClient: Customer | null;
   onClose: () => void;
-  onSelectClient: (client: Client | null) => void;
+  onSelectClient: (client: Customer | null) => void;
 }
 
 const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSelectClient }) => {

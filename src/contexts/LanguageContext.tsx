@@ -12,6 +12,23 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const translations: Record<Language, { [key: string]: string }> = {
   en: {
+    // Client Modal (English)
+    'client.modal.title': 'Select Client',
+    'client.modal.noClient': 'Walk-in Customer',
+    'client.modal.walkIn': 'No client information',
+    'client.modal.noResults': 'No clients found',
+    'client.modal.addNew': 'Add New Client',
+    'client.search.placeholder': 'Search clients...',
+    'client.form.name': 'Full Name',
+    'client.form.namePlaceholder': 'Enter client name',
+    'client.form.email': 'Email',
+    'client.form.emailPlaceholder': 'Enter email address',
+    'client.form.phone': 'Phone',
+    'client.form.phonePlaceholder': 'Enter phone number',
+    // Common
+    'common.cancel': 'Cancel',
+    'common.save': 'Save',
+  'common.saving': 'Saving...',
     // Header
     'header.title': 'RetailPOS',
     'header.subtitle': 'Point of Sale System',
@@ -625,6 +642,23 @@ const translations: Record<Language, { [key: string]: string }> = {
     'employees.form.add': 'Add Employee'
   },
   ar: {
+    // Client Modal (Arabic)
+    'client.modal.title': 'اختر العميل',
+    'client.modal.noClient': 'عميل عادي',
+    'client.modal.walkIn': 'لا توجد معلومات عميل',
+    'client.modal.noResults': 'لم يتم العثور على عملاء',
+    'client.modal.addNew': 'إضافة عميل جديد',
+    'client.search.placeholder': 'البحث عن العملاء...',
+    'client.form.name': 'الاسم الكامل',
+    'client.form.namePlaceholder': 'أدخل اسم العميل',
+    'client.form.email': 'البريد الإلكتروني',
+    'client.form.emailPlaceholder': 'أدخل عنوان البريد الإلكتروني',
+    'client.form.phone': 'الهاتف',
+    'client.form.phonePlaceholder': 'أدخل رقم الهاتف',
+    // Common
+    'common.cancel': 'إلغاء',
+    'common.save': 'حفظ',
+  'common.saving': 'جارٍ الحفظ...',
     // Header
     'header.title': 'نقاط البيع',
     'header.subtitle': 'نظام نقاط البيع',
