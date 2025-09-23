@@ -1271,35 +1271,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     'employees.form.shift': 'الوردية',
     'employees.form.shift.placeholder': '9:00 صباحاً - 5:00 مساءً',
     'employees.form.cancel': 'إلغاء',
-    'employees.form.add': 'إضافة موظف',
-
-    // Client Modal
-    'client.modal.title': 'اختيار العميل',
-    'client.search.placeholder': 'البحث عن العملاء...',
-    'client.modal.noClient': 'بدون عميل',
-    'client.modal.walkIn': 'عميل عادي',
-    'client.modal.addNew': 'إضافة عميل جديد',
-    'client.modal.noResults': 'لم يتم العثور على عملاء',
-    'client.form.name': 'اسم العميل',
-    'client.form.email': 'البريد الإلكتروني',
-    'client.form.phone': 'رقم الهاتف',
-    'client.form.namePlaceholder': 'أدخل اسم العميل',
-    'client.form.emailPlaceholder': 'أدخل البريد الإلكتروني',
-    'client.form.phonePlaceholder': 'أدخل رقم الهاتف',
-    'common.cancel': 'إلغاء',
-    'common.save': 'حفظ',
-    'common.saving': 'جاري الحفظ...',
-    'client.modal.noResults': 'لم يتم العثور على عملاء',
-    'client.modal.addNew': 'إضافة عميل جديد',
-    'client.form.name': 'اسم العميل',
-    'client.form.namePlaceholder': 'أدخل اسم العميل',
-    'client.form.email': 'عنوان البريد الإلكتروني',
-    'client.form.emailPlaceholder': 'أدخل عنوان البريد الإلكتروني',
-    'client.form.phone': 'رقم الهاتف',
-    'client.form.phonePlaceholder': 'أدخل رقم الهاتف',
-    'common.cancel': 'إلغاء',
-    'common.save': 'حفظ',
-    'common.saving': 'جاري الحفظ...',
+    'employees.form.add': 'إضافة موظف'
   }
 };
 
