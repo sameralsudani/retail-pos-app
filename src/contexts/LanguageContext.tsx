@@ -45,7 +45,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     'cart.subtotal': 'Subtotal:',
     'cart.tax': 'Tax (8%):',
     'cart.total': 'Total:',
-    'cart.select.customer': 'Select Customer',
+    'cart.select.client': 'Select Client',
     'cart.cash.payment': 'Cash Payment',
     'cart.low.stock': 'Low Stock',
     
@@ -658,7 +658,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     'cart.subtotal': 'المجموع الفرعي:',
     'cart.tax': 'الضريبة (8%):',
     'cart.total': 'المجموع:',
-    'cart.select.customer': 'اختر العميل',
+    'cart.select.client': 'اختيار العميل',
     'cart.cash.payment': 'دفع نقدي',
     'cart.low.stock': 'مخزون قليل',
     
