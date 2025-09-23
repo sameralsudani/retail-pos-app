@@ -146,7 +146,6 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
                 </div>
               ) : (
                 <>
-                  {/* No Client Option */}
                   <button
                     onClick={() => {
                       onSelectClient(null);
