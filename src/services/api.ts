@@ -1,7 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Get tenant identifier (for development, use demo1 as default)
-const getTenantId = () => {
+const getTenantId = (): string | null => {
   // Check if we have a stored tenant from registration
   const storedUser = localStorage.getItem('pos_user');
   if (storedUser) {
@@ -22,7 +22,7 @@ const getTenantId = () => {
 };
 
 // Get auth token from localStorage
-const getAuthToken = () => {
+const getAuthToken = (): string | null => {
   const user = localStorage.getItem('pos_user');
   if (user) {
     try {
@@ -37,7 +37,7 @@ const getAuthToken = () => {
 };
 
 // API request helper
-const apiRequest = async (endpoint, options = {}) => {
+const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
   const token = getAuthToken();
   
   const config = {
@@ -119,7 +119,7 @@ const apiRequest = async (endpoint, options = {}) => {
 
 // Auth API
 export const authAPI = {
-  login: async (email, password) => {
+  login: async (email: string, password: string) => {
     const requestData = { email, password };
     
     return apiRequest('/auth/login', {
@@ -128,7 +128,7 @@ export const authAPI = {
     });
   },
 
-  register: async (userData) => {
+  register: async (userData: any) => {
     return apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
@@ -139,14 +139,14 @@ export const authAPI = {
     return apiRequest('/auth/me');
   },
 
-  updateProfile: async (profileData) => {
+  updateProfile: async (profileData: any) => {
     return apiRequest('/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     });
   },
 
-  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+  changePassword: async (currentPassword: string, newPassword: string, confirmPassword: string) => {
     return apiRequest('/auth/change-password', {
       method: 'PUT',
       body: JSON.stringify({
@@ -160,7 +160,7 @@ export const authAPI = {
 
 // Tenants API
 export const tenantsAPI = {
-  register: async (tenantData) => {
+  register: async (tenantData: any) => {
     try {
       const response = await fetch(`${API_BASE_URL}/tenants/register`, {
         method: 'POST',
@@ -188,7 +188,7 @@ export const tenantsAPI = {
     return apiRequest('/tenants/info');
   },
 
-  updateSettings: async (settingsData) => {
+  updateSettings: async (settingsData: any) => {
     return apiRequest('/tenants/settings', {
       method: 'PUT',
       body: JSON.stringify(settingsData),
@@ -198,27 +198,27 @@ export const tenantsAPI = {
 
 // Products API
 export const productsAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/products${queryString ? `?${queryString}` : ''}`);
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/products/${id}`);
   },
 
-  getByBarcode: async (code) => {
+  getByBarcode: async (code: string) => {
     return apiRequest(`/products/barcode/${code}`);
   },
 
-  create: async (productData) => {
+  create: async (productData: any) => {
     return apiRequest('/products', {
       method: 'POST',
       body: JSON.stringify(productData),
     });
   },
 
-  createWithImage: async (formData) => {
+  createWithImage: async (formData: FormData) => {
     const token = getAuthToken();
     
     try {
@@ -244,14 +244,14 @@ export const productsAPI = {
     }
   },
 
-  update: async (id, productData) => {
+  update: async (id: string, productData: any) => {
     return apiRequest(`/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(productData),
     });
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     return apiRequest(`/products/${id}`, {
       method: 'DELETE',
     });
@@ -260,35 +260,35 @@ export const productsAPI = {
 
 // Categories API
 export const categoriesAPI = {
-  getAll: async () => {
+  getAll: async (): Promise<any> => {
     return apiRequest('/categories');
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/categories/${id}`);
   },
 
-  create: async (categoryData) => {
+  create: async (categoryData: any) => {
     return apiRequest('/categories', {
       method: 'POST',
       body: JSON.stringify(categoryData),
     });
   },
 
-  update: async (id, categoryData) => {
+  update: async (id: string, categoryData: any) => {
     return apiRequest(`/categories/${id}`, {
       method: 'PUT',
       body: JSON.stringify(categoryData),
     });
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     return apiRequest(`/categories/${id}`, {
       method: 'DELETE',
     });
   },
 
-  createWithImage: async (formData) => {
+  createWithImage: async (formData: FormData) => {
     const token = getAuthToken();
     
     try {
@@ -314,7 +314,7 @@ export const categoriesAPI = {
     }
   },
 
-  updateWithImage: async (id, formData) => {
+  updateWithImage: async (id: string, formData: FormData) => {
     const token = getAuthToken();
     
     try {
@@ -343,30 +343,30 @@ export const categoriesAPI = {
 
 // Customers API
 export const customersAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/customers${queryString ? `?${queryString}` : ''}`);
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/customers/${id}`);
   },
 
-  create: async (customerData) => {
+  create: async (customerData: any) => {
     return apiRequest('/customers', {
       method: 'POST',
       body: JSON.stringify(customerData),
     });
   },
 
-  update: async (id, customerData) => {
+  update: async (id: string, customerData: any) => {
     return apiRequest(`/customers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(customerData),
     });
   },
 
-  updateLoyalty: async (id, loyaltyData) => {
+  updateLoyalty: async (id: string, loyaltyData: any) => {
     return apiRequest(`/customers/${id}/loyalty`, {
       method: 'PUT',
       body: JSON.stringify(loyaltyData),
@@ -376,23 +376,23 @@ export const customersAPI = {
 
 // Transactions API
 export const transactionsAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/transactions${queryString ? `?${queryString}` : ''}`);
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/transactions/${id}`);
   },
 
-  create: async (transactionData) => {
+  create: async (transactionData: any) => {
     return apiRequest('/transactions', {
       method: 'POST',
       body: JSON.stringify(transactionData),
     });
   },
 
-  getStats: async (params = {}) => {
+  getStats: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/transactions/stats/summary${queryString ? `?${queryString}` : ''}`);
   },
@@ -400,30 +400,30 @@ export const transactionsAPI = {
 
 // Suppliers API
 export const suppliersAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/suppliers${queryString ? `?${queryString}` : ''}`);
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/suppliers/${id}`);
   },
 
-  create: async (supplierData) => {
+  create: async (supplierData: any) => {
     return apiRequest('/suppliers', {
       method: 'POST',
       body: JSON.stringify(supplierData),
     });
   },
 
-  update: async (id, supplierData) => {
+  update: async (id: string, supplierData: any) => {
     return apiRequest(`/suppliers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(supplierData),
     });
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     return apiRequest(`/suppliers/${id}`, {
       method: 'DELETE',
     });
@@ -432,43 +432,43 @@ export const suppliersAPI = {
 
 // Users API
 export const usersAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/users${queryString ? `?${queryString}` : ''}`);
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/users/${id}`);
   },
 
-  create: async (userData) => {
+  create: async (userData: any) => {
     return apiRequest('/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   },
 
-  update: async (id, userData) => {
+  update: async (id: string, userData: any) => {
     return apiRequest(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     return apiRequest(`/users/${id}`, {
       method: 'DELETE',
     });
   },
 
-  getStats: async () => {
+  getStats: async (): Promise<any> => {
     return apiRequest('/users/stats/summary');
   },
 };
 
 // Health check
 export const healthAPI = {
-  check: async () => {
+  check: async (): Promise<any> => {
     return apiRequest('/health');
   },
 };
@@ -476,43 +476,43 @@ export const healthAPI = {
 // Reports API
 export const reportsAPI = {
   // Get overview report data
-  getOverview: async (params = {}) => {
+  getOverview: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/overview${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get daily sales data
-  getDailySales: async (params = {}) => {
+  getDailySales: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/daily-sales${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get top products report
-  getTopProducts: async (params = {}) => {
+  getTopProducts: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/top-products${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get category sales report
-  getCategorySales: async (params = {}) => {
+  getCategorySales: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/category-sales${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get sales trends
-  getSalesTrends: async (params = {}) => {
+  getSalesTrends: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/sales-trends${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get inventory report
-  getInventoryReport: async (params = {}) => {
+  getInventoryReport: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/inventory${queryString ? `?${queryString}` : ''}`);
   },
 
   // Get customer report
-  getCustomerReport: async (params = {}) => {
+  getCustomerReport: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/reports/customers${queryString ? `?${queryString}` : ''}`);
   }
@@ -521,12 +521,12 @@ export const reportsAPI = {
 // Settings API
 export const settingsAPI = {
   // Get system settings
-  getSettings: async () => {
+  getSettings: async (): Promise<any> => {
     return apiRequest('/settings');
   },
 
   // Update system settings
-  updateSettings: async (settingsData) => {
+  updateSettings: async (settingsData: any) => {
     return apiRequest('/settings', {
       method: 'PUT',
       body: JSON.stringify(settingsData),
@@ -534,7 +534,7 @@ export const settingsAPI = {
   },
 
   // Reset settings to defaults
-  resetSettings: async () => {
+  resetSettings: async (): Promise<any> => {
     return apiRequest('/settings/reset', {
       method: 'POST',
     });
@@ -543,36 +543,36 @@ export const settingsAPI = {
 
 // Clients API
 export const clientsAPI = {
-  getAll: async (params = {}) => {
+  getAll: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/clients${queryString ? `?${queryString}` : ''}`);
   },
 
-  getById: async (id) => {
+  getById: async (id: string) => {
     return apiRequest(`/clients/${id}`);
   },
 
-  create: async (clientData) => {
+  create: async (clientData: any) => {
     return apiRequest('/clients', {
       method: 'POST',
       body: JSON.stringify(clientData),
     });
   },
 
-  update: async (id, clientData) => {
+  update: async (id: string, clientData: any) => {
     return apiRequest(`/clients/${id}`, {
       method: 'PUT',
       body: JSON.stringify(clientData),
     });
   },
 
-  delete: async (id) => {
+  delete: async (id: string) => {
     return apiRequest(`/clients/${id}`, {
       method: 'DELETE',
     });
   },
 
-  getStats: async () => {
+  getStats: async (): Promise<any> => {
     return apiRequest('/clients/stats/summary');
   }
 };
