@@ -14,7 +14,7 @@ import {
   Users,
   Truck,
   LayoutDashboard,
-  FileText
+  FileText,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         navigate("/users");
         onClose();
       },
-    });
+    },);
   }
 
   const handlePOSClick = () => {
@@ -190,13 +190,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         }`}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 ${
-          language === "ar" ? "flex-row-reverse" : ""
-        }`}>
+        <div
+          className={`flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 ${
+            language === "ar" ? "flex-row-reverse" : ""
+          }`}
+        >
           <button
             onClick={handlePOSClick}
             className={`flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-2 -m-2 transition-colors min-w-0 flex-1 ${
-              language === "ar" ? "space-x-reverse space-x-2 sm:space-x-3" : "space-x-2 sm:space-x-3"
+              language === "ar"
+                ? "space-x-reverse space-x-2 sm:space-x-3"
+                : "space-x-2 sm:space-x-3"
             }`}
           >
             <Store className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
@@ -213,12 +217,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* User Info */}
-        <div className={`p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 ${
-          language === "ar" ? "text-right" : "text-left"
-        }`}>
-          <div className={`flex items-center ${
-            language === "ar" ? "space-x-reverse space-x-2 sm:space-x-3" : "space-x-2 sm:space-x-3"
-          }`}>
+        <div
+          className={`p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 ${
+            language === "ar" ? "text-right" : "text-left"
+          }`}
+        >
+          <div
+            className={`flex items-center ${
+              language === "ar"
+                ? "space-x-reverse space-x-2 sm:space-x-3"
+                : "space-x-2 sm:space-x-3"
+            }`}
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
               <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
@@ -235,16 +245,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Menu Items */}
         <div className="flex-1 py-4">
-          <nav className={`space-y-1 px-3 sm:px-4 ${
-            language === "ar" ? "text-right" : "text-left"
-          }`}>
+          <nav
+            className={`space-y-1 px-3 sm:px-4 ${
+              language === "ar" ? "text-right" : "text-left"
+            }`}
+          >
             {menuItems.map((item, index) => (
               <button
                 key={index}
                 onClick={item.onClick}
                 className={`w-full flex items-center px-3 sm:px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
-                  language === "ar" 
-                    ? "space-x-reverse space-x-2 sm:space-x-3 text-right" 
+                  language === "ar"
+                    ? "space-x-reverse space-x-2 sm:space-x-3 text-right"
                     : "space-x-2 sm:space-x-3 text-left"
                 }`}
               >
@@ -258,14 +270,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Logout Button */}
-        <div className={`p-4 border-t border-gray-200 dark:border-gray-700 ${
-          language === "ar" ? "text-right" : "text-left"
-        }`}>
+        <div
+          className={`p-4 border-t border-gray-200 dark:border-gray-700 ${
+            language === "ar" ? "text-right" : "text-left"
+          }`}
+        >
           <button
             onClick={() => setShowLogoutModal(true)}
             className={`w-full flex items-center px-3 sm:px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors ${
-              language === "ar" 
-                ? "space-x-reverse space-x-2 sm:space-x-3 text-right" 
+              language === "ar"
+                ? "space-x-reverse space-x-2 sm:space-x-3 text-right"
                 : "space-x-2 sm:space-x-3 text-left"
             }`}
           >

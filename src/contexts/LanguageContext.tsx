@@ -113,31 +113,6 @@ const translations: Record<Language, { [key: string]: string }> = {
     
     // Payment Methods
     'payment.method.cash': 'cash',
-    
-    // Sidebar
-    'sidebar.reports': 'Reports',
-    'sidebar.orders': 'Orders',
-    'sidebar.categories': 'Categories',
-    'sidebar.users': 'Users',
-    'sidebar.profile': 'Profile',
-    'sidebar.suppliers': 'Suppliers',
-    'sidebar.inventory': 'Inventory',
-    'sidebar.customers': 'Customers',
-    'sidebar.transactions': 'Transactions',
-    'sidebar.settings': 'Settings',
-    'sidebar.logout': 'Logout',
-    'sidebar.cashier.role': 'Cashier',
-    'sidebar.logout.confirm.title': 'Confirm Logout',
-    'sidebar.logout.confirm.message': 'Are you sure you want to logout? You will need to sign in again to access the system.',
-    'sidebar.logout.cancel': 'Cancel',
-    'sidebar.logout.confirm.button': 'Logout',
-    'sidebar.logout.success': 'Logged out successfully!',
-    'sidebar.reports.coming.soon': 'Reports coming soon...',
-    'sidebar.profile.coming.soon': 'Profile management coming soon...',
-    'sidebar.inventory.coming.soon': 'Inventory management coming soon...',
-    'sidebar.customers.coming.soon': 'Customer management coming soon...',
-    'sidebar.transactions.coming.soon': 'Transaction history coming soon...',
-    'sidebar.settings.coming.soon': 'Settings coming soon...',
 
     // Reports Page
     'reports.title': 'Reports & Analytics',
@@ -482,7 +457,6 @@ const translations: Record<Language, { [key: string]: string }> = {
     'suppliers.info.updated': 'Updated',
 
     // Users Page
-    'suppliers.delete.confirm': 'Are you sure you want to delete this supplier?',
     'users.stats.total': 'Total Users',
     'users.stats.active': 'Active',
     'users.stats.admins': 'Admins',
