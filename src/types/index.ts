@@ -35,6 +35,24 @@ export interface Customer {
   notes?: string;
 }
 
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  loyaltyPoints: number;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  totalSpent?: number;
+  lastVisit?: Date;
+  notes?: string;
+}
+
 export interface Transaction {
   id: string;
   items: CartItem[];
@@ -44,7 +62,7 @@ export interface Transaction {
   paymentMethod: string;
   amountPaid: number;
   change: number;
-  customer: Customer | null;
+  client: Client | null;
   timestamp: Date;
   cashier: string;
   transactionId?: string;

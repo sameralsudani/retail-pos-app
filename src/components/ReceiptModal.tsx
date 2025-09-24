@@ -61,10 +61,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.cashier')}</span>
               <span className="text-gray-900 dark:text-gray-100">{transaction.cashier}</span>
             </div>
-            {transaction.customer && (
+            {transaction.client && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">{t('receipt.customer')}</span>
-                <span className="text-gray-900 dark:text-gray-100">{transaction.customer.name}</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('receipt.client')}</span>
+                <span className="text-gray-900 dark:text-gray-100">{transaction.client.name}</span>
               </div>
             )}
           </div>
@@ -95,7 +95,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.subtotal')}</span>
               <span className="text-gray-900 dark:text-gray-100">${transaction.subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm">
+              {transaction.client && (
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.tax')}</span>
               <span className="text-gray-900 dark:text-gray-100">${transaction.tax.toFixed(2)}</span>
             </div>

@@ -18,8 +18,8 @@ const OrdersPage: React.FC = () => {
   // Convert transactions to orders format
   const orders = transactions.map(transaction => ({
     ...transaction,
-    customerName: transaction.customer?.name || 'Walk-in Customer',
-    customerEmail: transaction.customer?.email || '',
+    clientName: transaction.client?.name || 'Walk-in Client',
+    clientEmail: transaction.client?.email || '',
     status: 'completed' as const,
     orderDate: transaction.timestamp
   }));
@@ -27,8 +27,8 @@ const OrdersPage: React.FC = () => {
   const filteredOrders = orders.filter(transaction => {
     const matchesSearch = 
       transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+      transaction.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
     
@@ -168,7 +168,7 @@ const OrdersPage: React.FC = () => {
                     {t('orders.table.order')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('orders.table.customer')}
+                    {t('orders.table.client')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('orders.table.items')}
@@ -202,8 +202,8 @@ const OrdersPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{transaction.customerName}</div>
-                          <div className="text-sm text-gray-500">{transaction.customerEmail}</div>
+                          <div className="text-sm font-medium text-gray-900">{transaction.clientName}</div>
+                          <div className="text-sm text-gray-500">{transaction.clientEmail}</div>
                         </div>
                       </div>
                     </td>
@@ -294,8 +294,8 @@ const OrdersPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('orders.detail.customer')}</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.customerName}</p>
-                  <p className="text-sm text-gray-500">{selectedOrder.customerEmail}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.clientName}</p>
+                  <p className="text-sm text-gray-500">{selectedOrder.clientEmail}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('orders.detail.date')}</label>

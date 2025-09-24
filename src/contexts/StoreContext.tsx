@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Product, CartItem, Customer, Transaction, Category, Supplier } from '../types';
+import { Product, CartItem, Client, Transaction, Category, Supplier } from '../types';
 import { 
   productsAPI, 
   categoriesAPI, 
@@ -25,10 +25,9 @@ interface StoreState {
   // Cart Management
   cartItems: CartItem[];
   
-  // Customer Management
-  customers: Customer[];
-  currentCustomer: Customer | null;
-  currentClient: Customer | null;
+  // Client Management
+  clients: Client[];
+  currentClient: Client | null;
   
   // Transaction History
   transactions: Transaction[];
@@ -48,7 +47,7 @@ interface StoreActions {
   // Product Actions
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   addProduct: (product: Product) => void;
-  setCurrentClient: (client: Customer | null) => void;
+  setCurrentClient: (client: Client | null) => void;
   removeProduct: (productId: string) => void;
   loadProducts: () => Promise<void>;
   
@@ -58,10 +57,9 @@ interface StoreActions {
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   
-  // Customer Actions
-  setCurrentCustomer: (customer: Customer | null) => void;
-  addCustomer: (customer: Customer) => Promise<Customer | null>;
-  loadCustomers: () => Promise<void>;
+  // Client Actions
+  addClient: (client: Client) => Promise<Client | null>;
+  loadClients: () => Promise<void>;
   
   // Transaction Actions
   completeTransaction: (paymentMethod: string, amountPaid: number) => void;
@@ -105,9 +103,8 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     categories: [],
     suppliers: [],
     cartItems: [],
-    customers: [],
-    currentCustomer: null,
-  currentClient: null,
+    clients: [],
+    currentClient: null,
     transactions: [],
     lastTransaction: null,
     searchTerm: '',
@@ -159,7 +156,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         await loadCategories();
         await new Promise(resolve => setTimeout(resolve, 200));
         
-        await loadCustomers();
+        await loadClients();
         await new Promise(resolve => setTimeout(resolve, 200));
         
         await loadSuppliers();
@@ -290,11 +287,11 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     }
   };
 
-  const loadCustomers = async () => {
+  const loadClients = async () => {
     try {
       const response = await customersAPI.getAll();
       if (response.success) {
-        interface APICustomer {
+        interface APIClient {
           _id: string;
           name: string;
           email: string;
@@ -302,7 +299,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           loyaltyPoints: number;
         }
 
-        interface MappedCustomer {
+        interface MappedClient {
           id: string;
           name: string;
           email: string;
@@ -310,18 +307,18 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           loyaltyPoints: number;
         }
 
-        const customers: MappedCustomer[] = (response.data as APICustomer[]).map((customer: APICustomer): MappedCustomer => ({
-          id: customer._id,
-          name: customer.name,
-          email: customer.email,
-          phone: customer.phone,
-          loyaltyPoints: customer.loyaltyPoints
+        const clients: MappedClient[] = (response.data as APIClient[]).map((client: APIClient): MappedClient => ({
+          id: client._id,
+          name: client.name,
+          email: client.email,
+          phone: client.phone,
+          loyaltyPoints: client.loyaltyPoints
         }));
-        setState(prev => ({ ...prev, customers }));
+        setState(prev => ({ ...prev, clients }));
       }
     } catch (error) {
-      console.error('Error loading customers:', error);
-      setError('Failed to load customers');
+      console.error('Error loading clients:', error);
+      setError('Failed to load clients');
     }
   };
 
@@ -398,7 +395,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           paymentMethod: transaction.paymentMethod,
           amountPaid: transaction.amountPaid,
           change: transaction.change,
-          customer: transaction.customer ? {
+          client: transaction.customer ? {
             id: transaction.customer._id,
             name: transaction.customer.name,
             email: transaction.customer.email,
@@ -459,16 +456,16 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     }
   };
 
-  const addCustomer = async (customer: Customer) => {
+  const addClient = async (client: Client) => {
     try {
       const response = await customersAPI.create({
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone
+        name: client.name,
+        email: client.email,
+        phone: client.phone
       });
       
       if (response.success) {
-        const newCustomer = {
+        const newClient = {
           id: response.data._id,
           name: response.data.name,
           email: response.data.email,
@@ -477,13 +474,13 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         };
         setState(prev => ({
           ...prev,
-          customers: [...prev.customers, newCustomer]
+          clients: [...prev.clients, newClient]
         }));
-        return newCustomer;
+        return newClient;
       }
     } catch (error) {
-      console.error('Error adding customer:', error);
-      setError('Failed to add customer');
+      console.error('Error adding client:', error);
+      setError('Failed to add client');
     }
     return null;
   };
@@ -492,7 +489,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     try {
       console.log('=== FRONTEND TRANSACTION START ===');
       console.log('Cart items:', state.cartItems);
-      console.log('Current customer:', state.currentCustomer);
+      console.log('Current client:', state.currentClient);
       console.log('Payment method:', paymentMethod);
       console.log('Amount paid:', amountPaid);
       
@@ -514,7 +511,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           product: item.product.id,
           quantity: item.quantity
         })),
-        ...(state.currentCustomer?.id && { customer: state.currentCustomer.id }),
+        ...(state.currentClient?.id && { customer: state.currentClient.id }),
         paymentMethod,
         amountPaid,
         discount: 0
@@ -538,7 +535,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           paymentMethod,
           amountPaid,
           change: amountPaid - total,
-          customer: state.currentCustomer,
+          client: state.currentClient,
           timestamp: new Date(response.data.createdAt),
           cashier: user?.name || 'Unknown'
         };
@@ -548,7 +545,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           transactions: [transaction, ...prev.transactions],
           lastTransaction: transaction,
           cartItems: [],
-          currentCustomer: null
+          currentClient: null
         }));
 
         // Reload products to update stock levels
@@ -669,20 +666,12 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     setState(prev => ({
       ...prev,
       cartItems: [],
-      currentCustomer: null
+      currentClient: null
     }));
   };
 
-  // Customer Actions
-  const setCurrentCustomer = (customer: Customer | null) => {
-    setState(prev => ({
-      ...prev,
-      currentCustomer: customer
-    }));
-  };
-  
   // Client Actions
-  const setCurrentClient = (client: Customer | null) => {
+  const setCurrentClient = (client: Client | null) => {
     setState(prev => ({
       ...prev,
       currentClient: client
@@ -728,7 +717,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     ...state,
     
     // Actions
-  setCurrentClient,
+    setCurrentClient,
     updateProduct,
     addProduct,
     removeProduct,
@@ -737,9 +726,8 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     updateCartItemQuantity,
     removeFromCart,
     clearCart,
-    setCurrentCustomer,
-    addCustomer,
-    loadCustomers,
+    addClient,
+    loadClients,
     completeTransaction,
     loadTransactions,
     loadCategories,

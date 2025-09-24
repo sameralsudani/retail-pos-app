@@ -215,7 +215,7 @@ const POSPage: React.FC = () => {
                 className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
               >
                 <User className="h-5 w-5" />
-                <span>{currentClient ? currentClient.name : t('cart.select.client')}</span>
+                <span>{currentClient ? currentClient.name : t('pos.select.client')}</span>
               </button>
 
               <div className="grid grid-cols-1 gap-2">

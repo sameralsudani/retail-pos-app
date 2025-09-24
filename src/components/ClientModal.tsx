@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { X, Search, User, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { clientsAPI } from '../services/api';
-import { Customer } from '../types';
+import { Client } from '../types';
 
-interface Client {
+interface ApiClient {
   id: string;
   name: string;
   email: string;
@@ -14,14 +14,14 @@ interface Client {
 }
 
 interface ClientModalProps {
-  currentClient: Customer | null;
+  currentClient: Client | null;
   onClose: () => void;
-  onSelectClient: (client: Customer | null) => void;
+  onSelectClient: (client: Client | null) => void;
 }
 
 const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSelectClient }) => {
   const { t } = useLanguage();
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<ApiClient[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +46,7 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
       const response = await clientsAPI.getAll();
       
       if (response.success) {
-        interface ApiClient {
+        interface ApiClientResponse {
           _id?: string;
           id?: string;
           name: string;
@@ -56,7 +56,7 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
           projects?: number;
         }
 
-        const mappedClients: Client[] = (response.data as ApiClient[]).map((apiClient: ApiClient): Client => ({
+        const mappedClients: ApiClient[] = (response.data as ApiClientResponse[]).map((apiClient: ApiClientResponse): ApiClient => ({
           id: apiClient._id || apiClient.id || '',
           name: apiClient.name,
           email: apiClient.email,
@@ -101,9 +101,6 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
             totalSpent: response.data.totalSpent,
             lastVisit: response.data.lastVisit ? new Date(response.data.lastVisit) : undefined,
             notes: response.data.notes,
-            // Optionally keep these for local list display, but not part of Customer type
-            // totalRevenue: response.data.totalRevenue || 0,
-            // projects: response.data.projects || 0
           };
           
           setClients(prev => [...prev, createdClient]);
@@ -191,7 +188,7 @@ const ClientModal: React.FC<ClientModalProps> = ({ currentClient, onClose, onSel
                       <button
                         key={client.id}
                         onClick={() => {
-                          // Map Client to Customer type
+                          // Map ApiClient to Client type
                           onSelectClient({
                             id: client.id,
                             name: client.name,
