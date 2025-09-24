@@ -15,7 +15,7 @@ interface LanguageProviderProps {
 }
 
 // Translation dictionaries
-const translations = {
+const translations: Record<Language, { [key: string]: string }> = {
   en: {
     // Header
     'header.title': 'RetailPOS',

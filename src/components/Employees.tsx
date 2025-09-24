@@ -10,9 +10,6 @@ import {
   UserCheck,
   DollarSign,
   Award,
-  Edit3,
-  Trash2,
-  Eye,
   X,
   AlertTriangle
 } from 'lucide-react';
@@ -22,12 +19,32 @@ import { employeesAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
+type Employee = {
+  id: string;
+  name: string;
+  position: string;
+  department: string;
+  email: string;
+  phone: string;
+  employeeId: string;
+  hourlyRate: number;
+  status: string;
+  shift: string;
+  hireDate: string;
+  avatar: string;
+  hoursThisWeek: number;
+  performance: number;
+  address?: string;
+  emergencyContact?: string;
+  notes?: string;
+};
+
 const Employees: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   
   // State management
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
@@ -43,7 +60,7 @@ const Employees: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('employees');
   const [showSidebar, setShowSidebar] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     name: '',
@@ -73,24 +90,44 @@ const Employees: React.FC = () => {
       console.log('Employees API response:', response);
       
       if (response.success) {
-        const mappedEmployees = response.data.map(apiEmployee => ({
-          id: apiEmployee._id || apiEmployee.id,
-          name: apiEmployee.name,
-          position: apiEmployee.position,
-          department: apiEmployee.department,
-          email: apiEmployee.email,
-          phone: apiEmployee.phone,
-          employeeId: apiEmployee.employeeId,
-          hourlyRate: apiEmployee.hourlyRate,
-          status: apiEmployee.status,
-          shift: apiEmployee.shift,
-          hireDate: new Date(apiEmployee.hireDate).toISOString().split('T')[0],
-          avatar: apiEmployee.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-          hoursThisWeek: apiEmployee.hoursThisWeek || 0,
-          performance: apiEmployee.performance || 85,
-          address: apiEmployee.address,
-          emergencyContact: apiEmployee.emergencyContact,
-          notes: apiEmployee.notes
+        interface ApiEmployee {
+            _id?: string;
+            id?: string;
+            name: string;
+            position: string;
+            department: string;
+            email: string;
+            phone: string;
+            employeeId: string;
+            hourlyRate: number;
+            status: string;
+            shift: string;
+            hireDate: string;
+            hoursThisWeek?: number;
+            performance?: number;
+            address?: string;
+            emergencyContact?: string;
+            notes?: string;
+        }
+
+        const mappedEmployees: Employee[] = (response.data as ApiEmployee[]).map((apiEmployee: ApiEmployee): Employee => ({
+            id: apiEmployee._id || apiEmployee.id as string,
+            name: apiEmployee.name,
+            position: apiEmployee.position,
+            department: apiEmployee.department,
+            email: apiEmployee.email,
+            phone: apiEmployee.phone,
+            employeeId: apiEmployee.employeeId,
+            hourlyRate: apiEmployee.hourlyRate,
+            status: apiEmployee.status,
+            shift: apiEmployee.shift,
+            hireDate: new Date(apiEmployee.hireDate).toISOString().split('T')[0],
+            avatar: apiEmployee.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+            hoursThisWeek: apiEmployee.hoursThisWeek || 0,
+            performance: apiEmployee.performance || 85,
+            address: apiEmployee.address,
+            emergencyContact: apiEmployee.emergencyContact,
+            notes: apiEmployee.notes
         }));
         console.log('Mapped employees:', mappedEmployees);
         setEmployees(mappedEmployees);
@@ -736,7 +773,7 @@ const Employees: React.FC = () => {
                   <input
                     type="text"
                     value={selectedEmployee.name}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, name: e.target.value })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, name: e.target.value } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   />
@@ -746,7 +783,7 @@ const Employees: React.FC = () => {
                   <input
                     type="text"
                     value={selectedEmployee.position}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, position: e.target.value })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, position: e.target.value } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   />
@@ -755,7 +792,7 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.department')}</label>
                   <select 
                     value={selectedEmployee.department}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, department: e.target.value })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, department: e.target.value } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   >
@@ -771,7 +808,7 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.status')}</label>
                   <select 
                     value={selectedEmployee.status}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, status: e.target.value })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, status: e.target.value } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   >
@@ -786,7 +823,7 @@ const Employees: React.FC = () => {
                     type="number"
                     step="0.01"
                     value={selectedEmployee.hourlyRate}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) || 0 })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, hourlyRate: parseFloat(e.target.value) || 0 } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   />
@@ -796,7 +833,7 @@ const Employees: React.FC = () => {
                   <input
                     type="text"
                     value={selectedEmployee.shift}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, shift: e.target.value })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, shift: e.target.value } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   />
@@ -806,7 +843,7 @@ const Employees: React.FC = () => {
                   <input
                     type="number"
                     value={selectedEmployee.hoursThisWeek}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, hoursThisWeek: parseInt(e.target.value) || 0 })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, hoursThisWeek: parseInt(e.target.value) || 0 } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   />
@@ -818,7 +855,7 @@ const Employees: React.FC = () => {
                     min="0"
                     max="100"
                     value={selectedEmployee.performance}
-                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, performance: parseInt(e.target.value) || 0 })) : undefined}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => prev ? { ...prev, performance: parseInt(e.target.value) || 0 } : prev) : undefined}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     disabled={!canEdit}
                   />
