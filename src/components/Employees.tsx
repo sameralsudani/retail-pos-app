@@ -9,7 +9,12 @@ import {
   Mail,
   UserCheck,
   DollarSign,
-  Award
+  Award,
+  Edit3,
+  Trash2,
+  Eye,
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -247,6 +252,12 @@ const Employees: React.FC = () => {
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
   const canDelete = user?.role === 'admin';
 
+  // Statistics
+  const totalEmployees = stats.totalEmployees;
+  const activeEmployees = stats.activeEmployees;
+  const totalPayroll = stats.totalPayroll;
+  const avgPerformance = stats.averagePerformance;
+
   // Show loading state
   if (isLoading) {
     return (
@@ -383,7 +394,7 @@ const Employees: React.FC = () => {
                 </div>
               </div>
 
-                <p className="text-2xl font-bold text-green-600">{stats.activeEmployees}</p>
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.hourly.rate')}</p>
                   <p className="font-semibold text-green-600">${employee.hourlyRate}/hr</p>
@@ -394,7 +405,7 @@ const Employees: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.department')}</p>
-                <p className="text-2xl font-bold text-purple-600">${stats.totalPayroll.toFixed(2)}</p>
+                  <p className="font-semibold text-blue-600">{employee.department}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.performance')}</p>
@@ -411,7 +422,7 @@ const Employees: React.FC = () => {
                     }}
                     className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                   >
-                  {t('employees.edit.details')}
+                    {t('employees.edit.details')}
                   </button>
                 ) : (
                   <button 
@@ -440,6 +451,14 @@ const Employees: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {filteredEmployees.length === 0 && !isLoading && (
+        <div className="text-center py-12">
+          <Users className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('employees.empty.title')}</h3>
+          <p className="mt-1 text-sm text-gray-500">{t('employees.empty.subtitle')}</p>
+        </div>
+      )}
     </div>
   );
 
@@ -511,18 +530,38 @@ const Employees: React.FC = () => {
       />
 
       <div className="p-6 space-y-6">
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex">
+                <AlertTriangle className="h-5 w-5 text-red-400" />
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
           <div>
-           
+            {/* Title is handled by Header component */}
           </div>
           {canEdit && (
             <button 
-            onClick={() => setShowAddModal(true)}
-            className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {t('employees.add.employee')}
-          </button>
+              onClick={() => setShowAddModal(true)}
+              className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {t('employees.add.employee')}
+            </button>
           )}
         </div>
 

@@ -640,6 +640,23 @@ const translations: Record<Language, { [key: string]: string }> = {
     'employees.form.shift.placeholder': '9:00 AM - 5:00 PM',
     'employees.form.cancel': 'Cancel',
     'employees.form.add': 'Add Employee'
+    'employees.add.title': 'Add New Employee',
+    'employees.edit.title': 'Edit Employee',
+    'employees.view.title': 'View Employee',
+    'employees.form.employee.id': 'Employee ID',
+    'employees.form.employee.id.placeholder': 'Enter employee ID',
+    'employees.form.status': 'Status',
+    'employees.status.active': 'Active',
+    'employees.status.inactive': 'Inactive',
+    'employees.status.terminated': 'Terminated',
+    'employees.form.hours.this.week': 'Hours This Week',
+    'employees.form.performance': 'Performance (%)',
+    'employees.delete.confirm': 'Are you sure you want to delete this employee?',
+    'employees.delete': 'Delete',
+    'employees.empty.title': 'No employees found',
+    'employees.empty.subtitle': 'Add employees to manage your workforce',
+    'loading.employees': 'Loading employees...',
+    'employees.department.customer.service': 'Customer Service',
   },
   ar: {
     // Client Modal (Arabic)
