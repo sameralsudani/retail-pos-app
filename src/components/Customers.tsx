@@ -1000,7 +1000,7 @@ const Customers: React.FC = () => {
               }`}
             >
               <Plus className="w-4 h-4 mr-2" />
-              {t("clients.add.client")}
+              {t("customers.add.customer")}
             </button>
           )}
         </div>
@@ -1283,9 +1283,6 @@ const Customers: React.FC = () => {
                     onClick={() => handleCreateInvoice(customer)}
                   >
                     {t("customers.create.invoice")}
-                  </button>
-                  <button className="flex-1 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                    {t("customers.view.details")}
                   </button>
                 </div>
               </div>
