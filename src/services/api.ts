@@ -177,7 +177,7 @@ export const tenantsAPI = {
 
 // Products API
 export const productsAPI = {
-  getAll: async (params: Record<string, any> = {}) => {
+  getAll: async (params: Record<string, unknown> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/products${queryString ? `?${queryString}` : ''}`);
   },
@@ -343,6 +343,16 @@ export const customersAPI = {
       method: 'PUT',
       body: JSON.stringify(customerData),
     });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest(`/customers/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getStats: async (): Promise<any> => {
+    return apiRequest('/customers/stats/summary');
   },
 
   updateLoyalty: async (id: string, loyaltyData: any) => {

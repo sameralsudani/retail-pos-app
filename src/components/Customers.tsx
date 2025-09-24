@@ -15,7 +15,7 @@ import {
   Package,
   Minus,
   Calculator,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -34,13 +34,13 @@ const Customers: React.FC = () => {
   const { user } = useAuth();
 
   // State management
-  const [clients, setClients] = useState<Client[]>([]);
+  const [customers, setCustomers] = useState<Client[]>([]);
   const [stats, setStats] = useState({
-    totalClients: 0,
-    activeClients: 0,
+    totalCustomers: 0,
+    activeCustomers: 0,
     totalRevenue: 0,
     totalActiveInvoices: 0,
-    newClientsThisMonth: 0,
+    newCustomersThisMonth: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +56,15 @@ const Customers: React.FC = () => {
     name: string;
     email: string;
     phone: string;
-    address: {
-      street?: string;
-      city?: string;
-      state?: string;
-      zipCode?: string;
-      country?: string;
-    } | string;
+    address:
+      | {
+          street?: string;
+          city?: string;
+          state?: string;
+          zipCode?: string;
+          country?: string;
+        }
+      | string;
     notes?: string;
     status?: string;
     totalRevenue?: number;
@@ -72,27 +74,31 @@ const Customers: React.FC = () => {
     avatar?: string;
   }
 
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Client | null>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  
+
   // Invoice creation state
   const [products, setProducts] = useState<Product[]>([]);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-  const [invoiceStep, setInvoiceStep] = useState<'products' | 'review' | 'payment'>('products');
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'digital'>('cash');
-  const [amountPaid, setAmountPaid] = useState<string>('');
+  const [invoiceStep, setInvoiceStep] = useState<
+    "products" | "review" | "payment"
+  >("products");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "card" | "digital"
+  >("cash");
+  const [amountPaid, setAmountPaid] = useState<string>("");
 
   // Create Invoice Functionality
-  const handleCreateInvoice = (client: any) => {
-    setSelectedClient(client);
+  const handleCreateInvoice = (client: Client) => {
+    setSelectedCustomer(client);
     setShowInvoiceModal(true);
     setInvoiceItems([]);
     setProductSearchTerm("");
-    setInvoiceStep('products');
-    setPaymentMethod('cash');
-    setAmountPaid('');
+    setInvoiceStep("products");
+    setPaymentMethod("cash");
+    setAmountPaid("");
     loadProducts();
   };
 
@@ -100,33 +106,38 @@ const Customers: React.FC = () => {
     try {
       setIsLoadingProducts(true);
       const response = await productsAPI.getAll();
-      
+
       if (response.success) {
-        const mappedProducts = response.data.map((product: any) => ({
-          id: product._id || product.id,
+        const mappedProducts = response.data.map((product: Product) => ({
+          id: product.id,
           name: product.name,
           price: product.price,
-          category: (typeof product.category === 'object' ? product.category.name : product.category || '').toLowerCase(),
+          category: (typeof product.category === "object"
+            ? (product.category as { name: string }).name
+            : product.category || ""
+          ).toLowerCase(),
           sku: product.sku,
           stock: product.stock,
-          image: product.image || 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
-          description: product.description || ''
+          image:
+            product.image ||
+            "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300",
+          description: product.description || "",
         }));
         setProducts(mappedProducts);
       }
     } catch (error) {
-      console.error('Error loading products:', error);
-      setError('Failed to load products');
+      console.error("Error loading products:", error);
+      setError("Failed to load products");
     } finally {
       setIsLoadingProducts(false);
     }
   };
 
   const addToInvoice = (product: Product) => {
-    setInvoiceItems(prev => {
-      const existingItem = prev.find(item => item.product.id === product.id);
+    setInvoiceItems((prev) => {
+      const existingItem = prev.find((item) => item.product.id === product.id);
       if (existingItem) {
-        return prev.map(item =>
+        return prev.map((item) =>
           item.product.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -138,10 +149,12 @@ const Customers: React.FC = () => {
 
   const updateInvoiceItemQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
-      setInvoiceItems(prev => prev.filter(item => item.product.id !== productId));
+      setInvoiceItems((prev) =>
+        prev.filter((item) => item.product.id !== productId)
+      );
     } else {
-      setInvoiceItems(prev =>
-        prev.map(item =>
+      setInvoiceItems((prev) =>
+        prev.map((item) =>
           item.product.id === productId ? { ...item, quantity } : item
         )
       );
@@ -149,11 +162,16 @@ const Customers: React.FC = () => {
   };
 
   const removeFromInvoice = (productId: string) => {
-    setInvoiceItems(prev => prev.filter(item => item.product.id !== productId));
+    setInvoiceItems((prev) =>
+      prev.filter((item) => item.product.id !== productId)
+    );
   };
 
   const getInvoiceSubtotal = () => {
-    return invoiceItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    return invoiceItems.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
   };
 
   const getInvoiceTax = () => {
@@ -165,8 +183,8 @@ const Customers: React.FC = () => {
   };
 
   const submitInvoice = async () => {
-    if (!selectedClient) return;
-    
+    if (!selectedCustomer) return;
+
     try {
       setIsSubmitting(true);
       setError(null);
@@ -175,23 +193,23 @@ const Customers: React.FC = () => {
       const amountPaidNum = parseFloat(amountPaid) || total;
 
       if (amountPaidNum < total) {
-        setError('Insufficient payment amount');
+        setError("Insufficient payment amount");
         return;
       }
 
       // Create transaction using existing transaction API
       const transactionData = {
-        items: invoiceItems.map(item => ({
+        items: invoiceItems.map((item) => ({
           product: item.product.id,
-          quantity: item.quantity
+          quantity: item.quantity,
         })),
-        customer: selectedClient.id,
+        customer: selectedCustomer.id,
         paymentMethod,
         amountPaid: amountPaidNum,
-        discount: 0
+        discount: 0,
       };
 
-      console.log('Creating invoice transaction:', transactionData);
+      console.log("Creating invoice transaction:", transactionData);
       const response = await transactionsAPI.create(transactionData);
 
       if (response.success) {
@@ -199,45 +217,48 @@ const Customers: React.FC = () => {
         setShowInvoiceModal(false);
         setInvoiceItems([]);
         setProductSearchTerm("");
-        setInvoiceStep('products');
-        setPaymentMethod('cash');
-        setAmountPaid('');
-        setSelectedClient(null);
-        
+        setInvoiceStep("products");
+        setPaymentMethod("cash");
+        setAmountPaid("");
+        setSelectedCustomer(null);
+
         // Reload clients to update stats
-        await loadClients();
+        await loadCustomers();
         await loadStats();
-        
+
         // Show success message
-        alert(`Invoice created successfully! Transaction ID: ${response.data._id}`);
+        alert(
+          `Invoice created successfully! Transaction ID: ${response.data._id}`
+        );
       } else {
-        setError(response.message || 'Failed to create invoice');
+        setError(response.message || "Failed to create invoice");
       }
     } catch (error) {
-      console.error('Error creating invoice:', error);
-      setError('Failed to create invoice. Please try again.');
+      console.error("Error creating invoice:", error);
+      setError("Failed to create invoice. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
   );
 
   const closeInvoiceModal = () => {
     setShowInvoiceModal(false);
     setInvoiceItems([]);
     setProductSearchTerm("");
-    setInvoiceStep('products');
-    setPaymentMethod('cash');
-    setAmountPaid('');
-    setSelectedClient(null);
+    setInvoiceStep("products");
+    setPaymentMethod("cash");
+    setAmountPaid("");
+    setSelectedCustomer(null);
   };
 
   const renderInvoiceModal = () => {
-    if (!selectedClient) return null;
+    if (!selectedCustomer) return null;
 
     const subtotal = getInvoiceSubtotal();
     const tax = getInvoiceTax();
@@ -251,10 +272,16 @@ const Customers: React.FC = () => {
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {t("clients.create.invoice")} - {selectedClient.name}
+                {t("clients.create.invoice")} - {selectedCustomer.name}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Step {invoiceStep === 'products' ? '1' : invoiceStep === 'review' ? '2' : '3'} of 3
+                Step{" "}
+                {invoiceStep === "products"
+                  ? "1"
+                  : invoiceStep === "review"
+                  ? "2"
+                  : "3"}{" "}
+                of 3
               </p>
             </div>
             <button
@@ -267,7 +294,7 @@ const Customers: React.FC = () => {
 
           {/* Content */}
           <div className="flex-1 flex overflow-hidden">
-            {invoiceStep === 'products' && (
+            {invoiceStep === "products" && (
               <>
                 {/* Product Selection */}
                 <div className="flex-1 flex flex-col">
@@ -283,7 +310,7 @@ const Customers: React.FC = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 overflow-y-auto p-4">
                     {isLoadingProducts ? (
                       <div className="flex items-center justify-center py-12">
@@ -302,11 +329,19 @@ const Customers: React.FC = () => {
                               alt={product.name}
                               className="w-full h-32 object-cover rounded-lg mb-3"
                             />
-                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{product.name}</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{product.sku}</p>
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                              {product.name}
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                              {product.sku}
+                            </p>
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-blue-600">${product.price.toFixed(2)}</span>
-                              <span className="text-sm text-gray-500">Stock: {product.stock}</span>
+                              <span className="font-bold text-blue-600">
+                                ${product.price.toFixed(2)}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                Stock: {product.stock}
+                              </span>
                             </div>
                           </div>
                         ))}
@@ -318,10 +353,14 @@ const Customers: React.FC = () => {
                 {/* Invoice Items Sidebar */}
                 <div className="w-80 bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 flex flex-col">
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Invoice Items</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{invoiceItems.length} items</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      Invoice Items
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {invoiceItems.length} items
+                    </p>
                   </div>
-                  
+
                   <div className="flex-1 overflow-y-auto p-4">
                     {invoiceItems.length === 0 ? (
                       <div className="text-center py-8">
@@ -331,14 +370,23 @@ const Customers: React.FC = () => {
                     ) : (
                       <div className="space-y-3">
                         {invoiceItems.map((item) => (
-                          <div key={item.product.id} className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                          <div
+                            key={item.product.id}
+                            className="bg-white dark:bg-gray-800 rounded-lg p-3"
+                          >
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
-                                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.product.name}</h4>
-                                <p className="text-xs text-gray-500">{item.product.sku}</p>
+                                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                  {item.product.name}
+                                </h4>
+                                <p className="text-xs text-gray-500">
+                                  {item.product.sku}
+                                </p>
                               </div>
                               <button
-                                onClick={() => removeFromInvoice(item.product.id)}
+                                onClick={() =>
+                                  removeFromInvoice(item.product.id)
+                                }
                                 className="text-red-500 hover:text-red-700 p-1"
                               >
                                 <X className="h-3 w-3" />
@@ -347,21 +395,36 @@ const Customers: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
                                 <button
-                                  onClick={() => updateInvoiceItemQuantity(item.product.id, item.quantity - 1)}
+                                  onClick={() =>
+                                    updateInvoiceItemQuantity(
+                                      item.product.id,
+                                      item.quantity - 1
+                                    )
+                                  }
                                   className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                                 >
                                   <Minus className="h-3 w-3" />
                                 </button>
-                                <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                                <span className="text-sm font-medium w-8 text-center">
+                                  {item.quantity}
+                                </span>
                                 <button
-                                  onClick={() => updateInvoiceItemQuantity(item.product.id, item.quantity + 1)}
+                                  onClick={() =>
+                                    updateInvoiceItemQuantity(
+                                      item.product.id,
+                                      item.quantity + 1
+                                    )
+                                  }
                                   className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                                 >
                                   <Plus className="h-3 w-3" />
                                 </button>
                               </div>
                               <span className="text-sm font-bold text-blue-600">
-                                ${(item.product.price * item.quantity).toFixed(2)}
+                                $
+                                {(item.product.price * item.quantity).toFixed(
+                                  2
+                                )}
                               </span>
                             </div>
                           </div>
@@ -369,7 +432,7 @@ const Customers: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Invoice Summary */}
                   <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="space-y-2 mb-4">
@@ -383,12 +446,14 @@ const Customers: React.FC = () => {
                       </div>
                       <div className="flex justify-between font-bold border-t pt-2">
                         <span>Total:</span>
-                        <span className="text-blue-600">${total.toFixed(2)}</span>
+                        <span className="text-blue-600">
+                          ${total.toFixed(2)}
+                        </span>
                       </div>
                     </div>
-                    
+
                     <button
-                      onClick={() => setInvoiceStep('review')}
+                      onClick={() => setInvoiceStep("review")}
                       disabled={invoiceItems.length === 0}
                       className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
@@ -399,28 +464,47 @@ const Customers: React.FC = () => {
               </>
             )}
 
-            {invoiceStep === 'review' && (
+            {invoiceStep === "review" && (
               <div className="flex-1 p-6">
                 <div className="max-w-2xl mx-auto">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Invoice Review</h3>
-                  
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+                    Invoice Review
+                  </h3>
+
                   {/* Client Info */}
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Bill To:</h4>
-                    <p className="text-gray-700 dark:text-gray-300">{selectedClient.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClient.email}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClient.phone}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      Bill To:
+                    </h4>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {selectedCustomer.name}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {selectedCustomer.email}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {selectedCustomer.phone}
+                    </p>
                   </div>
 
                   {/* Invoice Items */}
                   <div className="mb-6">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Items:</h4>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">
+                      Items:
+                    </h4>
                     <div className="space-y-3">
                       {invoiceItems.map((item) => (
-                        <div key={item.product.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div
+                          key={item.product.id}
+                          className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                        >
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{item.product.name}</p>
-                            <p className="text-sm text-gray-500">{item.quantity} × ${item.product.price.toFixed(2)}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {item.product.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {item.quantity} × ${item.product.price.toFixed(2)}
+                            </p>
                           </div>
                           <p className="font-bold text-gray-900 dark:text-gray-100">
                             ${(item.product.price * item.quantity).toFixed(2)}
@@ -443,7 +527,9 @@ const Customers: React.FC = () => {
                       </div>
                       <div className="flex justify-between font-bold text-lg border-t pt-2">
                         <span>Total:</span>
-                        <span className="text-blue-600">${total.toFixed(2)}</span>
+                        <span className="text-blue-600">
+                          ${total.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -451,13 +537,13 @@ const Customers: React.FC = () => {
                   {/* Navigation */}
                   <div className="flex space-x-3">
                     <button
-                      onClick={() => setInvoiceStep('products')}
+                      onClick={() => setInvoiceStep("products")}
                       className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Back to Products
                     </button>
                     <button
-                      onClick={() => setInvoiceStep('payment')}
+                      onClick={() => setInvoiceStep("payment")}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Proceed to Payment
@@ -467,15 +553,21 @@ const Customers: React.FC = () => {
               </div>
             )}
 
-            {invoiceStep === 'payment' && (
+            {invoiceStep === "payment" && (
               <div className="flex-1 p-6">
                 <div className="max-w-md mx-auto">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Payment</h3>
-                  
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
+                    Payment
+                  </h3>
+
                   {/* Total Amount */}
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center mb-6">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</div>
-                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      Total Amount
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                      ${total.toFixed(2)}
+                    </div>
                   </div>
 
                   {/* Payment Method */}
@@ -484,21 +576,29 @@ const Customers: React.FC = () => {
                       Payment Method
                     </label>
                     <div className="grid grid-cols-3 gap-3">
-                      {(['cash', 'card', 'digital'] as const).map((method) => (
+                      {(["cash", "card", "digital"] as const).map((method) => (
                         <button
                           key={method}
                           onClick={() => setPaymentMethod(method)}
                           className={`p-3 rounded-lg border-2 transition-colors ${
                             paymentMethod === method
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                              : "border-gray-200 dark:border-gray-600 hover:border-gray-300"
                           }`}
                         >
                           <div className="text-center">
-                            {method === 'cash' && <DollarSign className="h-6 w-6 mx-auto mb-1" />}
-                            {method === 'card' && <CreditCard className="h-6 w-6 mx-auto mb-1" />}
-                            {method === 'digital' && <Calculator className="h-6 w-6 mx-auto mb-1" />}
-                            <div className="text-sm font-medium capitalize">{method}</div>
+                            {method === "cash" && (
+                              <DollarSign className="h-6 w-6 mx-auto mb-1" />
+                            )}
+                            {method === "card" && (
+                              <CreditCard className="h-6 w-6 mx-auto mb-1" />
+                            )}
+                            {method === "digital" && (
+                              <Calculator className="h-6 w-6 mx-auto mb-1" />
+                            )}
+                            <div className="text-sm font-medium capitalize">
+                              {method}
+                            </div>
                           </div>
                         </button>
                       ))}
@@ -518,7 +618,7 @@ const Customers: React.FC = () => {
                       placeholder={total.toFixed(2)}
                       className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     />
-                    
+
                     {/* Quick amount buttons */}
                     <div className="grid grid-cols-2 gap-2 mt-3">
                       <button
@@ -528,7 +628,9 @@ const Customers: React.FC = () => {
                         Exact Amount
                       </button>
                       <button
-                        onClick={() => setAmountPaid((Math.ceil(total / 5) * 5).toFixed(2))}
+                        onClick={() =>
+                          setAmountPaid((Math.ceil(total / 5) * 5).toFixed(2))
+                        }
                         className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
                       >
                         ${(Math.ceil(total / 5) * 5).toFixed(2)}
@@ -540,7 +642,10 @@ const Customers: React.FC = () => {
                   {parseFloat(amountPaid) >= total && (
                     <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-6">
                       <div className="text-sm text-green-700 dark:text-green-400">
-                        Change: <span className="font-semibold">${change.toFixed(2)}</span>
+                        Change:{" "}
+                        <span className="font-semibold">
+                          ${change.toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -548,7 +653,7 @@ const Customers: React.FC = () => {
                   {/* Navigation */}
                   <div className="flex space-x-3">
                     <button
-                      onClick={() => setInvoiceStep('review')}
+                      onClick={() => setInvoiceStep("review")}
                       className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Back
@@ -558,7 +663,7 @@ const Customers: React.FC = () => {
                       disabled={isSubmitting || parseFloat(amountPaid) < total}
                       className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isSubmitting ? 'Creating...' : 'Create Invoice'}
+                      {isSubmitting ? "Creating..." : "Create Invoice"}
                     </button>
                   </div>
                 </div>
@@ -569,7 +674,7 @@ const Customers: React.FC = () => {
       </div>
     );
   };
-  const [newClient, setNewClient] = useState({
+  const [newCustomer, setNewCustomer] = useState({
     name: "",
     email: "",
     phone: "",
@@ -583,13 +688,13 @@ const Customers: React.FC = () => {
     notes: "",
   });
 
-  // Load clients on component mount
+  // Load customers on component mount
   React.useEffect(() => {
-    loadClients();
+    loadCustomers();
     loadStats();
   }, []);
 
-  const loadClients = async () => {
+  const loadCustomers = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -599,42 +704,78 @@ const Customers: React.FC = () => {
       console.log("Clients API response:", response);
 
       if (response.success) {
-        const mappedClients = response.data.map((apiClient) => ({
-          id: apiClient._id || apiClient.id,
-          name: apiClient.name,
-          email: apiClient.email,
-          phone: apiClient.phone || "",
+        interface ApiCustomer {
+          _id?: string;
+          id?: string;
+          name: string;
+          email: string;
+          phone?: string;
+          address?: {
+            street?: string;
+            city?: string;
+            state?: string;
+            zipCode?: string;
+            country?: string;
+          };
+          totalRevenue?: number;
+          activeInvoices?: number;
+          lastTransaction?: string | Date;
+          status?: string;
+          projects?: number;
+          avatar?: string;
+          notes?: string;
+        }
+
+        interface MappedCustomer {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          address: string;
+          totalRevenue: number;
+          activeInvoices: number;
+          lastTransaction: string;
+          status: string;
+          projects: number;
+          avatar: string;
+          notes: string;
+        }
+
+        const mappedCustomers: MappedCustomer[] = (response.data as ApiCustomer[]).map((apiCustomer: ApiCustomer): MappedCustomer => ({
+          id: apiCustomer._id || apiCustomer.id || "",
+          name: apiCustomer.name,
+          email: apiCustomer.email,
+          phone: apiCustomer.phone || "",
           address:
-            `${apiClient.address?.street || ""} ${
-              apiClient.address?.city || ""
-            } ${apiClient.address?.state || ""} ${
-              apiClient.address?.zipCode || ""
+            `${apiCustomer.address?.street || ""} ${
+              apiCustomer.address?.city || ""
+            } ${apiCustomer.address?.state || ""} ${
+              apiCustomer.address?.zipCode || ""
             }`.trim() || "No address provided",
-          totalRevenue: apiClient.totalRevenue || 0,
-          activeInvoices: apiClient.activeInvoices || 0,
-          lastTransaction: apiClient.lastTransaction
-            ? new Date(apiClient.lastTransaction).toISOString().split("T")[0]
+          totalRevenue: apiCustomer.totalRevenue || 0,
+          activeInvoices: apiCustomer.activeInvoices || 0,
+          lastTransaction: apiCustomer.lastTransaction
+            ? new Date(apiCustomer.lastTransaction).toISOString().split("T")[0]
             : new Date().toISOString().split("T")[0],
-          status: apiClient.status || "active",
-          projects: apiClient.projects || 0,
+          status: apiCustomer.status || "active",
+          projects: apiCustomer.projects || 0,
           avatar:
-            apiClient.avatar ||
-            apiClient.name
+            apiCustomer.avatar ||
+            apiCustomer.name
               .split(" ")
               .map((n) => n[0])
               .join("")
               .toUpperCase()
               .slice(0, 2),
-          notes: apiClient.notes || "",
+          notes: apiCustomer.notes || "",
         }));
-        console.log("Mapped clients:", mappedClients);
-        setClients(mappedClients);
+        setCustomers(mappedCustomers);
       } else {
-        setError(response.message || "Failed to load clients");
+        setError(response.message || "Failed to load customers");
       }
     } catch (error) {
-      console.error("Error loading clients:", error);
-      setError("Failed to load clients. Please try again.");
+      console.error("Error loading customers:", error);
+      setError("Failed to load customers. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -645,11 +786,11 @@ const Customers: React.FC = () => {
       const response = await customersAPI.getStats();
       if (response.success) {
         setStats({
-          totalClients: response.data.totalClients || 0,
-          activeClients: response.data.activeClients || 0,
+          totalCustomers: response.data.totalClients || 0,
+          activeCustomers: response.data.activeClients || 0,
           totalRevenue: response.data.totalRevenue || 0,
           totalActiveInvoices: response.data.totalActiveInvoices || 0,
-          newClientsThisMonth: 3, // This would be calculated from recent clients
+          newCustomersThisMonth: 3, // This would be calculated from recent clients
         });
       }
     } catch (error) {
@@ -657,30 +798,30 @@ const Customers: React.FC = () => {
     }
   };
 
-  const filteredClients = clients.filter((client) => {
+  const filteredCustomers = customers.filter((customer) => {
     const matchesSearch =
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase());
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
-      statusFilter === "all" || client.status === statusFilter;
+      statusFilter === "all" || customer.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddClient = async () => {
-    if (newClient.name && newClient.email) {
+  const handleAddCustomer = async () => {
+    if (newCustomer.name && newCustomer.email) {
       try {
         setIsSubmitting(true);
         setError(null);
 
-        console.log("Creating client with data:", newClient);
-        const response = await customersAPI.create(newClient);
+        console.log("Creating client with data:", newCustomer);
+        const response = await customersAPI.create(newCustomer);
 
         if (response.success) {
-          await loadClients(); // Reload clients list
+          await loadCustomers(); // Reload clients list
           await loadStats(); // Reload stats
-          setNewClient({
+          setNewCustomer({
             name: "",
             email: "",
             phone: "",
@@ -706,35 +847,38 @@ const Customers: React.FC = () => {
     }
   };
 
-  const handleEditClient = async () => {
-    if (selectedClient) {
+  const handleEditCustomer = async () => {
+    if (selectedCustomer) {
       try {
         setIsSubmitting(true);
         setError(null);
 
         const updateData = {
-          name: selectedClient.name,
-          email: selectedClient.email,
-          phone: selectedClient.phone,
+          name: selectedCustomer.name,
+          email: selectedCustomer.email,
+          phone: selectedCustomer.phone,
           address: {
-            street: selectedClient.address?.street || "",
-            city: selectedClient.address?.city || "",
-            state: selectedClient.address?.state || "",
-            zipCode: selectedClient.address?.zipCode || "",
-            country: selectedClient.address?.country || "",
+            street: typeof selectedCustomer.address === "object" && selectedCustomer.address?.street ? selectedCustomer.address.street : "",
+            city: typeof selectedCustomer.address === "object" && selectedCustomer.address?.city ? selectedCustomer.address.city : "",
+            state: typeof selectedCustomer.address === "object" && selectedCustomer.address?.state ? selectedCustomer.address.state : "",
+            zipCode: typeof selectedCustomer.address === "object" && selectedCustomer.address?.zipCode ? selectedCustomer.address.zipCode : "",
+            country: typeof selectedCustomer.address === "object" && selectedCustomer.address?.country ? selectedCustomer.address.country : "",
           },
-          status: selectedClient.status,
-          notes: selectedClient.notes,
+          status: selectedCustomer.status,
+          notes: selectedCustomer.notes,
         };
 
         console.log("Updating client with data:", updateData);
-        const response = await customersAPI.update(selectedClient.id, updateData);
+        const response = await customersAPI.update(
+          selectedCustomer.id,
+          updateData
+        );
 
         if (response.success) {
-          await loadClients(); // Reload clients list
+          await loadCustomers(); // Reload clients list
           await loadStats(); // Reload stats
           setShowEditModal(false);
-          setSelectedClient(null);
+          setSelectedCustomer(null);
         } else {
           setError(response.message || "Failed to update client");
         }
@@ -747,23 +891,23 @@ const Customers: React.FC = () => {
     }
   };
 
-  const handleDeleteClient = async (id: string) => {
-    if (confirm(t("clients.delete.confirm"))) {
+  const handleDeleteCustomer = async (id: string) => {
+    if (confirm(t("customers.delete.confirm"))) {
       try {
         setError(null);
-        console.log("Deleting client:", id);
+        console.log("Deleting customer:", id);
 
         const response = await customersAPI.delete(id);
 
         if (response.success) {
-          await loadClients(); // Reload clients list
+          await loadCustomers(); // Reload customers list
           await loadStats(); // Reload stats
         } else {
-          setError(response.message || "Failed to delete client");
+          setError(response.message || "Failed to delete customer");
         }
       } catch (error) {
-        console.error("Error deleting client:", error);
-        setError("Failed to delete client. Please try again.");
+        console.error("Error deleting customer:", error);
+        setError("Failed to delete customer. Please try again.");
       }
     }
   };
@@ -778,7 +922,7 @@ const Customers: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <Header
           onMenuClick={() => setShowSidebar(true)}
-          title={t("clients.title")}
+          title={t("customers.title")}
         />
         <div className="p-6 flex items-center justify-center">
           <div className="text-center">
@@ -844,7 +988,7 @@ const Customers: React.FC = () => {
                   {t("clients.stats.active")}
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {stats.activeClients}
+                  {stats.activeCustomers}
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-lg">
@@ -889,7 +1033,7 @@ const Customers: React.FC = () => {
                   {t("clients.stats.this.month")}
                 </p>
                 <p className="text-2xl font-bold text-purple-600">
-                  +{stats.newClientsThisMonth}
+                  +{stats.newCustomersThisMonth}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   {t("clients.stats.new.clients")}
@@ -936,11 +1080,11 @@ const Customers: React.FC = () => {
           </div>
         </div>
 
-        {/* Clients Grid */}
+        {/* Customers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClients.map((client) => (
+          {filteredCustomers.map((customer) => (
             <div
-              key={client.id}
+              key={customer.id}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
               <div className="p-6">
@@ -954,21 +1098,21 @@ const Customers: React.FC = () => {
                   >
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-semibold text-sm">
-                        {client.avatar}
+                        {customer.avatar}
                       </span>
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                        {client.name}
+                        {customer.name}
                       </h3>
                       <span
                         className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                          client.status === "active"
+                          customer.status === "active"
                             ? "bg-green-100 text-green-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {client.status}
+                        {customer.status}
                       </span>
                     </div>
                   </div>
@@ -982,20 +1126,20 @@ const Customers: React.FC = () => {
                     {canEdit && (
                       <button
                         onClick={() => {
-                          setSelectedClient(client);
+                          setSelectedCustomer(customer);
                           setShowEditModal(true);
                         }}
                         className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 transition-colors"
-                        title={t("clients.actions.edit")}
+                        title={t("customerss.actions.edit")}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                     )}
                     {canDelete && (
                       <button
-                        onClick={() => handleDeleteClient(client.id)}
+                        onClick={() => handleDeleteCustomer(customer.id)}
                         className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
-                        title={t("clients.actions.delete")}
+                        title={t("customers.actions.delete")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1016,7 +1160,7 @@ const Customers: React.FC = () => {
                         document.documentElement.dir === "rtl" ? "ml-2" : "mr-2"
                       }`}
                     />
-                    {client.email}
+                    {customer.email}
                   </div>
                   <div
                     className={`flex items-center text-sm text-gray-600 dark:text-gray-400 ${
@@ -1030,7 +1174,7 @@ const Customers: React.FC = () => {
                         document.documentElement.dir === "rtl" ? "ml-2" : "mr-2"
                       }`}
                     />
-                    {client.phone}
+                    {customer.phone}
                   </div>
                   <div
                     className={`flex items-center text-sm text-gray-600 dark:text-gray-400 ${
@@ -1044,14 +1188,14 @@ const Customers: React.FC = () => {
                         document.documentElement.dir === "rtl" ? "ml-2" : "mr-2"
                       }`}
                     />
-                    {typeof client.address === "string"
-                      ? client.address
+                    {typeof customer.address === "string"
+                      ? customer.address
                       : [
-                          client.address?.street,
-                          client.address?.city,
-                          client.address?.state,
-                          client.address?.zipCode,
-                          client.address?.country,
+                          customer.address?.street,
+                          customer.address?.city,
+                          customer.address?.state,
+                          customer.address?.zipCode,
+                          customer.address?.country,
                         ]
                           .filter(Boolean)
                           .join(", ") || "No address provided"}
@@ -1065,7 +1209,7 @@ const Customers: React.FC = () => {
                         {t("clients.total.revenue")}
                       </p>
                       <p className="font-semibold text-green-600">
-                        ${client.totalRevenue.toLocaleString()}
+                        ${(customer.totalRevenue ?? 0).toLocaleString()}
                       </p>
                     </div>
                     <div>
@@ -1073,7 +1217,7 @@ const Customers: React.FC = () => {
                         {t("clients.projects")}
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {client.projects}
+                        {customer.projects}
                       </p>
                     </div>
                   </div>
@@ -1083,7 +1227,7 @@ const Customers: React.FC = () => {
                         {t("clients.active.invoices")}
                       </p>
                       <p className="font-semibold text-orange-600">
-                        {client.activeInvoices}
+                        {customer.activeInvoices}
                       </p>
                     </div>
                     <div>
@@ -1091,7 +1235,9 @@ const Customers: React.FC = () => {
                         {t("clients.last.transaction")}
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100 text-xs">
-                        {new Date(client.lastTransaction).toLocaleDateString()}
+                        {customer.lastTransaction
+                          ? new Date(customer.lastTransaction).toLocaleDateString()
+                          : ""}
                       </p>
                     </div>
                   </div>
@@ -1106,7 +1252,7 @@ const Customers: React.FC = () => {
                 >
                   <button
                     className="flex-1 bg-blue-50 text-blue-600 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 transition-colors"
-                    onClick={() => handleCreateInvoice(client)}
+                    onClick={() => handleCreateInvoice(customer)}
                   >
                     {t("clients.create.invoice")}
                   </button>
@@ -1119,7 +1265,7 @@ const Customers: React.FC = () => {
           ))}
         </div>
 
-        {filteredClients.length === 0 && !isLoading && (
+        {filteredCustomers.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <User className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -1146,9 +1292,12 @@ const Customers: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={newClient.name}
+                  value={newCustomer.name}
                   onChange={(e) =>
-                    setNewClient((prev) => ({ ...prev, name: e.target.value }))
+                    setNewCustomer((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.company.placeholder")}
@@ -1160,9 +1309,12 @@ const Customers: React.FC = () => {
                 </label>
                 <input
                   type="email"
-                  value={newClient.email}
+                  value={newCustomer.email}
                   onChange={(e) =>
-                    setNewClient((prev) => ({ ...prev, email: e.target.value }))
+                    setNewCustomer((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.email.placeholder")}
@@ -1174,9 +1326,12 @@ const Customers: React.FC = () => {
                 </label>
                 <input
                   type="tel"
-                  value={newClient.phone}
+                  value={newCustomer.phone}
                   onChange={(e) =>
-                    setNewClient((prev) => ({ ...prev, phone: e.target.value }))
+                    setNewCustomer((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.phone.placeholder")}
@@ -1188,9 +1343,9 @@ const Customers: React.FC = () => {
                 </label>
                 <textarea
                   rows={3}
-                  value={`${newClient.address.street} ${newClient.address.city} ${newClient.address.state} ${newClient.address.zipCode}`.trim()}
+                  value={`${newCustomer.address.street} ${newCustomer.address.city} ${newCustomer.address.state} ${newCustomer.address.zipCode}`.trim()}
                   onChange={(e) =>
-                    setNewClient((prev) => ({
+                    setNewCustomer((prev) => ({
                       ...prev,
                       address: { ...prev.address, street: e.target.value },
                     }))
@@ -1205,9 +1360,12 @@ const Customers: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
-                  value={newClient.notes}
+                  value={newCustomer.notes}
                   onChange={(e) =>
-                    setNewClient((prev) => ({ ...prev, notes: e.target.value }))
+                    setNewCustomer((prev) => ({
+                      ...prev,
+                      notes: e.target.value,
+                    }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.notes.placeholder")}
@@ -1224,7 +1382,7 @@ const Customers: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setShowAddModal(false);
-                    setNewClient({
+                    setNewCustomer({
                       name: "",
                       email: "",
                       phone: "",
@@ -1244,8 +1402,10 @@ const Customers: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={handleAddClient}
-                  disabled={!newClient.name || !newClient.email || isSubmitting}
+                  onClick={handleAddCustomer}
+                  disabled={
+                    !newCustomer.name || !newCustomer.email || isSubmitting
+                  }
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   {isSubmitting
@@ -1259,7 +1419,7 @@ const Customers: React.FC = () => {
       )}
 
       {/* Edit Client Modal */}
-      {showEditModal && selectedClient && canEdit && (
+      {showEditModal && selectedCustomer && canEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -1272,9 +1432,9 @@ const Customers: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={selectedClient.name}
+                  value={selectedCustomer.name}
                   onChange={(e) =>
-                    setSelectedClient((prev) =>
+                    setSelectedCustomer((prev) =>
                       prev ? { ...prev, name: e.target.value } : prev
                     )
                   }
@@ -1288,9 +1448,9 @@ const Customers: React.FC = () => {
                 </label>
                 <input
                   type="email"
-                  value={selectedClient.email}
+                  value={selectedCustomer.email}
                   onChange={(e) =>
-                    setSelectedClient((prev) =>
+                    setSelectedCustomer((prev) =>
                       prev ? { ...prev, email: e.target.value } : prev
                     )
                   }
@@ -1304,12 +1464,11 @@ const Customers: React.FC = () => {
                 </label>
                 <input
                   type="tel"
-                  value={selectedClient.phone}
+                  value={selectedCustomer.phone}
                   onChange={(e) =>
-                    setSelectedClient((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
+                    setSelectedCustomer((prev) =>
+                      prev ? { ...prev, phone: e.target.value } : prev
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.phone.placeholder")}
@@ -1320,12 +1479,11 @@ const Customers: React.FC = () => {
                   {t("clients.form.status")}
                 </label>
                 <select
-                  value={selectedClient.status}
+                  value={selectedCustomer.status}
                   onChange={(e) =>
-                    setSelectedClient((prev) => ({
-                      ...prev,
-                      status: e.target.value,
-                    }))
+                    setSelectedCustomer((prev) =>
+                      prev ? { ...prev, status: e.target.value } : prev
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
@@ -1341,12 +1499,10 @@ const Customers: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
-                  value={selectedClient.notes}
+                  value={selectedCustomer.notes}
                   onChange={(e) =>
-                    setSelectedClient((prev) =>
-                      prev
-                        ? { ...prev, notes: e.target.value }
-                        : prev
+                    setSelectedCustomer((prev) =>
+                      prev ? { ...prev, notes: e.target.value } : prev
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -1364,7 +1520,7 @@ const Customers: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setShowEditModal(false);
-                    setSelectedClient(null);
+                    setSelectedCustomer(null);
                   }}
                   className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
@@ -1372,7 +1528,7 @@ const Customers: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={handleEditClient}
+                  onClick={handleEditCustomer}
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
