@@ -12,12 +12,23 @@ import {
   User,
   AlertTriangle,
   X,
+  ShoppingCart,
+  Package,
+  Minus,
+  Calculator,
+  CreditCard
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { clientsAPI } from "../services/api";
+import { clientsAPI, productsAPI, transactionsAPI } from "../services/api";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import { Product } from "../types";
+
+interface InvoiceItem {
+  product: Product;
+  quantity: number;
+}
 
 const Clients: React.FC = () => {
   const { t } = useLanguage();
@@ -64,33 +75,500 @@ const Clients: React.FC = () => {
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [invoiceData, setInvoiceData] = useState({
-    amount: "",
-    description: "",
-  });
+  
+  // Invoice creation state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+  const [productSearchTerm, setProductSearchTerm] = useState("");
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [invoiceStep, setInvoiceStep] = useState<'products' | 'review' | 'payment'>('products');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'digital'>('cash');
+  const [amountPaid, setAmountPaid] = useState<string>('');
+
   // Create Invoice Functionality
   const handleCreateInvoice = (client: any) => {
     setSelectedClient(client);
     setShowInvoiceModal(true);
-    setInvoiceData({ amount: "", description: "" });
+    setInvoiceItems([]);
+    setProductSearchTerm("");
+    setInvoiceStep('products');
+    setPaymentMethod('cash');
+    setAmountPaid('');
+    loadProducts();
+  };
+
+  const loadProducts = async () => {
+    try {
+      setIsLoadingProducts(true);
+      const response = await productsAPI.getAll();
+      
+      if (response.success) {
+        const mappedProducts = response.data.map((product: any) => ({
+          id: product._id || product.id,
+          name: product.name,
+          price: product.price,
+          category: (typeof product.category === 'object' ? product.category.name : product.category || '').toLowerCase(),
+          sku: product.sku,
+          stock: product.stock,
+          image: product.image || 'https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300',
+          description: product.description || ''
+        }));
+        setProducts(mappedProducts);
+      }
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setError('Failed to load products');
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  const addToInvoice = (product: Product) => {
+    setInvoiceItems(prev => {
+      const existingItem = prev.find(item => item.product.id === product.id);
+      if (existingItem) {
+        return prev.map(item =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const updateInvoiceItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setInvoiceItems(prev => prev.filter(item => item.product.id !== productId));
+    } else {
+      setInvoiceItems(prev =>
+        prev.map(item =>
+          item.product.id === productId ? { ...item, quantity } : item
+        )
+      );
+    }
+  };
+
+  const removeFromInvoice = (productId: string) => {
+    setInvoiceItems(prev => prev.filter(item => item.product.id !== productId));
+  };
+
+  const getInvoiceSubtotal = () => {
+    return invoiceItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  };
+
+  const getInvoiceTax = () => {
+    return getInvoiceSubtotal() * 0.08; // 8% tax
+  };
+
+  const getInvoiceTotal = () => {
+    return getInvoiceSubtotal() + getInvoiceTax();
   };
 
   const submitInvoice = async () => {
     if (!selectedClient) return;
-    // TODO: Replace with your actual API call
+    
     try {
       setIsSubmitting(true);
-      // Example: await clientsAPI.createInvoice(selectedClient.id, invoiceData);
-      // For now, just close the modal and reset
-      setShowInvoiceModal(false);
-      setInvoiceData({ amount: "", description: "" });
-      setSelectedClient(null);
-      // Optionally reload clients or show a success message
+      setError(null);
+
+      const total = getInvoiceTotal();
+      const amountPaidNum = parseFloat(amountPaid) || total;
+
+      if (amountPaidNum < total) {
+        setError('Insufficient payment amount');
+        return;
+      }
+
+      // Create transaction using existing transaction API
+      const transactionData = {
+        items: invoiceItems.map(item => ({
+          product: item.product.id,
+          quantity: item.quantity
+        })),
+        customer: selectedClient.id,
+        paymentMethod,
+        amountPaid: amountPaidNum,
+        discount: 0
+      };
+
+      console.log('Creating invoice transaction:', transactionData);
+      const response = await transactionsAPI.create(transactionData);
+
+      if (response.success) {
+        // Close modal and reset
+        setShowInvoiceModal(false);
+        setInvoiceItems([]);
+        setProductSearchTerm("");
+        setInvoiceStep('products');
+        setPaymentMethod('cash');
+        setAmountPaid('');
+        setSelectedClient(null);
+        
+        // Reload clients to update stats
+        await loadClients();
+        await loadStats();
+        
+        // Show success message
+        alert(`Invoice created successfully! Transaction ID: ${response.data._id}`);
+      } else {
+        setError(response.message || 'Failed to create invoice');
+      }
     } catch (error) {
-      setError("Failed to create invoice.");
+      console.error('Error creating invoice:', error);
+      setError('Failed to create invoice. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+    product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
+  );
+
+  const renderInvoiceModal = () => {
+    if (!selectedClient) return null;
+
+    const subtotal = getInvoiceSubtotal();
+    const tax = getInvoiceTax();
+    const total = getInvoiceTotal();
+    const change = parseFloat(amountPaid) - total;
+
+    return (
+      setShowInvoiceModal(false);
+      setInvoiceItems([]);
+      setProductSearchTerm("");
+      setInvoiceStep('products');
+      setPaymentMethod('cash');
+      setAmountPaid('');
+      setSelectedClient(null);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {t("clients.create.invoice")} - {selectedClient.name}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Step {invoiceStep === 'products' ? '1' : invoiceStep === 'review' ? '2' : '3'} of 3
+              </p>
+            </div>
+            <button
+              onClick={closeInvoiceModal}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 flex overflow-hidden">
+            {invoiceStep === 'products' && (
+              <>
+                {/* Product Selection */}
+                <div className="flex-1 flex flex-col">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search products..."
+                        value={productSearchTerm}
+                        onChange={(e) => setProductSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-4">
+                    {isLoadingProducts ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredProducts.map((product) => (
+                          <div
+                            key={product.id}
+                            className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                            onClick={() => addToInvoice(product)}
+                          >
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-32 object-cover rounded-lg mb-3"
+                            />
+                            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{product.name}</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{product.sku}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-blue-600">${product.price.toFixed(2)}</span>
+                              <span className="text-sm text-gray-500">Stock: {product.stock}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Invoice Items Sidebar */}
+                <div className="w-80 bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Invoice Items</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{invoiceItems.length} items</p>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-4">
+                    {invoiceItems.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">No items added</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {invoiceItems.map((item) => (
+                          <div key={item.product.id} className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.product.name}</h4>
+                                <p className="text-xs text-gray-500">{item.product.sku}</p>
+                              </div>
+                              <button
+                                onClick={() => removeFromInvoice(item.product.id)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => updateInvoiceItemQuantity(item.product.id, item.quantity - 1)}
+                                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                                <button
+                                  onClick={() => updateInvoiceItemQuantity(item.product.id, item.quantity + 1)}
+                                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <span className="text-sm font-bold text-blue-600">
+                                ${(item.product.price * item.quantity).toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Invoice Summary */}
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Tax (8%):</span>
+                        <span>${tax.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold border-t pt-2">
+                        <span>Total:</span>
+                        <span className="text-blue-600">${total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => setInvoiceStep('review')}
+                      disabled={invoiceItems.length === 0}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Review Invoice
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {invoiceStep === 'review' && (
+              <div className="flex-1 p-6">
+                <div className="max-w-2xl mx-auto">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Invoice Review</h3>
+                  
+                  {/* Client Info */}
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Bill To:</h4>
+                    <p className="text-gray-700 dark:text-gray-300">{selectedClient.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClient.email}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{selectedClient.phone}</p>
+                  </div>
+
+                  {/* Invoice Items */}
+                  <div className="mb-6">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">Items:</h4>
+                    <div className="space-y-3">
+                      {invoiceItems.map((item) => (
+                        <div key={item.product.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{item.product.name}</p>
+                            <p className="text-sm text-gray-500">{item.quantity} × ${item.product.price.toFixed(2)}</p>
+                          </div>
+                          <p className="font-bold text-gray-900 dark:text-gray-100">
+                            ${(item.product.price * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Totals */}
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tax (8%):</span>
+                        <span>${tax.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg border-t pt-2">
+                        <span>Total:</span>
+                        <span className="text-blue-600">${total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Navigation */}
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setInvoiceStep('products')}
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Back to Products
+                    </button>
+                    <button
+                      onClick={() => setInvoiceStep('payment')}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Proceed to Payment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {invoiceStep === 'payment' && (
+              <div className="flex-1 p-6">
+                <div className="max-w-md mx-auto">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Payment</h3>
+                  
+                  {/* Total Amount */}
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center mb-6">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</div>
+                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">${total.toFixed(2)}</div>
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Payment Method
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {(['cash', 'card', 'digital'] as const).map((method) => (
+                        <button
+                          key={method}
+                          onClick={() => setPaymentMethod(method)}
+                          className={`p-3 rounded-lg border-2 transition-colors ${
+                            paymentMethod === method
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="text-center">
+                            {method === 'cash' && <DollarSign className="h-6 w-6 mx-auto mb-1" />}
+                            {method === 'card' && <CreditCard className="h-6 w-6 mx-auto mb-1" />}
+                            {method === 'digital' && <Calculator className="h-6 w-6 mx-auto mb-1" />}
+                            <div className="text-sm font-medium capitalize">{method}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Amount Paid */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Amount Paid
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(e.target.value)}
+                      placeholder={total.toFixed(2)}
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                    
+                    {/* Quick amount buttons */}
+                    <div className="grid grid-cols-2 gap-2 mt-3">
+                      <button
+                        onClick={() => setAmountPaid(total.toFixed(2))}
+                        className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+                      >
+                        Exact Amount
+                      </button>
+                      <button
+                        onClick={() => setAmountPaid((Math.ceil(total / 5) * 5).toFixed(2))}
+                        className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
+                      >
+                        ${(Math.ceil(total / 5) * 5).toFixed(2)}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Change */}
+                  {parseFloat(amountPaid) >= total && (
+                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-6">
+                      <div className="text-sm text-green-700 dark:text-green-400">
+                        Change: <span className="font-semibold">${change.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Navigation */}
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => setInvoiceStep('review')}
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={submitInvoice}
+                      disabled={isSubmitting || parseFloat(amountPaid) < total}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isSubmitting ? 'Creating...' : 'Create Invoice'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
   const [newClient, setNewClient] = useState({
     name: "",
@@ -627,87 +1105,6 @@ const Clients: React.FC = () => {
                     {t("clients.view.details")}
                   </button>
                 </div>
-                {/* Create Invoice Modal */}
-                {showInvoiceModal && selectedClient && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-                      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                        {t("clients.create.invoice")}
-                      </h2>
-                      <form
-                        className="space-y-4"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          submitInvoice();
-                        }}
-                      >
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t("clients.form.amount")}
-                          </label>
-                          <input
-                            type="number"
-                            value={invoiceData.amount}
-                            onChange={(e) =>
-                              setInvoiceData((prev) => ({
-                                ...prev,
-                                amount: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            placeholder={t("clients.form.amount.placeholder") || t("clients.form.amount") || "Amount"}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t("clients.form.description")}
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={invoiceData.description}
-                            onChange={(e) =>
-                              setInvoiceData((prev) => ({
-                                ...prev,
-                                description: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                            placeholder={t("clients.form.description.placeholder") || t("clients.form.description") || "Description"}
-                          />
-                        </div>
-                        <div
-                          className={`flex pt-4 ${
-                            document.documentElement.dir === "rtl"
-                              ? "space-x-reverse space-x-3"
-                              : "space-x-3"
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowInvoiceModal(false);
-                              setInvoiceData({ amount: "", description: "" });
-                              setSelectedClient(null);
-                            }}
-                            className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            {t("clients.form.cancel")}
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={isSubmitting || !invoiceData.amount}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {isSubmitting
-                              ? t("clients.form.adding")
-                              : t("clients.form.add")}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -725,6 +1122,9 @@ const Clients: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Invoice Modal */}
+      {showInvoiceModal && renderInvoiceModal()}
 
       {/* Add Client Modal */}
       {showAddModal && canEdit && (
