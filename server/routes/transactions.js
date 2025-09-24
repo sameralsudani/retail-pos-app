@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { body, validationResult, query } = require('express-validator');
 const Transaction = require('../models/Transaction');
 const Product = require('../models/Product');
-const Customer = require('../models/Customer');
+const Client = require('../models/Client');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();

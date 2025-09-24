@@ -85,7 +85,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 7.50
         }
       ],
-      customer: customer1,
+      client: client1,
       cashier: cashierUserId,
       subtotal: 32.49,
       tax: 2.60,
@@ -124,7 +124,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 29.99
         }
       ],
-      customer: customer2,
+      client: client2,
       cashier: managerUserId,
       subtotal: 119.98,
       tax: 9.60,
@@ -174,7 +174,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 7.96
         }
       ],
-      customer: customer3,
+      client: client3,
       cashier: cashierUserId,
       subtotal: 28.91,
       tax: 2.31,
@@ -224,7 +224,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 7.99
         }
       ],
-      customer: null, // Walk-in customer
+      client: null, // Walk-in client
       cashier: adminUserId,
       subtotal: 66.94,
       tax: 5.36,
@@ -263,7 +263,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 24.99
         }
       ],
-      customer: customers[4]._id,
+      client: customers[4]._id,
       cashier: cashierUserId,
       subtotal: 94.97,
       tax: 7.60,
@@ -302,7 +302,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 14.99
         }
       ],
-      customer: customers[5]._id,
+      client: customers[5]._id,
       cashier: managerUserId,
       subtotal: 35.96,
       tax: 2.88,
@@ -352,7 +352,7 @@ const createSampleTransactions = (tenants, users, customers, products) => {
           totalPrice: 3.49
         }
       ],
-      customer: customers[6]._id,
+      client: customers[6]._id,
       cashier: cashierUserId,
       subtotal: 24.46,
       tax: 1.96,

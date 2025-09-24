@@ -39,9 +39,9 @@ const transactionSchema = new mongoose.Schema({
     required: true,
   },
   items: [transactionItemSchema],
-  customer: {
+  client: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer'
+    ref: 'Client'
   },
   cashier: {
     type: mongoose.Schema.Types.ObjectId,
@@ -104,7 +104,7 @@ const transactionSchema = new mongoose.Schema({
 // Index for search and reporting
 transactionSchema.index({ tenantId: 1, transactionId: 1 }, { unique: true });
 transactionSchema.index({ tenantId: 1, cashier: 1 });
-transactionSchema.index({ tenantId: 1, customer: 1 });
+transactionSchema.index({ tenantId: 1, client: 1 });
 transactionSchema.index({ tenantId: 1, createdAt: -1 });
 transactionSchema.index({ tenantId: 1, status: 1 });
 
