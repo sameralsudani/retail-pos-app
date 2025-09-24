@@ -73,16 +73,7 @@ const Header: React.FC<HeaderProps> = ({
               </div>
               {/* User Profile */}
               <div className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-all duration-200 space-x-3">
-                <div
-                  className={`relative ${
-                    document.documentElement.dir === "rtl" ? "mr-3" : "ml-3"
-                  }`}
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white dark:border-gray-800"></div>
-                </div>
+                <div className="relative flex-shrink-0"></div>
                 <div className="min-w-0">
                   <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
                     {user?.name || t("header.cashier")}
