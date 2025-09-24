@@ -1,26 +1,5 @@
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Get tenant identifier (for development, use demo1 as default)
-const getTenantId = (): string | null => {
-  // Check if we have a stored tenant from registration
-  const storedUser = localStorage.getItem('pos_user');
-  if (storedUser) {
-    try {
-      const userData = JSON.parse(storedUser);
-      if (userData.tenantId) {
-        console.log('Found tenant from localStorage:', userData.tenantId);
-        return userData.tenantId;
-      }
-    } catch (error) {
-      console.error('Error parsing stored user data:', error);
-    }
-  }
-  
-  // No tenant identifier found - will be handled by authentication
-  console.log('No tenant identifier found, will use authenticated user tenant');
-  return null;
-};
-
 // Get auth token from localStorage
 const getAuthToken = (): string | null => {
   const user = localStorage.getItem('pos_user');

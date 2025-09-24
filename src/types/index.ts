@@ -62,7 +62,7 @@ export interface Transaction {
   paymentMethod: string;
   amountPaid: number;
   change: number;
-  client: Client | null;
+  customer: Client | null;
   timestamp: Date;
   cashier: string;
   transactionId?: string;

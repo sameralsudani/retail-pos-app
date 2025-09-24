@@ -1,44 +1,120 @@
 import React, { useState } from 'react';
 import { X, Search, User, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useStore } from '../contexts/StoreContext';
-import { Customer } from '../types';
+import { customersAPI } from '../services/api';
+import { Client } from '../types';
+
+interface ApiClient {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  totalRevenue?: number;
+  projects?: number;
+}
 
 interface CustomerModalProps {
-  currentCustomer: Customer | null;
+  currentCustomer: Client | null;
   onClose: () => void;
-  onSelectCustomer: (customer: Customer | null) => void;
+  onSelectCustomer: (client: Client | null) => void;
 }
 
 const CustomerModal: React.FC<CustomerModalProps> = ({ currentCustomer, onClose, onSelectCustomer }) => {
   const { t } = useLanguage();
-  const { customers, addCustomer } = useStore();
+  const [clients, setClients] = useState<ApiClient[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newClient, setNewClient] = useState({
     name: '',
     email: '',
     phone: ''
   });
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm)
+  // Load clients on component mount
+  React.useEffect(() => {
+    loadClients();
+  }, []);
+
+  const loadClients = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await customersAPI.getAll();
+      
+      if (response.success) {
+        interface ApiClientResponse {
+          _id?: string;
+          id?: string;
+          name: string;
+          email: string;
+          phone?: string;
+          totalRevenue?: number;
+          projects?: number;
+        }
+
+        const mappedClients: ApiClient[] = (response.data as ApiClientResponse[]).map((apiClient: ApiClientResponse): ApiClient => ({
+          id: apiClient._id || apiClient.id || '',
+          name: apiClient.name,
+          email: apiClient.email,
+          phone: apiClient.phone || '',
+          totalRevenue: apiClient.totalRevenue || 0,
+          projects: apiClient.projects || 0
+        }));
+        setClients(mappedClients);
+      } else {
+        setError(response.message || 'Failed to load clients');
+      }
+    } catch (error) {
+      console.error('Error loading clients:', error);
+      setError('Failed to load clients');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.phone.includes(searchTerm)
   );
 
-  const handleAddCustomer = () => {
-    if (newCustomer.name && newCustomer.email) {
-      addCustomer({
-        id: '',
-        ...newCustomer,
-        loyaltyPoints: 0
-      }).then((customer) => {
-        if (customer) {
-          onSelectCustomer(customer);
+  const handleAddClient = async () => {
+    if (newClient.name && newClient.email) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+
+        const response = await customersAPI.create(newClient);
+
+        if (response.success) {
+          const createdClient = {
+            id: response.data._id,
+            name: response.data.name,
+            email: response.data.email,
+            phone: response.data.phone || '',
+            loyaltyPoints: response.data.loyaltyPoints ?? 0,
+            address: response.data.address,
+            totalSpent: response.data.totalSpent,
+            lastVisit: response.data.lastVisit ? new Date(response.data.lastVisit) : undefined,
+            notes: response.data.notes,
+          };
+          
+          setClients(prev => [...prev, createdClient]);
+          onSelectCustomer(createdClient);
           onClose();
+        } else {
+          setError(response.message || 'Failed to create client');
         }
-      });
+      } catch (error) {
+        console.error('Error creating client:', error);
+        setError('Failed to create client');
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -46,7 +122,7 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ currentCustomer, onClose,
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('customer.title')}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{t('client.modal.title')}</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -63,122 +139,169 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ currentCustomer, onClose,
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
-                  placeholder={t('customer.search')}
+                  placeholder={t('client.search.placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
-              {/* Customer List */}
-              <div className="max-h-64 overflow-y-auto space-y-2">
-                <button
-                  onClick={() => onSelectCustomer(null)}
-                  className={`w-full p-3 text-left rounded-lg border transition-colors ${
-                    !currentCustomer
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <div className="font-medium text-gray-900 dark:text-gray-100">{t('customer.walk.in')}</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">{t('customer.walk.in.desc')}</div>
-                </button>
+              {/* Error Message */}
+              {error && (
+                <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg">
+                  <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
+                </div>
+              )}
 
-                {filteredCustomers.map((customer) => (
+              {/* Loading State */}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <>
                   <button
-                    key={customer.id}
-                    onClick={() => onSelectCustomer(customer)}
-                    className={`w-full p-3 text-left rounded-lg border transition-colors ${
-                      currentCustomer?.id === customer.id
+                    onClick={() => {
+                      onSelectCustomer(null);
+                      onClose();
+                    }}
+                    className={`w-full p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
+                      !currentCustomer
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">{customer.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{customer.email}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{customer.phone}</div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium text-blue-600">
-                          {customer.loyaltyPoints} {t('customer.points')}
-                        </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{t('client.modal.noClient')}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('client.modal.walkIn')}</p>
                       </div>
                     </div>
                   </button>
-                ))}
-              </div>
 
-              {/* Add New Customer Button */}
+                  {/* Client List */}
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {filteredClients.map((client) => (
+                      <button
+                        key={client.id}
+                        onClick={() => {
+                          // Map ApiClient to Client type
+                          onSelectCustomer({
+                            id: client.id,
+                            name: client.name,
+                            email: client.email,
+                            phone: client.phone,
+                            loyaltyPoints: 0,
+                            address: undefined,
+                            totalSpent: undefined,
+                            lastVisit: undefined,
+                            notes: undefined
+                          });
+                          onClose();
+                        }}
+                        className={`w-full p-4 border-2 rounded-lg cursor-pointer transition-all text-left ${
+                          currentCustomer?.id === client.id
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                            <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{client.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{client.email}</p>
+                            {client.phone && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{client.phone}</p>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredClients.length === 0 && searchTerm && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 dark:text-gray-400">{t('client.modal.noResults')}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Add New Client Button */}
               <button
                 onClick={() => setShowAddForm(true)}
-                className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                className="w-full flex items-center justify-center space-x-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
               >
-                <Plus className="h-5 w-5" />
-                <span>{t('customer.add.new')}</span>
+                <Plus className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <span className="text-gray-700 dark:text-gray-300">{t('client.modal.addNew')}</span>
               </button>
             </>
           ) : (
-            /* Add Customer Form */
+            /* Add Client Form */
             <div className="space-y-4">
-              <div className="flex items-center space-x-2 text-gray-900 dark:text-gray-100 mb-4">
-                <User className="h-5 w-5" />
-                <span className="font-medium">{t('customer.add.title')}</span>
-              </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('customer.name.required')}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('client.form.name')} *
                 </label>
                 <input
                   type="text"
-                  value={newCustomer.name}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
+                  value={newClient.name}
+                  onChange={(e) => setNewClient(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t('customer.name.placeholder')}
+                  placeholder={t('client.form.namePlaceholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('customer.email.required')}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('client.form.email')} *
                 </label>
                 <input
                   type="email"
-                  value={newCustomer.email}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
+                  value={newClient.email}
+                  onChange={(e) => setNewClient(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t('customer.email.placeholder')}
+                  placeholder={t('client.form.emailPlaceholder')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('customer.phone')}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('client.form.phone')}
                 </label>
                 <input
                   type="tel"
-                  value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                  value={newClient.phone}
+                  onChange={(e) => setNewClient(prev => ({ ...prev, phone: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t('customer.phone.placeholder')}
+                  placeholder={t('client.form.phonePlaceholder')}
                 />
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              {error && (
+                <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg">
+                  <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+
+              <div className="flex space-x-3">
                 <button
                   onClick={() => setShowAddForm(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  {t('customer.cancel')}
+                  {t('common.cancel')}
                 </button>
                 <button
-                  onClick={handleAddCustomer}
-                  disabled={!newCustomer.name || !newCustomer.email}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+                  onClick={handleAddClient}
+                  disabled={!newClient.name || !newClient.email || isSubmitting}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {t('customer.add')}
+                  {isSubmitting ? t('common.saving') : t('common.save')}
                 </button>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Eye, Printer, Calendar, User, Package, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Eye, Printer, User, Package, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useStore } from '../contexts/StoreContext';
 import Header from './Header';
@@ -12,14 +12,20 @@ const OrdersPage: React.FC = () => {
   const { transactions } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedOrder, setSelectedOrder] = useState<Transaction | null>(null);
+  type OrderWithCustomer = Transaction & {
+    customerName: string;
+    customerEmail: string;
+    status: string;
+    orderDate: Date;
+  };
+  const [selectedOrder, setSelectedOrder] = useState<OrderWithCustomer | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
 
   // Convert transactions to orders format
   const orders = transactions.map(transaction => ({
     ...transaction,
-    clientName: transaction.client?.name || 'Walk-in Client',
-    clientEmail: transaction.client?.email || '',
+    customerName: transaction.customer?.name || 'Walk-in Customer',
+    customerEmail: transaction.customer?.email || '',
     status: 'completed' as const,
     orderDate: transaction.timestamp
   }));
@@ -27,8 +33,8 @@ const OrdersPage: React.FC = () => {
   const filteredOrders = orders.filter(transaction => {
     const matchesSearch = 
       transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
+      transaction.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
     
@@ -168,7 +174,7 @@ const OrdersPage: React.FC = () => {
                     {t('orders.table.order')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('orders.table.client')}
+                    {t('orders.table.customer')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('orders.table.items')}
@@ -202,8 +208,8 @@ const OrdersPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{transaction.clientName}</div>
-                          <div className="text-sm text-gray-500">{transaction.clientEmail}</div>
+                          <div className="text-sm font-medium text-gray-900">{transaction.customerName}</div>
+                          <div className="text-sm text-gray-500">{transaction.customerEmail}</div>
                         </div>
                       </div>
                     </td>
@@ -288,14 +294,14 @@ const OrdersPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('orders.detail.status')}</label>
                   <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedOrder.status)} mt-1`}>
-                    {getStatusIcon(selectedOrder.status)}
+                    {getStatusIcon(selectedOrder.status ?? 'completed')}
                     <span className="capitalize">{t(`orders.status.${selectedOrder.status}`)}</span>
                   </span>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('orders.detail.customer')}</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.clientName}</p>
-                  <p className="text-sm text-gray-500">{selectedOrder.clientEmail}</p>
+                  <p className="mt-1 text-sm text-gray-900">{selectedOrder.customerName}</p>
+                  <p className="text-sm text-gray-500">{selectedOrder.customerEmail}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">{t('orders.detail.date')}</label>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CreditCard, Banknote, Wallet, Smartphone } from 'lucide-react';
+import { X} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface PaymentModalProps {

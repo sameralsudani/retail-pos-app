@@ -57,10 +57,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
 
     {
-      label: t("sidebar.clients"),
+      label: t("sidebar.customers"),
       icon: Users,
       onClick: () => {
-        navigate("/clients");
+        navigate("/customers");
         onClose();
       },
     },

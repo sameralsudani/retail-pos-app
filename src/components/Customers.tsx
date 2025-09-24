@@ -12,7 +12,6 @@ import {
   User,
   AlertTriangle,
   X,
-  ShoppingCart,
   Package,
   Minus,
   Calculator,
@@ -20,7 +19,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { clientsAPI, productsAPI, transactionsAPI } from "../services/api";
+import { customersAPI, productsAPI, transactionsAPI } from "../services/api";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Product } from "../types";
@@ -30,12 +29,12 @@ interface InvoiceItem {
   quantity: number;
 }
 
-const Clients: React.FC = () => {
+const Customers: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
 
   // State management
-  const [clients, setClients] = useState<any[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [stats, setStats] = useState({
     totalClients: 0,
     activeClients: 0,
@@ -596,7 +595,7 @@ const Clients: React.FC = () => {
       setError(null);
       console.log("Loading clients from API...");
 
-      const response = await clientsAPI.getAll();
+      const response = await customersAPI.getAll();
       console.log("Clients API response:", response);
 
       if (response.success) {
@@ -643,7 +642,7 @@ const Clients: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      const response = await clientsAPI.getStats();
+      const response = await customersAPI.getStats();
       if (response.success) {
         setStats({
           totalClients: response.data.totalClients || 0,
@@ -676,7 +675,7 @@ const Clients: React.FC = () => {
         setError(null);
 
         console.log("Creating client with data:", newClient);
-        const response = await clientsAPI.create(newClient);
+        const response = await customersAPI.create(newClient);
 
         if (response.success) {
           await loadClients(); // Reload clients list
@@ -729,7 +728,7 @@ const Clients: React.FC = () => {
         };
 
         console.log("Updating client with data:", updateData);
-        const response = await clientsAPI.update(selectedClient.id, updateData);
+        const response = await customersAPI.update(selectedClient.id, updateData);
 
         if (response.success) {
           await loadClients(); // Reload clients list
@@ -754,7 +753,7 @@ const Clients: React.FC = () => {
         setError(null);
         console.log("Deleting client:", id);
 
-        const response = await clientsAPI.delete(id);
+        const response = await customersAPI.delete(id);
 
         if (response.success) {
           await loadClients(); // Reload clients list
@@ -1045,7 +1044,17 @@ const Clients: React.FC = () => {
                         document.documentElement.dir === "rtl" ? "ml-2" : "mr-2"
                       }`}
                     />
-                    {client.address}
+                    {typeof client.address === "string"
+                      ? client.address
+                      : [
+                          client.address?.street,
+                          client.address?.city,
+                          client.address?.state,
+                          client.address?.zipCode,
+                          client.address?.country,
+                        ]
+                          .filter(Boolean)
+                          .join(", ") || "No address provided"}
                   </div>
                 </div>
 
@@ -1265,10 +1274,9 @@ const Clients: React.FC = () => {
                   type="text"
                   value={selectedClient.name}
                   onChange={(e) =>
-                    setSelectedClient((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
+                    setSelectedClient((prev) =>
+                      prev ? { ...prev, name: e.target.value } : prev
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.company.placeholder")}
@@ -1282,10 +1290,9 @@ const Clients: React.FC = () => {
                   type="email"
                   value={selectedClient.email}
                   onChange={(e) =>
-                    setSelectedClient((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
+                    setSelectedClient((prev) =>
+                      prev ? { ...prev, email: e.target.value } : prev
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.email.placeholder")}
@@ -1336,10 +1343,11 @@ const Clients: React.FC = () => {
                   rows={2}
                   value={selectedClient.notes}
                   onChange={(e) =>
-                    setSelectedClient((prev) => ({
-                      ...prev,
-                      notes: e.target.value,
-                    }))
+                    setSelectedClient((prev) =>
+                      prev
+                        ? { ...prev, notes: e.target.value }
+                        : prev
+                    )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder={t("clients.form.notes.placeholder")}
@@ -1387,4 +1395,4 @@ const Clients: React.FC = () => {
   );
 };
 
-export default Clients;
+export default Customers;

@@ -16,7 +16,7 @@ import ReportsPage from './components/ReportsPage';
 import TenantRegistrationPage from './components/TenantRegistrationPage';
 import Dashboard from './components/Dashboard';
 import Employees from './components/Employees';
-import Clients from './components/Clients';
+import Customers from './components/Customers';
 
 // Error boundary component
 interface ErrorBoundaryState {
@@ -59,17 +59,6 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<object>, Err
     return this.props.children;
   }
 }
-
-// Component to block admin access to POS
-const AdminBlockedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
-  
-  if (user?.role === 'admin') {
-    return <Navigate to="/users" replace />;
-  }
-  
-  return <>{children}</>;
-};
 
 function App() {
   const { isAuthenticated, user } = useAuth();
@@ -122,10 +111,10 @@ function App() {
               } 
             />
             <Route 
-              path="/clients" 
+              path="/customers" 
               element={
                 <ProtectedRoute>
-                  <Clients />
+                  <Customers />
                 </ProtectedRoute>
               } 
             />

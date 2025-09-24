@@ -27,7 +27,7 @@ interface StoreState {
   
   // Client Management
   clients: Client[];
-  currentClient: Client | null;
+  currentCustomer: Client | null;
   
   // Transaction History
   transactions: Transaction[];
@@ -47,7 +47,7 @@ interface StoreActions {
   // Product Actions
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   addProduct: (product: Product) => void;
-  setCurrentClient: (client: Client | null) => void;
+  setCurrentCustomer: (client: Client | null) => void;
   removeProduct: (productId: string) => void;
   loadProducts: () => Promise<void>;
   
@@ -104,7 +104,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     suppliers: [],
     cartItems: [],
     clients: [],
-    currentClient: null,
+    currentCustomer: null,
     transactions: [],
     lastTransaction: null,
     searchTerm: '',
@@ -395,7 +395,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           paymentMethod: transaction.paymentMethod,
           amountPaid: transaction.amountPaid,
           change: transaction.change,
-          client: transaction.customer ? {
+          customer: transaction.customer ? {
             id: transaction.customer._id,
             name: transaction.customer.name,
             email: transaction.customer.email,
@@ -487,12 +487,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const completeTransaction = async (paymentMethod: string, amountPaid: number) => {
     try {
-      console.log('=== FRONTEND TRANSACTION START ===');
-      console.log('Cart items:', state.cartItems);
-      console.log('Current client:', state.currentClient);
-      console.log('Payment method:', paymentMethod);
-      console.log('Amount paid:', amountPaid);
-      
       const subtotal = getCartSubtotal();
       const tax = getCartTax();
       const total = getCartTotal();
@@ -511,20 +505,14 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           product: item.product.id,
           quantity: item.quantity
         })),
-        ...(state.currentClient?.id && { customer: state.currentClient.id }),
+        ...(state.currentCustomer?.id && { customer: state.currentCustomer.id }),
         paymentMethod,
         amountPaid,
-        discount: 0
+        discount: 0,
       };
 
-      console.log('=== SENDING TRANSACTION DATA ===');
-      console.log(JSON.stringify(transactionData, null, 2));
-
       const response = await transactionsAPI.create(transactionData);
-      
-      console.log('=== TRANSACTION API RESPONSE ===');
-      console.log(response);
-      
+            
       if (response.success) {
         const transaction: Transaction = {
           id: response.data._id,
@@ -535,7 +523,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           paymentMethod,
           amountPaid,
           change: amountPaid - total,
-          client: state.currentClient,
+          customer: state.currentCustomer,
           timestamp: new Date(response.data.createdAt),
           cashier: user?.name || 'Unknown'
         };
@@ -545,7 +533,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           transactions: [transaction, ...prev.transactions],
           lastTransaction: transaction,
           cartItems: [],
-          currentClient: null
+          currentCustomer: null
         }));
 
         // Reload products to update stock levels
@@ -666,15 +654,15 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     setState(prev => ({
       ...prev,
       cartItems: [],
-      currentClient: null
+      currentCustomer: null
     }));
   };
 
   // Client Actions
-  const setCurrentClient = (client: Client | null) => {
+  const setCurrentCustomer = (client: Client | null) => {
     setState(prev => ({
       ...prev,
-      currentClient: client
+      currentCustomer: client
     }));
   };
 
@@ -717,7 +705,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     ...state,
     
     // Actions
-    setCurrentClient,
+    setCurrentCustomer,
     updateProduct,
     addProduct,
     removeProduct,

@@ -7,10 +7,10 @@ import Sidebar from './Sidebar';
 import ProductGrid from './ProductGrid';
 import Cart from './Cart';
 import PaymentModal from './PaymentModal';
-import ClientModal from './ClientModal';
+import CustomerModal from './CustomerModal';
 import ReceiptModal from './ReceiptModal';
 
-const POSPage: React.FC = () => {
+const PosPage: React.FC = () => {
   const { t } = useLanguage();
   const {
     // State
@@ -18,7 +18,7 @@ const POSPage: React.FC = () => {
     searchTerm,
     selectedCategory,
     barcodeInput,
-    currentClient,
+    currentCustomer,
     lastTransaction,
     isLoading,
     error,
@@ -28,7 +28,7 @@ const POSPage: React.FC = () => {
     updateCartItemQuantity,
     removeFromCart,
     clearCart,
-    setCurrentClient,
+    setCurrentCustomer,
     completeTransaction,
     setSearchTerm,
     setSelectedCategory,
@@ -44,14 +44,12 @@ const POSPage: React.FC = () => {
   } = useStore();
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showClientModal, setShowClientModal] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
   // Get filtered products and categories
   const filteredProducts = getFilteredProducts();
-  console.log('POSPage - Filtered products:', filteredProducts.length);
-  console.log('POSPage - Cart items:', cartItems.length);
   const categories = ['all', ...new Set(filteredProducts.map(p => p.category))];
   
   // Get cart totals
@@ -211,11 +209,11 @@ const POSPage: React.FC = () => {
 
             <div className="space-y-3">
               <button
-                onClick={() => setShowClientModal(true)}
+                onClick={() => setShowCustomerModal(true)}
                 className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm sm:text-base"
               >
                 <User className="h-5 w-5" />
-                <span>{currentClient ? currentClient.name : t('pos.select.client')}</span>
+                <span>{currentCustomer ? currentCustomer.name : t('pos.select.client')}</span>
               </button>
 
               <div className="grid grid-cols-1 gap-2">
@@ -242,11 +240,11 @@ const POSPage: React.FC = () => {
         />
       )}
 
-      {showClientModal && (
-        <ClientModal
-          currentClient={currentClient}
-          onClose={() => setShowClientModal(false)}
-          onSelectClient={setCurrentClient}
+      {showCustomerModal && (
+        <CustomerModal
+          currentCustomer={currentCustomer}
+          onClose={() => setShowCustomerModal(false)}
+          onSelectCustomer={setCurrentCustomer}
         />
       )}
 
@@ -266,4 +264,4 @@ const POSPage: React.FC = () => {
   );
 };
 
-export default POSPage;
+export default PosPage;
