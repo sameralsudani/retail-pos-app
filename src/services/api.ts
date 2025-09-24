@@ -60,15 +60,32 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
         lastError = error;
         
         // Don't retry auth errors, client errors, or CORS errors
-        if (error.message.includes('401') || 
-            error.message.includes('400') || 
-            error.message.includes('CORS') ||
-            error.name === 'TypeError' && error.message.includes('CORS')) {
+        if (
+          typeof error === 'object' &&
+          error !== null &&
+          'message' in error &&
+          typeof (error as { message?: unknown }).message === 'string' &&
+          (
+            (error as Error).message.includes('401') ||
+            (error as Error).message.includes('400') ||
+            (error as Error).message.includes('CORS') ||
+            ((error as Error).name === 'TypeError' && (error as Error).message.includes('CORS'))
+          )
+        ) {
           throw error;
         }
         
         // Only retry network errors with exponential backoff
-        if (retries > 1 && (error.name === 'TypeError' || error.message.includes('fetch'))) {
+        if (
+          retries > 1 &&
+          typeof error === 'object' &&
+          error !== null &&
+          'name' in error &&
+          'message' in error &&
+          typeof (error as { name?: unknown; message?: unknown }).name === 'string' &&
+          typeof (error as { name?: unknown; message?: unknown }).message === 'string' &&
+          ((error as { name: string }).name === 'TypeError' || (error as { message: string }).message.includes('fetch'))
+        ) {
           console.log(`API request failed, retrying in ${delay}ms... (${retries - 1} attempts left)`);
           retries--;
           await new Promise(resolve => setTimeout(resolve, delay));
@@ -83,11 +100,26 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
     throw lastError;
   } catch (error) {
     // Handle different types of errors gracefully
-    if (error.name === 'TypeError' && (error.message.includes('fetch') || error.message.includes('NetworkError'))) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'name' in error &&
+      'message' in error &&
+      typeof (error as { name?: unknown }).name === 'string' &&
+      typeof (error as { message?: unknown }).message === 'string' &&
+      ((error as { name: string }).name === 'TypeError') &&
+      ((error as { message: string }).message.includes('fetch') || (error as { message: string }).message.includes('NetworkError'))
+    ) {
       throw new Error('Unable to connect to server. Please check your internet connection.');
     }
     
-    if (error.message.includes('CORS')) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof (error as { message?: unknown }).message === 'string' &&
+      (error as { message: string }).message.includes('CORS')
+    ) {
       console.error('CORS error detected:', error);
       throw new Error('CORS error - please refresh the page');
     }
