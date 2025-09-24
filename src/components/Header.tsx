@@ -66,7 +66,11 @@ const Header: React.FC<HeaderProps> = ({
 
           {showActions && (
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-              <LanguageSwitcher />
+              <div
+                className={document.documentElement.dir === "rtl" ? "ml-2" : ""}
+              >
+                <LanguageSwitcher />
+              </div>
               {/* User Profile */}
               <div className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-all duration-200 space-x-3">
                 <div

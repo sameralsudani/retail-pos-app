@@ -6,7 +6,6 @@ import {
   Trash2,
   Tag,
   Eye,
-  Save,
   X,
   AlertTriangle,
   Upload,
@@ -73,8 +72,20 @@ const CategoryPage = () => {
       console.log("Categories API response:", response);
 
       if (response.success) {
-        const mappedCategories = response.data.map((apiCategory) => ({
-          id: apiCategory._id || apiCategory.id,
+        interface ApiCategory {
+          _id?: string;
+          id?: string;
+          name: string;
+          description?: string;
+          color?: string;
+          image?: string;
+          productCount?: number;
+          createdAt: string;
+          updatedAt: string;
+        }
+
+        const mappedCategories: Category[] = (response.data as ApiCategory[]).map((apiCategory: ApiCategory): Category => ({
+          id: apiCategory._id || apiCategory.id as string,
           name: apiCategory.name,
           description: apiCategory.description || "",
           color: apiCategory.color || "#3B82F6",

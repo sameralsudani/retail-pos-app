@@ -185,7 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 : "space-x-2 sm:space-x-3"
             }`}
           >
-            <Store className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0" />
+            <Store className={`h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0${language === "ar" ? ' ml-2' : ''}`} />
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
               {t("header.title")}
             </h2>
@@ -211,7 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 : "space-x-2 sm:space-x-3"
             }`}
           >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0${language === "ar" ? ' ml-2' : ''}`}>
               <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
@@ -242,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     : "space-x-2 sm:space-x-3 text-left"
                 }`}
               >
-                <item.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <item.icon className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0${language === "ar" ? ' ml-2' : ''}`} />
                 <span className="font-medium text-sm sm:text-base truncate">
                   {item.label}
                 </span>
@@ -265,7 +265,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 : "space-x-2 sm:space-x-3 text-left"
             }`}
           >
-            <LogOut className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            <LogOut className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0${language === "ar" ? ' ml-2' : ''}`} />
             <span className="font-medium text-sm sm:text-base">
               {t("sidebar.logout")}
             </span>
