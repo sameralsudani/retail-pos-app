@@ -272,7 +272,7 @@ const Customers: React.FC = () => {
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {t("clients.create.invoice")} - {selectedCustomer.name}
+                {t("customers.create.invoice")} - {selectedCustomer.name}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Step{" "}
@@ -741,34 +741,40 @@ const Customers: React.FC = () => {
           notes: string;
         }
 
-        const mappedCustomers: MappedCustomer[] = (response.data as ApiCustomer[]).map((apiCustomer: ApiCustomer): MappedCustomer => ({
-          id: apiCustomer._id || apiCustomer.id || "",
-          name: apiCustomer.name,
-          email: apiCustomer.email,
-          phone: apiCustomer.phone || "",
-          address:
-            `${apiCustomer.address?.street || ""} ${
-              apiCustomer.address?.city || ""
-            } ${apiCustomer.address?.state || ""} ${
-              apiCustomer.address?.zipCode || ""
-            }`.trim() || "No address provided",
-          totalRevenue: apiCustomer.totalRevenue || 0,
-          activeInvoices: apiCustomer.activeInvoices || 0,
-          lastTransaction: apiCustomer.lastTransaction
-            ? new Date(apiCustomer.lastTransaction).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
-          status: apiCustomer.status || "active",
-          projects: apiCustomer.projects || 0,
-          avatar:
-            apiCustomer.avatar ||
-            apiCustomer.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2),
-          notes: apiCustomer.notes || "",
-        }));
+        const mappedCustomers: MappedCustomer[] = (
+          response.data as ApiCustomer[]
+        ).map(
+          (apiCustomer: ApiCustomer): MappedCustomer => ({
+            id: apiCustomer._id || apiCustomer.id || "",
+            name: apiCustomer.name,
+            email: apiCustomer.email,
+            phone: apiCustomer.phone || "",
+            address:
+              `${apiCustomer.address?.street || ""} ${
+                apiCustomer.address?.city || ""
+              } ${apiCustomer.address?.state || ""} ${
+                apiCustomer.address?.zipCode || ""
+              }`.trim() || "No address provided",
+            totalRevenue: apiCustomer.totalRevenue || 0,
+            activeInvoices: apiCustomer.activeInvoices || 0,
+            lastTransaction: apiCustomer.lastTransaction
+              ? new Date(apiCustomer.lastTransaction)
+                  .toISOString()
+                  .split("T")[0]
+              : new Date().toISOString().split("T")[0],
+            status: apiCustomer.status || "active",
+            projects: apiCustomer.projects || 0,
+            avatar:
+              apiCustomer.avatar ||
+              apiCustomer.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2),
+            notes: apiCustomer.notes || "",
+          })
+        );
         setCustomers(mappedCustomers);
       } else {
         setError(response.message || "Failed to load customers");
@@ -786,8 +792,8 @@ const Customers: React.FC = () => {
       const response = await customersAPI.getStats();
       if (response.success) {
         setStats({
-          totalCustomers: response.data.totalClients || 0,
-          activeCustomers: response.data.activeClients || 0,
+          totalCustomers: response.data.totalCustomers || 0,
+          activeCustomers: response.data.activeCustomers || 0,
           totalRevenue: response.data.totalRevenue || 0,
           totalActiveInvoices: response.data.totalActiveInvoices || 0,
           newCustomersThisMonth: 3, // This would be calculated from recent clients
@@ -858,11 +864,31 @@ const Customers: React.FC = () => {
           email: selectedCustomer.email,
           phone: selectedCustomer.phone,
           address: {
-            street: typeof selectedCustomer.address === "object" && selectedCustomer.address?.street ? selectedCustomer.address.street : "",
-            city: typeof selectedCustomer.address === "object" && selectedCustomer.address?.city ? selectedCustomer.address.city : "",
-            state: typeof selectedCustomer.address === "object" && selectedCustomer.address?.state ? selectedCustomer.address.state : "",
-            zipCode: typeof selectedCustomer.address === "object" && selectedCustomer.address?.zipCode ? selectedCustomer.address.zipCode : "",
-            country: typeof selectedCustomer.address === "object" && selectedCustomer.address?.country ? selectedCustomer.address.country : "",
+            street:
+              typeof selectedCustomer.address === "object" &&
+              selectedCustomer.address?.street
+                ? selectedCustomer.address.street
+                : "",
+            city:
+              typeof selectedCustomer.address === "object" &&
+              selectedCustomer.address?.city
+                ? selectedCustomer.address.city
+                : "",
+            state:
+              typeof selectedCustomer.address === "object" &&
+              selectedCustomer.address?.state
+                ? selectedCustomer.address.state
+                : "",
+            zipCode:
+              typeof selectedCustomer.address === "object" &&
+              selectedCustomer.address?.zipCode
+                ? selectedCustomer.address.zipCode
+                : "",
+            country:
+              typeof selectedCustomer.address === "object" &&
+              selectedCustomer.address?.country
+                ? selectedCustomer.address.country
+                : "",
           },
           status: selectedCustomer.status,
           notes: selectedCustomer.notes,
@@ -927,7 +953,7 @@ const Customers: React.FC = () => {
         <div className="p-6 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">{t("loading.clients")}</p>
+            <p className="text-gray-600">{t("loading.customers")}</p>
           </div>
         </div>
       </div>
@@ -938,7 +964,7 @@ const Customers: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Header
         onMenuClick={() => setShowSidebar(true)}
-        title={t("clients.title")}
+        title={t("customers.title")}
       />
 
       <div className="p-6 space-y-6">
@@ -985,7 +1011,7 @@ const Customers: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("clients.stats.active")}
+                  {t("customers.stats.active")}
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
                   {stats.activeCustomers}
@@ -1000,7 +1026,7 @@ const Customers: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("clients.stats.total.revenue")}
+                  {t("customers.stats.total.revenue")}
                 </p>
                 <p className="text-2xl font-bold text-green-600">
                   ${stats.totalRevenue.toLocaleString()}
@@ -1015,7 +1041,7 @@ const Customers: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("clients.stats.active.invoices")}
+                  {t("customers.stats.active.invoices")}
                 </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {stats.totalActiveInvoices}
@@ -1030,13 +1056,13 @@ const Customers: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("clients.stats.this.month")}
+                  {t("customers.stats.this.month")}
                 </p>
                 <p className="text-2xl font-bold text-purple-600">
                   +{stats.newCustomersThisMonth}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t("clients.stats.new.clients")}
+                  {t("customers.stats.new.customers")}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-lg">
@@ -1057,7 +1083,7 @@ const Customers: React.FC = () => {
               />
               <input
                 type="text"
-                placeholder={t("clients.search.placeholder")}
+                placeholder={t("customers.search.placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ${
@@ -1073,9 +1099,9 @@ const Customers: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
-              <option value="all">{t("clients.filter.all.status")}</option>
-              <option value="active">{t("clients.status.active")}</option>
-              <option value="inactive">{t("clients.status.inactive")}</option>
+              <option value="all">{t("customers.filter.all.status")}</option>
+              <option value="active">{t("customers.status.active")}</option>
+              <option value="inactive">{t("customers.status.inactive")}</option>
             </select>
           </div>
         </div>
@@ -1206,7 +1232,7 @@ const Customers: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("clients.total.revenue")}
+                        {t("customers.total.revenue")}
                       </p>
                       <p className="font-semibold text-green-600">
                         ${(customer.totalRevenue ?? 0).toLocaleString()}
@@ -1214,7 +1240,7 @@ const Customers: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("clients.projects")}
+                        {t("customers.projects")}
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">
                         {customer.projects}
@@ -1224,7 +1250,7 @@ const Customers: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("clients.active.invoices")}
+                        {t("customers.active.invoices")}
                       </p>
                       <p className="font-semibold text-orange-600">
                         {customer.activeInvoices}
@@ -1232,11 +1258,13 @@ const Customers: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("clients.last.transaction")}
+                        {t("customers.last.transaction")}
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-gray-100 text-xs">
                         {customer.lastTransaction
-                          ? new Date(customer.lastTransaction).toLocaleDateString()
+                          ? new Date(
+                              customer.lastTransaction
+                            ).toLocaleDateString()
                           : ""}
                       </p>
                     </div>
@@ -1254,10 +1282,10 @@ const Customers: React.FC = () => {
                     className="flex-1 bg-blue-50 text-blue-600 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 transition-colors"
                     onClick={() => handleCreateInvoice(customer)}
                   >
-                    {t("clients.create.invoice")}
+                    {t("customers.create.invoice")}
                   </button>
                   <button className="flex-1 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                    {t("clients.view.details")}
+                    {t("customers.view.details")}
                   </button>
                 </div>
               </div>
@@ -1269,10 +1297,10 @@ const Customers: React.FC = () => {
           <div className="text-center py-12">
             <User className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">
-              {t("clients.empty.title")}
+              {t("customers.empty.title")}
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              {t("clients.empty.subtitle")}
+              {t("customers.empty.subtitle")}
             </p>
           </div>
         )}
@@ -1283,12 +1311,12 @@ const Customers: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {t("clients.add.title")}
+              {t("customers.add.title")}
             </h2>
             <form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.company.name")}
+                  {t("customers.form.company.name")}
                 </label>
                 <input
                   type="text"
@@ -1300,12 +1328,12 @@ const Customers: React.FC = () => {
                     }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.company.placeholder")}
+                  placeholder={t("customers.form.company.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.email")}
+                  {t("customers.form.email")}
                 </label>
                 <input
                   type="email"
@@ -1317,12 +1345,12 @@ const Customers: React.FC = () => {
                     }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.email.placeholder")}
+                  placeholder={t("customers.form.email.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.phone")}
+                  {t("customers.form.phone")}
                 </label>
                 <input
                   type="tel"
@@ -1334,12 +1362,12 @@ const Customers: React.FC = () => {
                     }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.phone.placeholder")}
+                  placeholder={t("customers.form.phone.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.address")}
+                  {t("customers.form.address")}
                 </label>
                 <textarea
                   rows={3}
@@ -1351,12 +1379,12 @@ const Customers: React.FC = () => {
                     }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.address.placeholder")}
+                  placeholder={t("customers.form.address.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.notes")}
+                  {t("customers.form.notes")}
                 </label>
                 <textarea
                   rows={2}
@@ -1368,7 +1396,7 @@ const Customers: React.FC = () => {
                     }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.notes.placeholder")}
+                  placeholder={t("customers.form.notes.placeholder")}
                 />
               </div>
               <div
@@ -1398,7 +1426,7 @@ const Customers: React.FC = () => {
                   }}
                   className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  {t("clients.form.cancel")}
+                  {t("customers.form.cancel")}
                 </button>
                 <button
                   type="button"
@@ -1409,8 +1437,8 @@ const Customers: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   {isSubmitting
-                    ? t("clients.form.adding")
-                    : t("clients.form.add")}
+                    ? t("customers.form.adding")
+                    : t("customers.form.add")}
                 </button>
               </div>
             </form>
@@ -1423,12 +1451,12 @@ const Customers: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {t("clients.edit.title")}
+              {t("customers.edit.title")}
             </h2>
             <form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.company.name")}
+                  {t("customers.form.company.name")}
                 </label>
                 <input
                   type="text"
@@ -1439,12 +1467,12 @@ const Customers: React.FC = () => {
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.company.placeholder")}
+                  placeholder={t("customers.form.company.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.email")}
+                  {t("customers.form.email")}
                 </label>
                 <input
                   type="email"
@@ -1455,12 +1483,12 @@ const Customers: React.FC = () => {
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.email.placeholder")}
+                  placeholder={t("customers.form.email.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.phone")}
+                  {t("customers.form.phone")}
                 </label>
                 <input
                   type="tel"
@@ -1471,12 +1499,12 @@ const Customers: React.FC = () => {
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.phone.placeholder")}
+                  placeholder={t("customers.form.phone.placeholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.status")}
+                  {t("customers.form.status")}
                 </label>
                 <select
                   value={selectedCustomer.status}
@@ -1487,15 +1515,15 @@ const Customers: React.FC = () => {
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
-                  <option value="active">{t("clients.status.active")}</option>
+                  <option value="active">{t("customers.status.active")}</option>
                   <option value="inactive">
-                    {t("clients.status.inactive")}
+                    {t("customers.status.inactive")}
                   </option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t("clients.form.notes")}
+                  {t("customers.form.notes")}
                 </label>
                 <textarea
                   rows={2}
@@ -1506,7 +1534,7 @@ const Customers: React.FC = () => {
                     )
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder={t("clients.form.notes.placeholder")}
+                  placeholder={t("customers.form.notes.placeholder")}
                 />
               </div>
               <div
@@ -1524,7 +1552,7 @@ const Customers: React.FC = () => {
                   }}
                   className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  {t("clients.form.cancel")}
+                  {t("customers.form.cancel")}
                 </button>
                 <button
                   type="button"
@@ -1533,8 +1561,8 @@ const Customers: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSubmitting
-                    ? t("clients.form.saving")
-                    : t("clients.form.save")}
+                    ? t("customers.form.saving")
+                    : t("customers.form.save")}
                 </button>
               </div>
             </form>

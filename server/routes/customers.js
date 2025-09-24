@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const Customer = require('../models/Customer');
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -325,6 +325,114 @@ router.put('/:id/loyalty', protect, [
       success: true,
       message: 'Customer loyalty points updated successfully',
       data: updatedCustomer
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Delete customer
+// @route   DELETE /api/customers/:id
+// @access  Private (Admin only)
+router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    // Extract tenantId from user
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
+    const customer = await Customer.findOne({ 
+      _id: req.params.id, 
+      tenantId: userTenantId 
+    });
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: 'customer not found'
+      });
+    }
+
+    // Soft delete - set status to inactive
+    await customer.findOneAndUpdate(
+      { _id: req.params.id, tenantId: userTenantId },
+      { status: 'inactive' }
+    );
+
+    res.json({
+      success: true,
+      message: 'customer deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Get customer statistics
+// @route   GET /api/customers/stats/summary
+// @access  Private
+router.get('/stats/summary', protect, async (req, res) => {
+  try {
+    // Extract tenantId from user
+    let userTenantId;
+    if (typeof req.user.tenantId === 'object' && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+    
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with any store'
+      });
+    }
+
+    const stats = await Customer.aggregate([
+      { $match: { tenantId: userTenantId } },
+      {
+        $group: {
+          _id: null,
+          totalCustomers: { $sum: 1 },
+          activeCustomers: { 
+            $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+          },
+          totalRevenue: { $sum: '$totalRevenue' },
+          totalActiveInvoices: { $sum: '$activeInvoices' },
+          totalProjects: { $sum: '$projects' }
+        }
+      }
+    ]);
+
+    const result = stats[0] || {
+      totalCustomers: 0,
+      activeCustomers: 0,
+      totalRevenue: 0,
+      totalActiveInvoices: 0,
+      totalProjects: 0
+    };
+
+    res.json({
+      success: true,
+      data: result
     });
   } catch (error) {
     res.status(500).json({
