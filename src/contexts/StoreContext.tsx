@@ -3,7 +3,7 @@ import { Product, CartItem, Client, Transaction, Category, Supplier } from '../t
 import { 
   productsAPI, 
   categoriesAPI, 
-  clientsAPI, 
+  customersAPI, 
   transactionsAPI, 
   suppliersAPI 
 } from '../services/api';
@@ -289,7 +289,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const loadClients = async () => {
     try {
-      const response = await clientsAPI.getAll();
+      const response = await customersAPI.getAll();
       if (response.success) {
         interface APIClient {
           _id: string;
@@ -369,7 +369,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           paymentMethod: string;
           amountPaid: number;
           change: number;
-          client?: APITransactionClient | null;
+          customer?: APITransactionCustomer | null;
           createdAt: string;
           cashier?: APITransactionCashier;
         }
@@ -395,12 +395,12 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           paymentMethod: transaction.paymentMethod,
           amountPaid: transaction.amountPaid,
           change: transaction.change,
-          client: transaction.client ? {
-            id: transaction.client._id,
-            name: transaction.client.name,
-            email: transaction.client.email,
-            phone: transaction.client.phone || '',
-            loyaltyPoints: transaction.client.loyaltyPoints || 0
+          client: transaction.customer ? {
+            id: transaction.customer._id,
+            name: transaction.customer.name,
+            email: transaction.customer.email,
+            phone: transaction.customer.phone || '',
+            loyaltyPoints: transaction.customer.loyaltyPoints || 0
           } : null,
           timestamp: new Date(transaction.createdAt),
           cashier: transaction.cashier?.name || 'Unknown'
@@ -458,7 +458,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const addClient = async (client: Client) => {
     try {
-      const response = await clientsAPI.create({
+      const response = await customersAPI.create({
         name: client.name,
         email: client.email,
         phone: client.phone
@@ -531,7 +531,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           items: state.cartItems,
           subtotal,
           tax,
-          ...(state.currentClient?.id && { client: state.currentClient.id }),
+          total,
           paymentMethod,
           amountPaid,
           change: amountPaid - total,

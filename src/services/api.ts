@@ -342,61 +342,32 @@ export const categoriesAPI = {
 };
 
 // Customers API
-export const clientsAPI = {
-  getAll: async (params: Record<string, any> = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    return apiRequest(`/clients${queryString ? `?${queryString}` : ''}`);
-  },
-
-  getById: async (id: string) => {
-    return apiRequest(`/clients/${id}`);
-  },
-
-  create: async (clientData: any) => {
-    return apiRequest('/clients', {
-      method: 'POST',
-      body: JSON.stringify(clientData),
-    });
-  },
-
-  update: async (id: string, clientData: any) => {
-    return apiRequest(`/clients/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(clientData),
-    });
-  },
-
-  delete: async (id: string) => {
-    return apiRequest(`/clients/${id}`, {
-      method: 'DELETE',
-    });
-  },
-
-  getStats: async (): Promise<any> => {
-    return apiRequest('/clients/stats/summary');
-  }
-};
-
-// Keep customersAPI for backward compatibility
 export const customersAPI = {
   getAll: async (params: Record<string, any> = {}) => {
-    return clientsAPI.getAll(params);
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/customers${queryString ? `?${queryString}` : ''}`);
   },
 
   getById: async (id: string) => {
-    return clientsAPI.getById(id);
+    return apiRequest(`/customers/${id}`);
   },
 
   create: async (customerData: any) => {
-    return clientsAPI.create(customerData);
+    return apiRequest('/customers', {
+      method: 'POST',
+      body: JSON.stringify(customerData),
+    });
   },
 
   update: async (id: string, customerData: any) => {
-    return clientsAPI.update(id, customerData);
+    return apiRequest(`/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(customerData),
+    });
   },
 
   updateLoyalty: async (id: string, loyaltyData: any) => {
-    return apiRequest(`/clients/${id}/loyalty`, {
+    return apiRequest(`/customers/${id}/loyalty`, {
       method: 'PUT',
       body: JSON.stringify(loyaltyData),
     });
@@ -541,9 +512,9 @@ export const reportsAPI = {
   },
 
   // Get customer report
-  getClientReport: async (params: Record<string, any> = {}) => {
+  getCustomerReport: async (params: Record<string, any> = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return apiRequest(`/reports/clients${queryString ? `?${queryString}` : ''}`);
+    return apiRequest(`/reports/customers${queryString ? `?${queryString}` : ''}`);
   }
 };
 
@@ -567,6 +538,42 @@ export const settingsAPI = {
     return apiRequest('/settings/reset', {
       method: 'POST',
     });
+  }
+};
+
+// Clients API
+export const clientsAPI = {
+  getAll: async (params: Record<string, any> = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/clients${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id: string) => {
+    return apiRequest(`/clients/${id}`);
+  },
+
+  create: async (clientData: any) => {
+    return apiRequest('/clients', {
+      method: 'POST',
+      body: JSON.stringify(clientData),
+    });
+  },
+
+  update: async (id: string, clientData: any) => {
+    return apiRequest(`/clients/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(clientData),
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest(`/clients/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getStats: async (): Promise<any> => {
+    return apiRequest('/clients/stats/summary');
   }
 };
 

@@ -596,10 +596,10 @@ router.get('/inventory', protect, authorize('admin', 'manager'), async (req, res
   }
 });
 
-// @desc    Get client report
-// @route   GET /api/reports/clients
+// @desc    Get customer report
+// @route   GET /api/reports/customers
 // @access  Private (Admin/Manager)
-router.get('/clients', protect, authorize('admin', 'manager'), [
+router.get('/customers', protect, authorize('admin', 'manager'), [
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100')
 ], async (req, res) => {
   try {
@@ -614,14 +614,14 @@ router.get('/clients', protect, authorize('admin', 'manager'), [
 
     const limit = parseInt(req.query.limit) || 20;
 
-    const [clientStats, topClients, loyaltyStats] = await Promise.all([
-      // Client statistics
-      Client.aggregate([
+    const [customerStats, topCustomers, loyaltyStats] = await Promise.all([
+      // Customer statistics
+      Customer.aggregate([
         { $match: { isActive: true } },
         {
           $group: {
             _id: null,
-            totalClients: { $sum: 1 },
+            totalCustomers: { $sum: 1 },
             totalLoyaltyPoints: { $sum: '$loyaltyPoints' },
             totalSpent: { $sum: '$totalSpent' },
             averageSpent: { $avg: '$totalSpent' },
@@ -630,13 +630,13 @@ router.get('/clients', protect, authorize('admin', 'manager'), [
         }
       ]),
       
-      // Top clients by spending
-      Client.find({ isActive: true })
+      // Top customers by spending
+      Customer.find({ isActive: true })
         .sort({ totalSpent: -1 })
         .limit(limit),
       
       // Loyalty points distribution
-      Client.aggregate([
+      Customer.aggregate([
         { $match: { isActive: true } },
         {
           $bucket: {
@@ -652,8 +652,8 @@ router.get('/clients', protect, authorize('admin', 'manager'), [
       ])
     ]);
 
-    const stats = clientStats[0] || {
-      totalClients: 0,
+    const stats = customerStats[0] || {
+      totalCustomers: 0,
       totalLoyaltyPoints: 0,
       totalSpent: 0,
       averageSpent: 0,
@@ -664,7 +664,7 @@ router.get('/clients', protect, authorize('admin', 'manager'), [
       success: true,
       data: {
         stats,
-        topClients,
+        topCustomers,
         loyaltyDistribution: loyaltyStats
       }
     });
