@@ -227,6 +227,16 @@ const Clients: React.FC = () => {
     product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
   );
 
+  const closeInvoiceModal = () => {
+    setShowInvoiceModal(false);
+    setInvoiceItems([]);
+    setProductSearchTerm("");
+    setInvoiceStep('products');
+    setPaymentMethod('cash');
+    setAmountPaid('');
+    setSelectedClient(null);
+  };
+
   const renderInvoiceModal = () => {
     if (!selectedClient) return null;
 
@@ -234,16 +244,6 @@ const Clients: React.FC = () => {
     const tax = getInvoiceTax();
     const total = getInvoiceTotal();
     const change = parseFloat(amountPaid) - total;
-
-    return (
-      setShowInvoiceModal(false);
-      setInvoiceItems([]);
-      setProductSearchTerm("");
-      setInvoiceStep('products');
-      setPaymentMethod('cash');
-      setAmountPaid('');
-      setSelectedClient(null);
-    };
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
