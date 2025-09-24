@@ -368,7 +368,7 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
     }
 
     // Soft delete - set status to inactive
-    await customer.findOneAndUpdate(
+    await Customer.findOneAndUpdate(
       { _id: req.params.id, tenantId: userTenantId },
       { status: 'inactive' }
     );
