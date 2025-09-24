@@ -95,7 +95,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.subtotal')}</span>
               <span className="text-gray-900 dark:text-gray-100">${transaction.subtotal.toFixed(2)}</span>
             </div>
-              {transaction.client && (
+            <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.tax')}</span>
               <span className="text-gray-900 dark:text-gray-100">${transaction.tax.toFixed(2)}</span>
             </div>
@@ -127,7 +127,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-4">
             <p>{t('receipt.thank.you')}</p>
             <p>{t('receipt.keep.receipt')}</p>
-            {transaction.customer && (
+            {transaction.client && (
               <p className="mt-2">
                 {t('receipt.loyalty.points')} <span className="font-medium text-blue-600">
                   {Math.floor(transaction.total)}
