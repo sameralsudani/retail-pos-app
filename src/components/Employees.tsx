@@ -12,94 +12,109 @@ import {
   Award
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { employeesAPI } from '../services/api';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
 const Employees: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  
+  // State management
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    totalPayroll: 0,
+    averagePerformance: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('employees');
   const [showSidebar, setShowSidebar] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    position: '',
+    department: 'Sales',
+    email: '',
+    phone: '',
+    employeeId: '',
+    hourlyRate: 0,
+    shift: '',
+    hireDate: new Date().toISOString().split('T')[0]
+  });
 
-  const employees = [
-    {
-      id: 1,
-      name: 'Sarah Miller',
-      position: 'Store Manager',
-      department: 'Management',
-      email: 'sarah.miller@store.com',
-      phone: '+1 (555) 123-4567',
-      hourlyRate: 25.00,
-      status: 'active',
-      shift: '9:00 AM - 5:00 PM',
-      hireDate: '2023-03-15',
-      avatar: 'SM',
-      hoursThisWeek: 40,
-      performance: 95
-    },
-    {
-      id: 2,
-      name: 'Mike Rodriguez',
-      position: 'Cashier',
-      department: 'Sales',
-      email: 'mike.rodriguez@store.com',
-      phone: '+1 (555) 234-5678',
-      hourlyRate: 18.50,
-      status: 'active',
-      shift: '8:00 AM - 6:00 PM',
-      hireDate: '2023-07-22',
-      avatar: 'MR',
-      hoursThisWeek: 45,
-      performance: 88
-    },
-    {
-      id: 3,
-      name: 'Alex Thompson',
-      position: 'Stock Clerk',
-      department: 'Inventory',
-      email: 'alex.thompson@store.com',
-      phone: '+1 (555) 345-6789',
-      hourlyRate: 16.00,
-      status: 'active',
-      shift: '3:00 PM - 11:00 PM',
-      hireDate: '2024-01-10',
-      avatar: 'AT',
-      hoursThisWeek: 38,
-      performance: 92
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      position: 'Pharmacist',
-      department: 'Pharmacy',
-      email: 'emily.davis@store.com',
-      phone: '+1 (555) 456-7890',
-      hourlyRate: 45.00,
-      status: 'active',
-      shift: '10:00 AM - 6:00 PM',
-      hireDate: '2022-11-05',
-      avatar: 'ED',
-      hoursThisWeek: 40,
-      performance: 98
-    },
-    {
-      id: 5,
-      name: 'James Wilson',
-      position: 'Security Guard',
-      department: 'Security',
-      email: 'james.wilson@store.com',
-      phone: '+1 (555) 567-8901',
-      hourlyRate: 20.00,
-      status: 'inactive',
-      shift: '11:00 PM - 7:00 AM',
-      hireDate: '2023-09-12',
-      avatar: 'JW',
-      hoursThisWeek: 0,
-      performance: 85
+  // Load employees on component mount
+  React.useEffect(() => {
+    loadEmployees();
+    loadStats();
+  }, []);
+
+  const loadEmployees = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Loading employees from API...');
+      
+      const response = await employeesAPI.getAll();
+      console.log('Employees API response:', response);
+      
+      if (response.success) {
+        const mappedEmployees = response.data.map(apiEmployee => ({
+          id: apiEmployee._id || apiEmployee.id,
+          name: apiEmployee.name,
+          position: apiEmployee.position,
+          department: apiEmployee.department,
+          email: apiEmployee.email,
+          phone: apiEmployee.phone,
+          employeeId: apiEmployee.employeeId,
+          hourlyRate: apiEmployee.hourlyRate,
+          status: apiEmployee.status,
+          shift: apiEmployee.shift,
+          hireDate: new Date(apiEmployee.hireDate).toISOString().split('T')[0],
+          avatar: apiEmployee.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+          hoursThisWeek: apiEmployee.hoursThisWeek || 0,
+          performance: apiEmployee.performance || 85,
+          address: apiEmployee.address,
+          emergencyContact: apiEmployee.emergencyContact,
+          notes: apiEmployee.notes
+        }));
+        console.log('Mapped employees:', mappedEmployees);
+        setEmployees(mappedEmployees);
+      } else {
+        setError(response.message || 'Failed to load employees');
+      }
+    } catch (error) {
+      console.error('Error loading employees:', error);
+      setError('Failed to load employees. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  const loadStats = async () => {
+    try {
+      const response = await employeesAPI.getStats();
+      if (response.success) {
+        setStats({
+          totalEmployees: response.data.totalEmployees || 0,
+          activeEmployees: response.data.activeEmployees || 0,
+          totalPayroll: response.data.totalPayroll || 0,
+          averagePerformance: response.data.averagePerformance || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error loading employee stats:', error);
+    }
+  };
 
   const schedules = [
     { id: 1, employee: 'Sarah Miller', monday: '9-5', tuesday: '9-5', wednesday: '9-5', thursday: '9-5', friday: '9-5', saturday: 'Off', sunday: 'Off' },
@@ -119,10 +134,136 @@ const Employees: React.FC = () => {
     return matchesSearch && matchesDepartment;
   });
 
-  const totalEmployees = employees.length;
-  const activeEmployees = employees.filter(emp => emp.status === 'active').length;
-  const totalPayroll = employees.reduce((sum, emp) => sum + (emp.hoursThisWeek * emp.hourlyRate), 0);
-  const avgPerformance = employees.reduce((sum, emp) => sum + emp.performance, 0) / employees.length;
+  const handleAddEmployee = async () => {
+    if (newEmployee.name && newEmployee.email && newEmployee.employeeId && canEdit) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const employeeData = {
+          name: newEmployee.name,
+          position: newEmployee.position,
+          department: newEmployee.department,
+          email: newEmployee.email,
+          phone: newEmployee.phone,
+          employeeId: newEmployee.employeeId,
+          hourlyRate: newEmployee.hourlyRate,
+          shift: newEmployee.shift,
+          hireDate: newEmployee.hireDate
+        };
+        
+        console.log('Creating employee with data:', employeeData);
+        const response = await employeesAPI.create(employeeData);
+        
+        if (response.success) {
+          await loadEmployees(); // Reload employees list
+          await loadStats(); // Reload stats
+          setNewEmployee({
+            name: '',
+            position: '',
+            department: 'Sales',
+            email: '',
+            phone: '',
+            employeeId: '',
+            hourlyRate: 0,
+            shift: '',
+            hireDate: new Date().toISOString().split('T')[0]
+          });
+          setShowAddModal(false);
+        } else {
+          setError(response.message || 'Failed to create employee');
+        }
+      } catch (error) {
+        console.error('Error creating employee:', error);
+        setError('Failed to create employee. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleEditEmployee = async () => {
+    if (selectedEmployee && canEdit) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+        
+        const updateData = {
+          name: selectedEmployee.name,
+          position: selectedEmployee.position,
+          department: selectedEmployee.department,
+          email: selectedEmployee.email,
+          phone: selectedEmployee.phone,
+          hourlyRate: selectedEmployee.hourlyRate,
+          shift: selectedEmployee.shift,
+          status: selectedEmployee.status,
+          hoursThisWeek: selectedEmployee.hoursThisWeek,
+          performance: selectedEmployee.performance,
+          notes: selectedEmployee.notes
+        };
+        
+        console.log('Updating employee with data:', updateData);
+        const response = await employeesAPI.update(selectedEmployee.id, updateData);
+        
+        if (response.success) {
+          await loadEmployees(); // Reload employees list
+          await loadStats(); // Reload stats
+          setShowEditModal(false);
+          setSelectedEmployee(null);
+        } else {
+          setError(response.message || 'Failed to update employee');
+        }
+      } catch (error) {
+        console.error('Error updating employee:', error);
+        setError('Failed to update employee. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleDeleteEmployee = async (id: string) => {
+    if (canEdit && confirm(t('employees.delete.confirm'))) {
+      try {
+        setError(null);
+        console.log('Deleting employee:', id);
+        
+        const response = await employeesAPI.delete(id);
+        
+        if (response.success) {
+          await loadEmployees(); // Reload employees list
+          await loadStats(); // Reload stats
+        } else {
+          setError(response.message || 'Failed to delete employee');
+        }
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        setError('Failed to delete employee. Please try again.');
+      }
+    }
+  };
+
+  // Permission check
+  const canEdit = user?.role === 'admin' || user?.role === 'manager';
+  const canDelete = user?.role === 'admin';
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header 
+          onMenuClick={() => setShowSidebar(true)} 
+          title={t('employees.title')}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t('loading.employees')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderEmployeeList = () => (
     <div className="space-y-6">
@@ -242,7 +383,7 @@ const Employees: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+                <p className="text-2xl font-bold text-green-600">{stats.activeEmployees}</p>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.hourly.rate')}</p>
                   <p className="font-semibold text-green-600">${employee.hourlyRate}/hr</p>
@@ -253,7 +394,7 @@ const Employees: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.department')}</p>
-                  <p className="font-semibold text-blue-600">{employee.department}</p>
+                <p className="text-2xl font-bold text-purple-600">${stats.totalPayroll.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t('employees.performance')}</p>
@@ -262,12 +403,38 @@ const Employees: React.FC = () => {
               </div>
 
               <div className={`flex ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
-                <button className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                {canEdit ? (
+                  <button 
+                    onClick={() => {
+                      setSelectedEmployee(employee);
+                      setShowEditModal(true);
+                    }}
+                    className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                  >
                   {t('employees.edit.details')}
-                </button>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      setSelectedEmployee(employee);
+                      setShowEditModal(true);
+                    }}
+                    className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                  >
+                    {t('employees.view.details')}
+                  </button>
+                )}
                 <button className="flex-1 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                   {t('employees.view.schedule')}
                 </button>
+                {canDelete && (
+                  <button 
+                    onClick={() => handleDeleteEmployee(employee.id)}
+                    className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium py-2 px-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    {t('employees.delete')}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -348,13 +515,15 @@ const Employees: React.FC = () => {
           <div>
            
           </div>
-          <button 
+          {canEdit && (
+            <button 
             onClick={() => setShowAddModal(true)}
             className={`flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}
           >
             <Plus className="w-4 h-4 mr-2" />
             {t('employees.add.employee')}
           </button>
+          )}
         </div>
 
         {/* Tab Navigation */}
@@ -390,7 +559,7 @@ const Employees: React.FC = () => {
       </div>
 
       {/* Add Employee Modal */}
-      {showAddModal && (
+      {showAddModal && canEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">{t('employees.add.title')}</h2>
@@ -400,6 +569,8 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.full.name')}</label>
                   <input
                     type="text"
+                    value={newEmployee.name}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder={t('employees.form.full.name.placeholder')}
                   />
@@ -408,18 +579,25 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.position')}</label>
                   <input
                     type="text"
+                    value={newEmployee.position}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, position: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder={t('employees.form.position.placeholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.department')}</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                    <option>{t('employees.department.management')}</option>
-                    <option>{t('employees.department.sales')}</option>
-                    <option>{t('employees.department.inventory')}</option>
-                    <option>{t('employees.department.pharmacy')}</option>
-                    <option>{t('employees.department.security')}</option>
+                  <select 
+                    value={newEmployee.department}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, department: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="Management">{t('employees.department.management')}</option>
+                    <option value="Sales">{t('employees.department.sales')}</option>
+                    <option value="Inventory">{t('employees.department.inventory')}</option>
+                    <option value="Pharmacy">{t('employees.department.pharmacy')}</option>
+                    <option value="Security">{t('employees.department.security')}</option>
+                    <option value="Customer Service">{t('employees.department.customer.service')}</option>
                   </select>
                 </div>
                 <div>
@@ -427,6 +605,8 @@ const Employees: React.FC = () => {
                   <input
                     type="number"
                     step="0.01"
+                    value={newEmployee.hourlyRate}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) || 0 }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder={t('employees.form.hourly.rate.placeholder')}
                   />
@@ -435,6 +615,8 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.email')}</label>
                   <input
                     type="email"
+                    value={newEmployee.email}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, email: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder={t('employees.form.email.placeholder')}
                   />
@@ -443,14 +625,28 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.phone')}</label>
                   <input
                     type="tel"
+                    value={newEmployee.phone}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, phone: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder={t('employees.form.phone.placeholder')}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.employee.id')}</label>
+                  <input
+                    type="text"
+                    value={newEmployee.employeeId}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, employeeId: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder={t('employees.form.employee.id.placeholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.hire.date')}</label>
                   <input
                     type="date"
+                    value={newEmployee.hireDate}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, hireDate: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
@@ -458,6 +654,8 @@ const Employees: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.shift')}</label>
                   <input
                     type="text"
+                    value={newEmployee.shift}
+                    onChange={(e) => setNewEmployee(prev => ({ ...prev, shift: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     placeholder={t('employees.form.shift.placeholder')}
                   />
@@ -472,11 +670,142 @@ const Employees: React.FC = () => {
                   {t('employees.form.cancel')}
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleAddEmployee}
+                  disabled={!newEmployee.name || !newEmployee.email || !newEmployee.employeeId || isSubmitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  {t('employees.form.add')}
+                  {isSubmitting ? t('employees.form.adding') : t('employees.form.add')}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Employee Modal */}
+      {showEditModal && selectedEmployee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
+              {canEdit ? t('employees.edit.title') : t('employees.view.title')}
+            </h2>
+            <form className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.full.name')}</label>
+                  <input
+                    type="text"
+                    value={selectedEmployee.name}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, name: e.target.value })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.position')}</label>
+                  <input
+                    type="text"
+                    value={selectedEmployee.position}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, position: e.target.value })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.department')}</label>
+                  <select 
+                    value={selectedEmployee.department}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, department: e.target.value })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  >
+                    <option value="Management">{t('employees.department.management')}</option>
+                    <option value="Sales">{t('employees.department.sales')}</option>
+                    <option value="Inventory">{t('employees.department.inventory')}</option>
+                    <option value="Pharmacy">{t('employees.department.pharmacy')}</option>
+                    <option value="Security">{t('employees.department.security')}</option>
+                    <option value="Customer Service">{t('employees.department.customer.service')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.status')}</label>
+                  <select 
+                    value={selectedEmployee.status}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, status: e.target.value })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  >
+                    <option value="active">{t('employees.status.active')}</option>
+                    <option value="inactive">{t('employees.status.inactive')}</option>
+                    <option value="terminated">{t('employees.status.terminated')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.hourly.rate')}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={selectedEmployee.hourlyRate}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) || 0 })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.shift')}</label>
+                  <input
+                    type="text"
+                    value={selectedEmployee.shift}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, shift: e.target.value })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.hours.this.week')}</label>
+                  <input
+                    type="number"
+                    value={selectedEmployee.hoursThisWeek}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, hoursThisWeek: parseInt(e.target.value) || 0 })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('employees.form.performance')}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={selectedEmployee.performance}
+                    onChange={canEdit ? (e) => setSelectedEmployee(prev => ({ ...prev, performance: parseInt(e.target.value) || 0 })) : undefined}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    disabled={!canEdit}
+                  />
+                </div>
+              </div>
+              <div className={`flex pt-6 ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedEmployee(null);
+                  }}
+                  className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {t('employees.form.cancel')}
+                </button>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={handleEditEmployee}
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSubmitting ? t('employees.form.saving') : t('employees.form.save')}
+                  </button>
+                )}
               </div>
             </form>
           </div>

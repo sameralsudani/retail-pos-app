@@ -576,3 +576,39 @@ export const clientsAPI = {
     return apiRequest('/clients/stats/summary');
   }
 };
+
+// Employees API
+export const employeesAPI = {
+  getAll: async (params: Record<string, any> = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/employees${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id: string) => {
+    return apiRequest(`/employees/${id}`);
+  },
+
+  create: async (employeeData: any) => {
+    return apiRequest('/employees', {
+      method: 'POST',
+      body: JSON.stringify(employeeData),
+    });
+  },
+
+  update: async (id: string, employeeData: any) => {
+    return apiRequest(`/employees/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(employeeData),
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest(`/employees/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getStats: async (): Promise<any> => {
+    return apiRequest('/employees/stats/summary');
+  }
+};

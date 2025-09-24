@@ -153,6 +153,7 @@ app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/clients', require('./routes/clients'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/employees', require('./routes/employees'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/settings', require('./routes/settings'));
 
