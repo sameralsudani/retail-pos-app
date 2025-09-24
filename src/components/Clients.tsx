@@ -1123,9 +1123,6 @@ const Clients: React.FC = () => {
         )}
       </div>
 
-      {/* Invoice Modal */}
-      {showInvoiceModal && renderInvoiceModal()}
-
       {/* Add Client Modal */}
       {showAddModal && canEdit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1380,6 +1377,9 @@ const Clients: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Invoice Modal */}
+      {showInvoiceModal && renderInvoiceModal()}
 
       {/* Sidebar */}
       <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
