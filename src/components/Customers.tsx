@@ -82,6 +82,7 @@ const Customers: React.FC = () => {
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   console.log("🚀 ~ Customers ~ invoiceItems:", invoiceItems)
   const [productSearchTerm, setProductSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [invoiceStep, setInvoiceStep] = useState<
     "products" | "review" | "payment"
