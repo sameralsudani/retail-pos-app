@@ -17,9 +17,9 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Transaction } from "../types";
 
-const OrdersPage: React.FC = () => {
+const TransactionsPage: React.FC = () => {
   const { t } = useLanguage();
-  const { transactions } = useStore();
+  const { transactions, isLoading } = useStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   type OrderWithCustomer = Transaction & {
@@ -33,8 +33,8 @@ const OrdersPage: React.FC = () => {
   );
   const [showSidebar, setShowSidebar] = useState(false);
 
-  // Convert transactions to orders format
-  const orders = transactions.map((transaction) => ({
+  // Transactions list
+  const transactionsList = transactions.map((transaction) => ({
     ...transaction,
     customerName: transaction.customer?.name || "Walk-in Customer",
     customerEmail: transaction.customer?.email || "",
@@ -42,7 +42,7 @@ const OrdersPage: React.FC = () => {
     orderDate: transaction.timestamp,
   }));
 
-  const filteredOrders = orders.filter((transaction) => {
+  const filteredTransactions = transactionsList.filter((transaction) => {
     const matchesSearch =
       transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transaction.customerName
@@ -84,19 +84,48 @@ const OrdersPage: React.FC = () => {
     }
   };
 
-  const totalOrders = orders.length;
-  const completedOrders = orders.length; // All transactions are completed
-  const dueOrders = 0; // No due orders in transaction history
-  const totalRevenue = orders.reduce(
+  const totalTransactions = transactionsList.length;
+  const completedTransactions = transactionsList.length; // All transactions are completed
+  const dueTransactions = 0; // No due transactions in transaction history
+  const totalRevenue = transactionsList.reduce(
     (sum, transaction) => sum + transaction.total,
     0
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-20">
+          <div className="flex flex-col items-center">
+            <svg
+              className="animate-spin h-10 w-10 text-blue-600 mb-2"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              ></path>
+            </svg>
+            <span className="text-blue-700 font-medium">
+              {t("transactions.loading")}
+            </span>
+          </div>
+        </div>
+      )}
       <Header
         onMenuClick={() => setShowSidebar(true)}
-        title={t("orders.title")}
+        title={t("transactions.title")}
       />
 
       <div className="p-6">
@@ -109,10 +138,10 @@ const OrdersPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("orders.stats.total")}
+                  {t("transactions.stats.total")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {totalOrders}
+                  {totalTransactions}
                 </p>
               </div>
             </div>
@@ -125,10 +154,10 @@ const OrdersPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("orders.stats.completed")}
+                  {t("transactions.stats.completed")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {completedOrders}
+                  {completedTransactions}
                 </p>
               </div>
             </div>
@@ -141,9 +170,11 @@ const OrdersPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("orders.stats.due")}
+                  {t("transactions.stats.due")}
                 </p>
-                <p className="text-2xl font-bold text-gray-900">{dueOrders}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dueTransactions}
+                </p>
               </div>
             </div>
           </div>
@@ -155,7 +186,7 @@ const OrdersPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("orders.stats.revenue")}
+                  {t("transactions.stats.revenue")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
                   ${totalRevenue.toFixed(2)}
@@ -172,7 +203,7 @@ const OrdersPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder={t("orders.search.placeholder")}
+                placeholder={t("transactions.search.placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -187,13 +218,15 @@ const OrdersPage: React.FC = () => {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="all">{t("orders.filter.all")}</option>
+                  <option value="all">{t("transactions.filter.all")}</option>
                   <option value="completed">
-                    {t("orders.filter.completed")}
+                    {t("transactions.filter.completed")}
                   </option>
-                  <option value="pending">{t("orders.filter.pending")}</option>
+                  <option value="pending">
+                    {t("transactions.filter.pending")}
+                  </option>
                   <option value="cancelled">
-                    {t("orders.filter.cancelled")}
+                    {t("transactions.filter.cancelled")}
                   </option>
                 </select>
               </div>
@@ -201,43 +234,43 @@ const OrdersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Orders Table */}
+        {/* Transactions Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.order")}
+                    {t("transactions.table.transaction")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.customer")}
+                    {t("transactions.table.customer")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.items")}
+                    {t("transactions.table.items")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.total")}
+                    {t("transactions.table.total")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.amountPaid")}
+                    {t("transactions.table.amountPaid")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.amountDue")}
+                    {t("transactions.table.amountDue")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.status")}
+                    {t("transactions.table.status")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.date")}
+                    {t("transactions.table.date")}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t("orders.table.actions")}
+                    {t("transactions.table.actions")}
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map((transaction) => (
+                {filteredTransactions.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
@@ -267,7 +300,7 @@ const OrdersPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {transaction.items.length}{" "}
-                        {t("orders.table.items.count")}
+                        {t("transactions.table.items.count")}
                       </div>
                       <div className="text-sm text-gray-500">
                         {transaction.items
@@ -322,7 +355,7 @@ const OrdersPage: React.FC = () => {
                           <XCircle className="h-4 w-4" />
                         )}
                         <span className="capitalize">
-                          {t(`orders.status.${transaction.status}`)}
+                          {t(`transactions.status.${transaction.status}`)}
                         </span>
                       </span>
                     </td>
@@ -335,16 +368,16 @@ const OrdersPage: React.FC = () => {
                         <button
                           onClick={() => setSelectedOrder(transaction)}
                           className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                          title={t("orders.actions.view")}
+                          title={t("transactions.actions.view")}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() =>
-                            alert(t("orders.actions.print.success"))
+                            alert(t("transactions.actions.print.success"))
                           }
                           className="text-gray-600 hover:text-gray-900 p-1 hover:bg-gray-50 rounded"
-                          title={t("orders.actions.print")}
+                          title={t("transactions.actions.print")}
                         >
                           <Printer className="h-4 w-4" />
                         </button>
@@ -356,14 +389,14 @@ const OrdersPage: React.FC = () => {
             </table>
           </div>
 
-          {filteredOrders.length === 0 && (
+          {!isLoading && filteredTransactions.length === 0 && (
             <div className="text-center py-12">
               <Package className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {t("orders.empty.title")}
+                {t("transactions.empty.title")}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {t("orders.empty.subtitle")}
+                {t("transactions.empty.subtitle")}
               </p>
             </div>
           )}
@@ -376,7 +409,7 @@ const OrdersPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
-                {t("orders.detail.title")}
+                {t("transactions.detail.title")}
               </h2>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -391,7 +424,7 @@ const OrdersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("orders.detail.order.id")}
+                    {t("transactions.detail.transaction.id")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedOrder.id}
@@ -399,7 +432,7 @@ const OrdersPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("orders.detail.status")}
+                    {t("transactions.detail.status")}
                   </label>
                   <span
                     className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
@@ -408,13 +441,13 @@ const OrdersPage: React.FC = () => {
                   >
                     {getStatusIcon(selectedOrder.status ?? "completed")}
                     <span className="capitalize">
-                      {t(`orders.status.${selectedOrder.status}`)}
+                      {t(`transactions.status.${selectedOrder.status}`)}
                     </span>
                   </span>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("orders.detail.customer")}
+                    {t("transactions.detail.customer")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedOrder.customerName}
@@ -425,7 +458,7 @@ const OrdersPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("orders.detail.date")}
+                    {t("transactions.detail.date")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedOrder.orderDate.toLocaleString()}
@@ -436,7 +469,7 @@ const OrdersPage: React.FC = () => {
               {/* Items */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-3">
-                  {t("orders.detail.items")}
+                  {t("transactions.detail.items")}
                 </h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item, index) => (
@@ -463,13 +496,13 @@ const OrdersPage: React.FC = () => {
               {/* Total */}
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
-                  <span>{t("orders.detail.total")}</span>
+                  <span>{t("transactions.detail.total")}</span>
                   <span className="text-blue-600">
                     ${selectedOrder.total.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {t("orders.detail.payment.method")}:{" "}
+                  {t("transactions.detail.payment.method")}:{" "}
                   <span className="capitalize">
                     {selectedOrder.paymentMethod}
                   </span>
@@ -482,7 +515,7 @@ const OrdersPage: React.FC = () => {
                 onClick={() => setSelectedOrder(null)}
                 className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
-                {t("orders.detail.close")}
+                {t("transactions.detail.close")}
               </button>
             </div>
           </div>
@@ -495,4 +528,4 @@ const OrdersPage: React.FC = () => {
   );
 };
 
-export default OrdersPage;
+export default TransactionsPage;

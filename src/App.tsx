@@ -5,7 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import POSPage from './components/POSPage';
-import OrdersPage from './components/OrdersPage';
+import TransactionsPage from './components/TransactionsPage';
 import InventoryPage from './components/InventoryPage';
 import CategoryPage from './components/CategoryPage';
 import UsersPage from './components/UsersPage';
@@ -94,10 +94,10 @@ function App() {
             />
             
             <Route 
-              path="/orders" 
+              path="/transactions" 
               element={
                 <ProtectedRoute>
-                  <OrdersPage />
+                  <TransactionsPage />
                 </ProtectedRoute>
               } 
             />

@@ -335,6 +335,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   };
 
   const loadTransactions = async () => {
+    setLoading(true);
     try {
       const response = await transactionsAPI.getAll({ limit: 50 });
       if (response.success) {
@@ -376,7 +377,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           id: transaction._id,
           items: transaction.items.map(item => ({
             product: {
-              id: (item.product as { _id?: string })._id || (item.product as string),
+              _id: (item.product as { _id?: string })._id || (typeof item.product === 'string' ? item.product : ''),
               name: item.productSnapshot.name,
               price: item.unitPrice,
               category: '',
@@ -406,6 +407,8 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Error loading transactions:', error);
       setError('Failed to load transactions');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -483,8 +486,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const completeTransaction = async (paymentMethod: string, amountPaid: number) => {
     try {
-      const subtotal = getCartSubtotal();
-      const tax = getCartTax();
       const total = getCartTotal();
       
       // Validate cart items have valid product IDs
@@ -504,7 +505,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         ...(state.currentCustomer?.id && { customer: state.currentCustomer.id }),
         paymentMethod,
         amountPaid,
-        discount: 0,
+        total
       };
 
       const response = await transactionsAPI.create(transactionData);
@@ -513,12 +514,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         const transaction: Transaction = {
           id: response.data._id,
           items: state.cartItems,
-          subtotal,
-          tax,
           total,
           paymentMethod,
           amountPaid,
-          change: amountPaid - total,
           customer: state.currentCustomer,
           timestamp: new Date(response.data.createdAt),
           cashier: user?.name || 'Unknown'

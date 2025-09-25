@@ -75,9 +75,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
     {
       icon: FileText,
-      label: t("sidebar.orders"),
+      label: t("sidebar.transactions"),
       onClick: () => {
-        navigate("/orders");
+        navigate("/transactions");
         onClose();
       },
     },
