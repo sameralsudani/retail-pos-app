@@ -337,6 +337,75 @@ router.post("/", protect, async (req, res) => {
   }
 });
 
+// @desc    Update a transaction
+// @route   PUT /api/transactions/:id
+// @access  Private
+router.put('/:id', protect, async (req, res) => {
+  try {
+    // Extract tenantId from user (handle both populated and non-populated)
+    let userTenantId;
+    if (typeof req.user.tenantId === "object" && req.user.tenantId._id) {
+      userTenantId = req.user.tenantId._id;
+    } else {
+      userTenantId = req.user.tenantId;
+    }
+
+    if (!userTenantId) {
+      return res.status(400).json({
+        success: false,
+        message: "User is not associated with any store",
+      });
+    }
+
+    const transaction = await Transaction.findOne({
+      _id: req.params.id,
+      tenantId: userTenantId,
+    });
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    // Only allow updating certain fields
+    const allowedFields = [
+      'status',
+      'amountPaid',
+      'paymentMethod',
+      'notes',
+      'dueAmount',
+      'isPaid',
+    ];
+    allowedFields.forEach(field => {
+      if (field in req.body) {
+        transaction[field] = req.body[field];
+      }
+    });
+
+    // Optionally, recalculate dueAmount if amountPaid or total changed
+    if ('amountPaid' in req.body) {
+      transaction.dueAmount = transaction.total - transaction.amountPaid;
+    }
+
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: "Transaction updated successfully",
+      data: transaction,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+});
+
+
 // @desc    Get transaction statistics
 // @route   GET /api/transactions/stats
 // @access  Private

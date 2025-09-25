@@ -82,7 +82,6 @@ const Customers: React.FC = () => {
   // Invoice creation state
   const [products, setProducts] = useState<Product[]>([]);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
-  console.log("🚀 ~ Customers ~ invoiceItems:", invoiceItems)
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [invoiceStep, setInvoiceStep] = useState<

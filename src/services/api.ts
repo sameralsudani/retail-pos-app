@@ -354,7 +354,7 @@ export const categoriesAPI = {
 
 // Customers API
 export const customersAPI = {
-  getAll: async (params: Record<string, any> = {}) => {
+  getAll: async (params: Record<string, unknown> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/customers${queryString ? `?${queryString}` : ''}`);
   },
@@ -409,6 +409,13 @@ export const transactionsAPI = {
   create: async (transactionData: any) => {
     return apiRequest('/transactions', {
       method: 'POST',
+      body: JSON.stringify(transactionData),
+    });
+  },
+
+  update: async (id: string, transactionData: any) => {
+    return apiRequest(`/transactions/${id}`, {
+      method: 'PUT',
       body: JSON.stringify(transactionData),
     });
   },
@@ -600,7 +607,7 @@ export const clientsAPI = {
 
 // Employees API
 export const employeesAPI = {
-  getAll: async (params: Record<string, any> = {}) => {
+  getAll: async (params: Record<string, unknown> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/employees${queryString ? `?${queryString}` : ''}`);
   },

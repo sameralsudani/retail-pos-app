@@ -12,6 +12,14 @@ export interface Product {
   supplier?: string;
 }
 
+export type OrderWithCustomer = {
+  id: string;
+  status: string;
+  amountPaid: number;
+  paymentMethod: string;
+  total: number;
+};
+
 export interface CartItem {
   product: Product;
   quantity: number;

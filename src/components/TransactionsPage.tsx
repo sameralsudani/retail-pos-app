@@ -10,16 +10,18 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Pen
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useStore } from "../contexts/StoreContext";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Transaction } from "../types";
+import UpdateTransactionModal from "./UpdateTransactionModal";
 
 const TransactionsPage: React.FC = () => {
   const { t } = useLanguage();
-  const { transactions, isLoading } = useStore();
+  const { transactions, isLoading, updateTransaction } = useStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   type OrderWithCustomer = Transaction & {
@@ -32,6 +34,7 @@ const TransactionsPage: React.FC = () => {
     null
   );
   const [showSidebar, setShowSidebar] = useState(false);
+  const [updateModal, setUpdateModal] = useState<{ open: boolean; transaction: OrderWithCustomer | null }>({ open: false, transaction: null });
 
   // Transactions list
   const transactionsList = transactions.map((transaction) => ({
@@ -84,6 +87,24 @@ const TransactionsPage: React.FC = () => {
     }
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header
+          onMenuClick={() => setShowSidebar(true)}
+          title={t("users.title")}
+        />
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{t("loading.users")}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const totalTransactions = transactionsList.length;
   const completedTransactions = transactionsList.length; // All transactions are completed
   const dueTransactions = 0; // No due transactions in transaction history
@@ -94,35 +115,6 @@ const TransactionsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {isLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-20">
-          <div className="flex flex-col items-center">
-            <svg
-              className="animate-spin h-10 w-10 text-blue-600 mb-2"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8z"
-              ></path>
-            </svg>
-            <span className="text-blue-700 font-medium">
-              {t("transactions.loading")}
-            </span>
-          </div>
-        </div>
-      )}
       <Header
         onMenuClick={() => setShowSidebar(true)}
         title={t("transactions.title")}
@@ -381,6 +373,13 @@ const TransactionsPage: React.FC = () => {
                         >
                           <Printer className="h-4 w-4" />
                         </button>
+                        <button
+                          onClick={() => setUpdateModal({ open: true, transaction })}
+                          className="text-yellow-600 hover:text-yellow-900 p-1 hover:bg-yellow-50 rounded"
+                          title={t("transactions.actions.update")}
+                        >
+                          <Pen className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -520,6 +519,22 @@ const TransactionsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Update Transaction Modal */}
+      {updateModal.open && updateModal.transaction && (
+        <UpdateTransactionModal
+          transaction={updateModal.transaction}
+          onClose={() => setUpdateModal({ open: false, transaction: null })}
+          onUpdate={async (updates) => {
+            await updateTransaction(updateModal.transaction!.id, {
+              ...updates,
+              status: updates.status as "completed" | "refunded" | "cancelled" | "due" | undefined,
+            });
+            setUpdateModal({ open: false, transaction: null });
+          }}
+          t={t}
+        />
       )}
 
       {/* Sidebar */}
