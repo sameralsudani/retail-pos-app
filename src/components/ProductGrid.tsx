@@ -32,7 +32,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-9 gap-y-3 gap-x-1 sm:gap-y-3 sm:gap-x-2 lg:gap-y-4 lg:gap-x-2">
         {products.map((product) => (
           <div
-            key={product.id}
+            key={product.sku}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 group text-xs"
             style={{ maxWidth: 140 }}
           >

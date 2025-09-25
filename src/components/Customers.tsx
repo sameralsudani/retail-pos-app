@@ -276,13 +276,11 @@ const Customers: React.FC = () => {
                 {t("customers.create.invoice")} - {selectedCustomer.name}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Step{" "}
-                {invoiceStep === "products"
+                {t('customers.invoice.step')} {invoiceStep === "products"
                   ? "1"
                   : invoiceStep === "review"
                   ? "2"
-                  : "3"}{" "}
-                of 3
+                  : "3"} {t('customers.invoice.of')} 3
               </p>
             </div>
             <button
@@ -304,7 +302,7 @@ const Customers: React.FC = () => {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder={t('customers.invoice.search.products')}
                         value={productSearchTerm}
                         onChange={(e) => setProductSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -355,10 +353,10 @@ const Customers: React.FC = () => {
                 <div className="w-80 bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 flex flex-col">
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                      Invoice Items
+                      {t('customers.invoice.items')}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {invoiceItems.length} items
+                      {invoiceItems.length} {t('customers.invoice.items.label')}
                     </p>
                   </div>
 
@@ -366,7 +364,7 @@ const Customers: React.FC = () => {
                     {invoiceItems.length === 0 ? (
                       <div className="text-center py-8">
                         <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500">No items added</p>
+                        <p className="text-sm text-gray-500">{t('customers.invoice.no.items')}</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -438,15 +436,15 @@ const Customers: React.FC = () => {
                   <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-sm">
-                        <span>Subtotal:</span>
+                        <span>{t('customers.invoice.subtotal')}</span>
                         <span>${subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Tax (8%):</span>
+                        <span>{t('customers.invoice.tax')}</span>
                         <span>${tax.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-bold border-t pt-2">
-                        <span>Total:</span>
+                        <span>{t('customers.invoice.total')}</span>
                         <span className="text-blue-600">
                           ${total.toFixed(2)}
                         </span>
@@ -458,7 +456,7 @@ const Customers: React.FC = () => {
                       disabled={invoiceItems.length === 0}
                       className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
-                      Review Invoice
+                      {t('customers.invoice.review.button')}
                     </button>
                   </div>
                 </div>
@@ -469,13 +467,13 @@ const Customers: React.FC = () => {
               <div className="flex-1 p-6">
                 <div className="max-w-2xl mx-auto">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-                    Invoice Review
+                    {t('customers.invoice.review.title')}
                   </h3>
 
                   {/* Client Info */}
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
                     <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      Bill To:
+                      {t('customers.invoice.bill.to')}
                     </h4>
                     <p className="text-gray-700 dark:text-gray-300">
                       {selectedCustomer.name}
@@ -491,7 +489,7 @@ const Customers: React.FC = () => {
                   {/* Invoice Items */}
                   <div className="mb-6">
                     <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-4">
-                      Items:
+                      {t('customers.invoice.items')}
                     </h4>
                     <div className="space-y-3">
                       {invoiceItems.map((item) => (
@@ -519,15 +517,15 @@ const Customers: React.FC = () => {
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Subtotal:</span>
+                        <span>{t('customers.invoice.subtotal')}</span>
                         <span>${subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Tax (8%):</span>
+                        <span>{t('customers.invoice.tax')}</span>
                         <span>${tax.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-bold text-lg border-t pt-2">
-                        <span>Total:</span>
+                        <span>{t('customers.invoice.total')}</span>
                         <span className="text-blue-600">
                           ${total.toFixed(2)}
                         </span>
@@ -541,13 +539,13 @@ const Customers: React.FC = () => {
                       onClick={() => setInvoiceStep("products")}
                       className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      Back to Products
+                      {t('customers.invoice.back.to.products')}
                     </button>
                     <button
                       onClick={() => setInvoiceStep("payment")}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      Proceed to Payment
+                      {t('customers.invoice.proceed.to.payment')}
                     </button>
                   </div>
                 </div>
@@ -558,13 +556,13 @@ const Customers: React.FC = () => {
               <div className="flex-1 p-6">
                 <div className="max-w-md mx-auto">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-                    Payment
+                    {t('customers.invoice.payment.title')}
                   </h3>
 
                   {/* Total Amount */}
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center mb-6">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                      Total Amount
+                      {t('customers.invoice.total.amount')}
                     </div>
                     <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                       ${total.toFixed(2)}
@@ -574,7 +572,7 @@ const Customers: React.FC = () => {
                   {/* Payment Method */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Payment Method
+                      {t('customers.invoice.payment.method')}
                     </label>
                     <div className="grid grid-cols-3 gap-3">
                       {(["cash", "card", "digital"] as const).map((method) => (
@@ -609,7 +607,7 @@ const Customers: React.FC = () => {
                   {/* Amount Paid */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Amount Paid
+                      {t('customers.invoice.amount.paid')}
                     </label>
                     <input
                       type="number"
@@ -626,7 +624,7 @@ const Customers: React.FC = () => {
                         onClick={() => setAmountPaid(total.toFixed(2))}
                         className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
                       >
-                        Exact Amount
+                        {t('customers.invoice.exact.amount')}
                       </button>
                       <button
                         onClick={() =>
@@ -634,7 +632,7 @@ const Customers: React.FC = () => {
                         }
                         className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
                       >
-                        ${(Math.ceil(total / 5) * 5).toFixed(2)}
+                        {t('customers.invoice.rounded.amount') + ' ' + (Math.ceil(total / 5) * 5).toFixed(2)}
                       </button>
                     </div>
                   </div>
@@ -643,7 +641,7 @@ const Customers: React.FC = () => {
                   {parseFloat(amountPaid) >= total && (
                     <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 mb-6">
                       <div className="text-sm text-green-700 dark:text-green-400">
-                        Change:{" "}
+                        {t('customers.invoice.change')}: {" "}
                         <span className="font-semibold">
                           ${change.toFixed(2)}
                         </span>
@@ -657,14 +655,14 @@ const Customers: React.FC = () => {
                       onClick={() => setInvoiceStep("review")}
                       className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      Back
+                      {t('customers.invoice.back')}
                     </button>
                     <button
                       onClick={submitInvoice}
                       disabled={isSubmitting || parseFloat(amountPaid) < total}
                       className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isSubmitting ? "Creating..." : "Create Invoice"}
+                      {isSubmitting ? t('customers.invoice.creating') : t('customers.invoice.create')}
                     </button>
                   </div>
                 </div>
