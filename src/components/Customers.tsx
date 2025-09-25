@@ -356,11 +356,16 @@ const Customers: React.FC = () => {
                 {/* Invoice Items Sidebar */}
                 <div className="w-80 bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 flex flex-col">
                   <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                      Invoice Items
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {invoiceItems.length} items
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900">Invoice Items</h3>
-                     <span className="text-sm text-gray-500">{invoiceItems.length} items</span>
-                   </div>
-                 </div>
+                      <span className="text-sm text-gray-500">{invoiceItems.length} items</span>
+                    </div>
+                  </div>
 
                   <div className="flex-1 overflow-y-auto">
                     {invoiceItems.length === 0 ? (
@@ -375,9 +380,6 @@ const Customers: React.FC = () => {
                       <div className="p-3 space-y-2">
                         {invoiceItems.map((item) => (
                           <div
-                            key={item.product._id}
-                            className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700"
-                          >
                             <div className="flex items-start space-x-3">
                               <img
                                 src={item.product.image}
@@ -474,7 +476,7 @@ const Customers: React.FC = () => {
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
             
             {/* Review Step */}
