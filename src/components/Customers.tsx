@@ -82,7 +82,6 @@ const Customers: React.FC = () => {
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   console.log("🚀 ~ Customers ~ invoiceItems:", invoiceItems)
   const [productSearchTerm, setProductSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [invoiceStep, setInvoiceStep] = useState<
     "products" | "review" | "payment"
@@ -137,20 +136,24 @@ const Customers: React.FC = () => {
   };
 
   const addToInvoice = (product: Product) => {
+    console.log('Adding product to invoice:', product);
     setInvoiceItems((prev) => {
       const existingItem = prev.find((item) => item.product._id === product._id);
       if (existingItem) {
+        console.log('Product already in invoice, increasing quantity');
         return prev.map((item) =>
           item.product._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
+      console.log('Adding new product to invoice');
       return [...prev, { product, quantity: 1 }];
     });
   };
 
   const updateInvoiceItemQuantity = (productId: string, quantity: number) => {
+    console.log('Updating invoice item quantity:', productId, quantity);
     if (quantity <= 0) {
       setInvoiceItems((prev) =>
         prev.filter((item) => item.product._id !== productId)
@@ -165,6 +168,7 @@ const Customers: React.FC = () => {
   };
 
   const removeFromInvoice = (productId: string) => {
+    console.log('Removing product from invoice:', productId);
     setInvoiceItems((prev) =>
       prev.filter((item) => item.product._id !== productId)
     );
