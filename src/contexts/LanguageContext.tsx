@@ -25,6 +25,8 @@ interface LanguageProviderProps {
 // Translation dictionaries
 const translations: Record<Language, { [key: string]: string }> = {
   en: {
+  'customers.invoice.create.due': 'Create Invoice (Mark as Due)',
+  'customers.invoice.due.amount': 'Due Amount',
   // Invoice Modal
   'customers.invoice.step': 'Step',
   'customers.invoice.of': 'of',
@@ -736,6 +738,8 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.unsaved.changes": "You have unsaved changes",
   },
   ar: {
+  'customers.invoice.create.due': 'إنشاء الفاتورة (تسجيل كمديونية)',
+  'customers.invoice.due.amount': 'المبلغ المستحق',
   // Invoice Modal
   'customers.invoice.step': 'الخطوة',
   'customers.invoice.of': 'من',

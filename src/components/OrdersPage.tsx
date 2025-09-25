@@ -26,9 +26,10 @@ const OrdersPage: React.FC = () => {
     ...transaction,
     customerName: transaction.customer?.name || 'Walk-in Customer',
     customerEmail: transaction.customer?.email || '',
-    status: 'completed' as const,
+    status: transaction.status,
     orderDate: transaction.timestamp
   }));
+  console.log("🚀 ~ OrdersPage ~ transactions:", transactions)
 
   const filteredOrders = orders.filter(transaction => {
     const matchesSearch = 
@@ -40,12 +41,13 @@ const OrdersPage: React.FC = () => {
     
     return matchesSearch && matchesStatus;
   });
+  console.log("🚀 ~ OrdersPage ~ filteredOrders:", filteredOrders)
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'pending':
+      case 'due':
         return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
@@ -58,7 +60,7 @@ const OrdersPage: React.FC = () => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-4 w-4" />;
-      case 'pending':
+      case 'due':
         return <Clock className="h-4 w-4" />;
       case 'cancelled':
         return <XCircle className="h-4 w-4" />;
@@ -228,7 +230,7 @@ const OrdersPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                        {getStatusIcon(transaction.status)}
+                        {transaction.status === 'completed' ? <CheckCircle className="h-4 w-4" /> : transaction.status === 'due' ? <Clock className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                         <span className="capitalize">{t(`orders.status.${transaction.status}`)}</span>
                       </span>
                     </td>

@@ -48,21 +48,7 @@ const transactionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  subtotal: {
-    type: Number,
-    required: true,
-    min: [0, 'Subtotal cannot be negative']
-  },
-  tax: {
-    type: Number,
-    required: true,
-    min: [0, 'Tax cannot be negative']
-  },
-  discount: {
-    type: Number,
-    default: 0,
-    min: [0, 'Discount cannot be negative']
-  },
+
   total: {
     type: Number,
     required: true,
@@ -78,21 +64,20 @@ const transactionSchema = new mongoose.Schema({
     required: true,
     min: [0, 'Amount paid cannot be negative']
   },
-  change: {
+  dueAmount: {
     type: Number,
-    default: 0,
-    min: [0, 'Change cannot be negative']
   },
+  isPaid: {
+    type: Boolean,
+    default: false
+  },
+  
   status: {
     type: String,
-    enum: ['completed', 'refunded', 'cancelled'],
+    enum: ['completed', 'refunded', 'cancelled', 'due'],
     default: 'completed'
   },
-  loyaltyPointsEarned: {
-    type: Number,
-    default: 0,
-    min: [0, 'Loyalty points cannot be negative']
-  },
+  
   notes: {
     type: String,
     maxlength: [500, 'Notes cannot exceed 500 characters']

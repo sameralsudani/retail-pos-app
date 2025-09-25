@@ -363,12 +363,10 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         interface APITransaction {
           _id: string;
           items: APITransactionItem[];
-          subtotal: number;
-          tax: number;
+          status: string;
           total: number;
           paymentMethod: string;
           amountPaid: number;
-          change: number;
           customer?: APITransactionCustomer | null;
           createdAt: string;
           cashier?: APITransactionCashier;
@@ -389,12 +387,10 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             },
             quantity: item.quantity
           })),
-          subtotal: transaction.subtotal,
-          tax: transaction.tax,
           total: transaction.total,
           paymentMethod: transaction.paymentMethod,
           amountPaid: transaction.amountPaid,
-          change: transaction.change,
+          status: transaction.status,
           customer: transaction.customer ? {
             id: transaction.customer._id,
             name: transaction.customer.name,

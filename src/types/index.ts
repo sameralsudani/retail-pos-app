@@ -56,18 +56,14 @@ export interface Client {
 export interface Transaction {
   id: string;
   items: CartItem[];
-  subtotal: number;
-  tax: number;
   total: number;
   paymentMethod: string;
   amountPaid: number;
-  change: number;
   customer: Client | null;
   timestamp: Date;
   cashier: string;
   transactionId?: string;
-  status?: 'completed' | 'refunded' | 'cancelled';
-  loyaltyPointsEarned?: number;
+  status?: 'completed' | 'refunded' | 'cancelled' | 'due';
   notes?: string;
 }
 

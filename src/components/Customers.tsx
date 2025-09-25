@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useStore } from '../contexts/StoreContext';
 import { customersAPI, productsAPI, transactionsAPI } from "../services/api";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -32,6 +33,7 @@ interface InvoiceItem {
 const Customers: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { loadTransactions } = useStore();
 
   // State management
   const [customers, setCustomers] = useState<Client[]>([]);
@@ -190,14 +192,10 @@ const Customers: React.FC = () => {
       setError(null);
 
       const total = getInvoiceTotal();
-      const amountPaidNum = parseFloat(amountPaid) || total;
+      const amountPaidNum = parseFloat(amountPaid) || 0;
+      const isPartial = amountPaidNum < total;
 
-      if (amountPaidNum < total) {
-        setError("Insufficient payment amount");
-        return;
-      }
-
-      // Create transaction using existing transaction API
+      // Allow partial payment, mark as due if not fully paid
       const transactionData = {
         items: invoiceItems.map((item) => ({
           product: item.product._id,
@@ -206,6 +204,8 @@ const Customers: React.FC = () => {
         customer: selectedCustomer._id,
         paymentMethod,
         amountPaid: amountPaidNum,
+        dueAmount: isPartial ? total - amountPaidNum : 0,
+        isPaid: !isPartial,
         discount: 0,
       };
 
@@ -225,11 +225,18 @@ const Customers: React.FC = () => {
         // Reload customers to update stats
         await loadCustomers();
         await loadStats();
+        await loadTransactions();
 
         // Show success message
-        alert(
-          `Invoice created successfully! Transaction ID: ${response.data._id}`
-        );
+        if (isPartial) {
+          alert(
+            `Invoice created with due amount: $${(total - amountPaidNum).toFixed(2)}. Transaction ID: ${response.data._id}`
+          );
+        } else {
+          alert(
+            `Invoice created successfully! Transaction ID: ${response.data._id}`
+          );
+        }
       } else {
         setError(response.message || "Failed to create invoice");
       }
@@ -659,11 +666,20 @@ const Customers: React.FC = () => {
                     </button>
                     <button
                       onClick={submitInvoice}
-                      disabled={isSubmitting || parseFloat(amountPaid) < total}
+                      disabled={isSubmitting || invoiceItems.length === 0}
                       className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     >
-                      {isSubmitting ? t('customers.invoice.creating') : t('customers.invoice.create')}
+                      {isSubmitting
+                        ? t('customers.invoice.creating')
+                        : parseFloat(amountPaid) < total
+                        ? t('customers.invoice.create.due')
+                        : t('customers.invoice.create')}
                     </button>
+                    {parseFloat(amountPaid) < total && (
+                      <div className="mt-2 text-sm text-red-600 dark:text-red-400 text-center">
+                        {t('customers.invoice.due.amount')}: ${ (total - (parseFloat(amountPaid) || 0)).toFixed(2) }
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
