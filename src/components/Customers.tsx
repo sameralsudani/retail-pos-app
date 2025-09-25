@@ -111,15 +111,11 @@ const Customers: React.FC = () => {
 
       if (response.success) {
         const mappedProducts = response.data.map((product: Product) => ({
-          id: product._id,
-          name: product.name,
-          price: product.price,
+          ...product,
           category: (typeof product.category === "object"
             ? (product.category as { name: string }).name
             : product.category || ""
           ).toLowerCase(),
-          sku: product.sku,
-          stock: product.stock,
           image:
             product.image ||
             "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300",
@@ -137,10 +133,12 @@ const Customers: React.FC = () => {
 
   const addToInvoice = (product: Product) => {
     setInvoiceItems((prev) => {
-      const existingItem = prev.find((item) => item.product._id === product._id);
+      // Use only _id for uniqueness
+      const productId = product._id;
+      const existingItem = prev.find((item) => item.product._id === productId);
       if (existingItem) {
         return prev.map((item) =>
-          item.product._id === product._id
+          item.product._id === productId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -202,7 +200,7 @@ const Customers: React.FC = () => {
       // Create transaction using existing transaction API
       const transactionData = {
         items: invoiceItems.map((item) => ({
-          product: item.product.id,
+          product: item.product._id,
           quantity: item.quantity,
         })),
         customer: selectedCustomer._id,
@@ -224,7 +222,7 @@ const Customers: React.FC = () => {
         setAmountPaid("");
         setSelectedCustomer(null);
 
-        // Reload clients to update stats
+        // Reload customers to update stats
         await loadCustomers();
         await loadStats();
 
