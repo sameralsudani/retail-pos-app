@@ -333,7 +333,7 @@ const Customers: React.FC = () => {
                               className="w-full h-32 object-cover rounded-lg mb-3"
                             />
                             <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                              {product.name}
+                            <div className="flex-1 min-w-0">
                             </h4>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                               {product.sku}
@@ -363,9 +363,9 @@ const Customers: React.FC = () => {
                       {invoiceItems.length} items
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900">Invoice Items</h3>
-                      <span className="text-sm text-gray-500">{invoiceItems.length} items</span>
-                    </div>
-                  </div>
+                     <span className="text-sm text-gray-500">{invoiceItems.length} items</span>
+                   </div>
+                 </div>
 
                   <div className="flex-1 overflow-y-auto">
                     {invoiceItems.length === 0 ? (
