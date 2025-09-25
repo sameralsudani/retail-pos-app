@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import {
   Search,
   Filter,
@@ -10,7 +11,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Pen
+  Pen,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useStore } from "../contexts/StoreContext";
@@ -34,7 +35,10 @@ const TransactionsPage: React.FC = () => {
     null
   );
   const [showSidebar, setShowSidebar] = useState(false);
-  const [updateModal, setUpdateModal] = useState<{ open: boolean; transaction: OrderWithCustomer | null }>({ open: false, transaction: null });
+  const [updateModal, setUpdateModal] = useState<{
+    open: boolean;
+    transaction: OrderWithCustomer | null;
+  }>({ open: false, transaction: null });
 
   // Transactions list
   const transactionsList = transactions.map((transaction) => ({
@@ -60,6 +64,71 @@ const TransactionsPage: React.FC = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Print receipt function (outside component)
+  const printReceipt = (t: (key: string) => string, transaction: OrderWithCustomer) => {
+    const receiptWindow = window.open("", "PRINT", "height=600,width=400");
+    if (!receiptWindow) return;
+    const itemsHtml = transaction.items
+      .map(
+        (item: { product: { name: string; price: number }; quantity: number }) =>
+          `<tr><td style='padding:4px 8px;'>${
+            item.product.name
+          }</td><td style='padding:4px 8px;'>${item.quantity}</td><td style='padding:4px 8px;'>$${(
+            item.product.price * item.quantity
+          ).toFixed(2)}</td></tr>`
+      )
+      .join("");
+    receiptWindow.document.write(`
+    <html>
+      <head>
+        <title>${t("transactions.receipt.title")}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 24px; }
+          h2 { text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+          th, td { border-bottom: 1px solid #eee; text-align: left; }
+          .total { font-weight: bold; }
+          .center { text-align: center; }
+        </style>
+      </head>
+      <body>
+        <h2>${t("transactions.receipt.title")}</h2>
+        <div>${t("transactions.detail.transaction.id")}: ${transaction.id}</div>
+        <div>${t("transactions.detail.customer")}: ${
+      transaction.customerName
+    }</div>
+        <div>${t(
+          "transactions.detail.date"
+        )}: ${transaction.orderDate.toLocaleString()}</div>
+        <table>
+          <thead>
+            <tr>
+              <th>${t("transactions.detail.items")}</th>
+              <th>${t("transactions.table.items.count")}</th>
+              <th>${t("transactions.detail.total")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        <div class='total' style='margin-top:16px;'>${t(
+          "transactions.detail.total"
+        )}: $${transaction.total.toFixed(2)}</div>
+        <div>${t(
+          "transactions.detail.payment.method"
+        )}: <span class='capitalize'>${transaction.paymentMethod}</span></div>
+      </body>
+    </html>
+  `);
+    receiptWindow.document.close();
+    receiptWindow.focus();
+    setTimeout(() => {
+      receiptWindow.print();
+      receiptWindow.close();
+    }, 300);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -106,8 +175,12 @@ const TransactionsPage: React.FC = () => {
   }
 
   const totalTransactions = transactionsList.length;
-  const completedTransactions = transactionsList.length; // All transactions are completed
-  const dueTransactions = 0; // No due transactions in transaction history
+  const completedTransactions = transactionsList.filter(
+    (t) => t.status === "completed"
+  ).length;
+  const dueTransactions = transactionsList.filter(
+    (t) => t.status === "due"
+  ).length;
   const totalRevenue = transactionsList.reduce(
     (sum, transaction) => sum + transaction.total,
     0
@@ -214,9 +287,7 @@ const TransactionsPage: React.FC = () => {
                   <option value="completed">
                     {t("transactions.filter.completed")}
                   </option>
-                  <option value="pending">
-                    {t("transactions.filter.pending")}
-                  </option>
+                  <option value="due">{t("transactions.filter.due")}</option>
                   <option value="cancelled">
                     {t("transactions.filter.cancelled")}
                   </option>
@@ -365,16 +436,17 @@ const TransactionsPage: React.FC = () => {
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() =>
-                            alert(t("transactions.actions.print.success"))
-                          }
+                          onClick={() => printReceipt(t, transaction)}
+                          // Print receipt function
                           className="text-gray-600 hover:text-gray-900 p-1 hover:bg-gray-50 rounded"
                           title={t("transactions.actions.print")}
                         >
                           <Printer className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => setUpdateModal({ open: true, transaction })}
+                          onClick={() =>
+                            setUpdateModal({ open: true, transaction })
+                          }
                           className="text-yellow-600 hover:text-yellow-900 p-1 hover:bg-yellow-50 rounded"
                           title={t("transactions.actions.update")}
                         >
@@ -529,7 +601,12 @@ const TransactionsPage: React.FC = () => {
           onUpdate={async (updates) => {
             await updateTransaction(updateModal.transaction!.id, {
               ...updates,
-              status: updates.status as "completed" | "refunded" | "cancelled" | "due" | undefined,
+              status: updates.status as
+                | "completed"
+                | "refunded"
+                | "cancelled"
+                | "due"
+                | undefined,
             });
             setUpdateModal({ open: false, transaction: null });
           }}
