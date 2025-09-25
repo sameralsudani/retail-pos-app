@@ -52,7 +52,7 @@ const Customers: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   interface Client {
-    id: string;
+    _id: string;
     name: string;
     email: string;
     phone: string;
@@ -80,6 +80,7 @@ const Customers: React.FC = () => {
   // Invoice creation state
   const [products, setProducts] = useState<Product[]>([]);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+  console.log("🚀 ~ Customers ~ invoiceItems:", invoiceItems)
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [invoiceStep, setInvoiceStep] = useState<
@@ -106,10 +107,11 @@ const Customers: React.FC = () => {
     try {
       setIsLoadingProducts(true);
       const response = await productsAPI.getAll();
+      console.log("🚀 ~ loadProducts ~ response:", response)
 
       if (response.success) {
         const mappedProducts = response.data.map((product: Product) => ({
-          id: product.id,
+          id: product._id,
           name: product.name,
           price: product.price,
           category: (typeof product.category === "object"
@@ -135,10 +137,10 @@ const Customers: React.FC = () => {
 
   const addToInvoice = (product: Product) => {
     setInvoiceItems((prev) => {
-      const existingItem = prev.find((item) => item.product.id === product.id);
+      const existingItem = prev.find((item) => item.product._id === product._id);
       if (existingItem) {
         return prev.map((item) =>
-          item.product.id === product.id
+          item.product._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -150,12 +152,12 @@ const Customers: React.FC = () => {
   const updateInvoiceItemQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       setInvoiceItems((prev) =>
-        prev.filter((item) => item.product.id !== productId)
+        prev.filter((item) => item.product._id !== productId)
       );
     } else {
       setInvoiceItems((prev) =>
         prev.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          item.product._id === productId ? { ...item, quantity } : item
         )
       );
     }
@@ -163,7 +165,7 @@ const Customers: React.FC = () => {
 
   const removeFromInvoice = (productId: string) => {
     setInvoiceItems((prev) =>
-      prev.filter((item) => item.product.id !== productId)
+      prev.filter((item) => item.product._id !== productId)
     );
   };
 
@@ -203,7 +205,7 @@ const Customers: React.FC = () => {
           product: item.product.id,
           quantity: item.quantity,
         })),
-        customer: selectedCustomer.id,
+        customer: selectedCustomer._id,
         paymentMethod,
         amountPaid: amountPaidNum,
         discount: 0,
@@ -246,6 +248,7 @@ const Customers: React.FC = () => {
       product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
       product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
   );
+  console.log("🚀 ~ Customers ~ filteredProducts:", filteredProducts)
 
   const closeInvoiceModal = () => {
     setShowInvoiceModal(false);
@@ -320,7 +323,7 @@ const Customers: React.FC = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredProducts.map((product) => (
                           <div
-                            key={product.id}
+                            key={product._id}
                             className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                             onClick={() => addToInvoice(product)}
                           >
@@ -371,7 +374,7 @@ const Customers: React.FC = () => {
                       <div className="space-y-3">
                         {invoiceItems.map((item) => (
                           <div
-                            key={item.product.id}
+                            key={item.product._id}
                             className="bg-white dark:bg-gray-800 rounded-lg p-3"
                           >
                             <div className="flex items-start justify-between mb-2">
@@ -385,7 +388,7 @@ const Customers: React.FC = () => {
                               </div>
                               <button
                                 onClick={() =>
-                                  removeFromInvoice(item.product.id)
+                                  removeFromInvoice(item.product._id)
                                 }
                                 className="text-red-500 hover:text-red-700 p-1"
                               >
@@ -397,7 +400,7 @@ const Customers: React.FC = () => {
                                 <button
                                   onClick={() =>
                                     updateInvoiceItemQuantity(
-                                      item.product.id,
+                                      item.product._id,
                                       item.quantity - 1
                                     )
                                   }
@@ -411,7 +414,7 @@ const Customers: React.FC = () => {
                                 <button
                                   onClick={() =>
                                     updateInvoiceItemQuantity(
-                                      item.product.id,
+                                      item.product._id,
                                       item.quantity + 1
                                     )
                                   }
@@ -495,7 +498,7 @@ const Customers: React.FC = () => {
                     <div className="space-y-3">
                       {invoiceItems.map((item) => (
                         <div
-                          key={item.product.id}
+                          key={item.product._id}
                           className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                         >
                           <div>
@@ -727,7 +730,7 @@ const Customers: React.FC = () => {
         }
 
         interface MappedCustomer {
-          id: string;
+          _id: string;
           name: string;
           email: string;
           phone: string;
@@ -745,7 +748,7 @@ const Customers: React.FC = () => {
           response.data as ApiCustomer[]
         ).map(
           (apiCustomer: ApiCustomer): MappedCustomer => ({
-            id: apiCustomer._id || apiCustomer.id || "",
+            _id: apiCustomer._id|| "",
             name: apiCustomer.name,
             email: apiCustomer.email,
             phone: apiCustomer.phone || "",
@@ -896,7 +899,7 @@ const Customers: React.FC = () => {
 
         console.log("Updating client with data:", updateData);
         const response = await customersAPI.update(
-          selectedCustomer.id,
+          selectedCustomer._id,
           updateData
         );
 
@@ -1110,7 +1113,7 @@ const Customers: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCustomers.map((customer) => (
             <div
-              key={customer.id}
+              key={customer._id}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
               <div className="p-6">
@@ -1163,7 +1166,7 @@ const Customers: React.FC = () => {
                     )}
                     {canDelete && (
                       <button
-                        onClick={() => handleDeleteCustomer(customer.id)}
+                        onClick={() => handleDeleteCustomer(customer._id)}
                         className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                         title={t("customers.actions.delete")}
                       >
