@@ -82,7 +82,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "customers.invoice.creating": "Creating...",
     "customers.invoice.create": "Create Invoice",
     // Header
-    "header.title": "RetailPOS",
+    "header.title": "POS",
     "header.subtitle": "Point of Sale System",
     "header.cashier": "Cashier",
 
@@ -838,8 +838,8 @@ const translations: Record<Language, { [key: string]: string }> = {
     "customers.invoice.creating": "جاري الإنشاء...",
     "customers.invoice.create": "إنشاء الفاتورة",
     // Header
-    "header.title": "نظام نقاط البيع",
-    "header.subtitle": "نظام نقاط البيع",
+    "header.title": "نقطة البيع",
+    "header.subtitle": "نقطة البيع",
     "header.cashier": "أمين الصندوق",
 
     // Auth
