@@ -37,6 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     setShowLogoutModal(false);
   };
 
+  // Always put POSPage (header.title) at the top
   const menuItems = [
     {
       label: t("header.title"),
@@ -54,7 +55,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-
     {
       label: t("sidebar.customers"),
       icon: Users,
@@ -63,10 +63,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-
     {
       icon: Package,
-      label: t("sidebar.inventory"),
+      label: t("sidebar.inventoryManagement"),
       onClick: () => {
         navigate("/inventory");
         onClose();
@@ -109,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   // Add Reports and Settings menu items only for Admin and Manager
   if (user?.role === "admin" || user?.role === "manager") {
     // Add Reports at the beginning
-    menuItems.unshift({
+    menuItems.push({
       icon: BarChart3,
       label: t("sidebar.reports"),
       onClick: () => {

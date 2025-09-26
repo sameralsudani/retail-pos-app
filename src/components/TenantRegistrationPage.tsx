@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Store, User, MapPin, ArrowRight, ArrowLeft, Check, AlertCircle, Receipt } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +7,7 @@ import { tenantsAPI } from '../services/api';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const TenantRegistrationPage = () => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);

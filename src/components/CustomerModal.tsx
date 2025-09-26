@@ -176,8 +176,8 @@ const CustomerModal: React.FC<CustomerModalProps> = ({ currentCustomer, onClose,
                         <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{t('client.modal.noClient')}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('client.modal.walkIn')}</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{t('customer.modal.noClient')}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('customer.modal.walkIn')}</p>
                       </div>
                     </div>
                   </button>

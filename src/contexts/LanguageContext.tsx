@@ -121,6 +121,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "sidebar.dashboard": "Dashboard",
     "sidebar.pos": "Point of Sale",
     "sidebar.inventory": "Inventory",
+    "sidebar.inventoryManagement": "Inventory Management",
     "sidebar.transactions": "Transactions",
     "sidebar.categories": "Categories",
     "sidebar.suppliers": "Suppliers",
@@ -265,6 +266,10 @@ const translations: Record<Language, { [key: string]: string }> = {
     "common.status": "Status",
     "common.active": "Active",
     "common.inactive": "Inactive",
+
+  // Customer Modal
+  "customer.modal.noClient": "No customer selected",
+  "customer.modal.walkIn": "Walk-in customer",
 
     // Employees
     "employees.title": "Employees",
@@ -443,11 +448,12 @@ const translations: Record<Language, { [key: string]: string }> = {
     "dashboard.on.duty": "On Duty",
     "dashboard.starts.at": "Starts at",
     "dashboard.view.all.notifications": "View all notifications",
-  "dashboard.items": "items",
-  "loading.dashboard": "Loading dashboard...",
-  "dashboard.unknown.cashier": "Unknown cashier",
-  "dashboard.walkin.customer": "Walk-in Customer",
-  "dashboard.low.stock.alert": "{name} stock running low ({stock} units left)",
+    "dashboard.items": "items",
+    "loading.dashboard": "Loading dashboard...",
+    "dashboard.unknown.cashier": "Unknown cashier",
+    "dashboard.walkin.customer": "Walk-in Customer",
+    "dashboard.low.stock.alert":
+      "{name} stock running low ({stock} units left)",
 
     // Users
     "users.title": "Users",
@@ -876,7 +882,8 @@ const translations: Record<Language, { [key: string]: string }> = {
     // Sidebar
     "sidebar.dashboard": "لوحة التحكم",
     "sidebar.pos": "نقطة البيع",
-    "sidebar.inventory": "المخزون",
+    "sidebar.inventory": "المخزن",
+    "sidebar.inventoryManagement": "إدارة المخزون",
     "sidebar.orders": "الطلبات",
     "sidebar.categories": "الفئات",
     "sidebar.suppliers": "الموردين",
@@ -998,7 +1005,7 @@ const translations: Record<Language, { [key: string]: string }> = {
 
     // Loading
     "loading.store.data": "جاري تحميل بيانات المتجر...",
-    "loading.inventory": "جاري تحميل المخزون...",
+    "loading.inventory": "جاري تحميل المخزن...",
     "loading.categories": "جاري تحميل الفئات...",
     "loading.suppliers": "جاري تحميل الموردين...",
     "loading.users": "جاري تحميل المستخدمين...",
@@ -1021,6 +1028,10 @@ const translations: Record<Language, { [key: string]: string }> = {
     "common.active": "نشط",
     "common.inactive": "غير نشط",
 
+  // Customer Modal
+  "customer.modal.noClient": "لم يتم اختيار عميل",
+  "customer.modal.walkIn": "عميل مباشر",
+
     // Employees
     "employees.title": "الموظفين",
     "employees.add.employee": "إضافة موظف",
@@ -1032,7 +1043,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "employees.filter.all.departments": "جميع الأقسام",
     "employees.department.management": "الإدارة",
     "employees.department.sales": "المبيعات",
-    "employees.department.inventory": "المخزون",
+    "employees.department.inventory": "المخزن",
     "employees.department.pharmacy": "الصيدلية",
     "employees.department.security": "الأمن",
     "employees.department.customer.service": "خدمة العملاء",
@@ -1197,11 +1208,12 @@ const translations: Record<Language, { [key: string]: string }> = {
     "dashboard.on.duty": "في الخدمة",
     "dashboard.starts.at": "يبدأ في",
     "dashboard.view.all.notifications": "عرض جميع الإشعارات",
-  "dashboard.items": "عناصر",
-  "loading.dashboard": "جاري تحميل لوحة التحكم...",
-  "dashboard.unknown.cashier": "أمين صندوق غير معروف",
-  "dashboard.walkin.customer": "عميل مباشر",
-  "dashboard.low.stock.alert": "المخزون منخفض للمنتج {name} (المتبقي {stock} وحدة)",
+    "dashboard.items": "عناصر",
+    "loading.dashboard": "جاري تحميل لوحة التحكم...",
+    "dashboard.unknown.cashier": "أمين صندوق غير معروف",
+    "dashboard.walkin.customer": "عميل مباشر",
+    "dashboard.low.stock.alert":
+      "المخزن منخفض للمنتج {name} (المتبقي {stock} وحدة)",
 
     // Users
     "users.title": "المستخدمين",
@@ -1346,26 +1358,26 @@ const translations: Record<Language, { [key: string]: string }> = {
     "suppliers.info.updated": "تم التحديث",
 
     // Inventory
-    "inventory.title": "المخزون",
+    "inventory.title": "المخزن",
     "inventory.add.item": "إضافة عنصر",
     "inventory.add.title": "إضافة عنصر جديد",
     "inventory.edit.title": "تعديل العنصر",
     "inventory.view.title": "عرض العنصر",
     "inventory.delete.confirm": "هل أنت متأكد من حذف هذا العنصر؟",
-    "inventory.search.placeholder": "البحث في المخزون...",
+    "inventory.search.placeholder": "البحث في المخزن...",
     "inventory.filter.all.categories": "جميع الفئات",
-    "inventory.filter.all.stock": "جميع المخزون",
+    "inventory.filter.all.stock": "جميع المخزن",
     "inventory.filter.in.stock": "متوفر",
     "inventory.filter.low.stock": "مخزون منخفض",
-    "inventory.filter.out.of.stock": "نفد المخزون",
+    "inventory.filter.out.of.stock": "نفد المخزن",
     "inventory.stats.total.items": "إجمالي العناصر",
     "inventory.stats.low.stock": "مخزون منخفض",
-    "inventory.stats.out.of.stock": "نفد المخزون",
+    "inventory.stats.out.of.stock": "نفد المخزن",
     "inventory.stats.total.value": "القيمة الإجمالية",
     "inventory.table.product": "المنتج",
     "inventory.table.sku": "SKU",
     "inventory.table.category": "الفئة",
-    "inventory.table.stock": "المخزون",
+    "inventory.table.stock": "المخزن",
     "inventory.table.price": "السعر",
     "inventory.table.supplier": "المورد",
     "inventory.table.actions": "الإجراءات",
@@ -1381,7 +1393,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "inventory.form.supplier": "المورد",
     "inventory.form.cost.price": "سعر التكلفة",
     "inventory.form.selling.price": "سعر البيع",
-    "inventory.form.stock": "كمية المخزون",
+    "inventory.form.stock": "كمية المخزن",
     "inventory.form.reorder.level": "مستوى إعادة الطلب",
     "inventory.form.description": "الوصف",
     "inventory.form.image": "صورة المنتج",
@@ -1445,7 +1457,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "reports.title": "التقارير",
     "reports.overview": "نظرة عامة",
     "reports.sales": "المبيعات",
-    "reports.inventory": "المخزون",
+    "reports.inventory": "المخزن",
     "reports.customers": "العملاء",
     "reports.products": "المنتجات",
     "reports.date.today": "اليوم",
@@ -1475,7 +1487,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "reports.table.avg.transaction": "متوسط المعاملة",
     "reports.inventory.total.items": "إجمالي العناصر",
     "reports.inventory.low.stock": "مخزون منخفض",
-    "reports.inventory.out.of.stock": "نفد المخزون",
+    "reports.inventory.out.of.stock": "نفد المخزن",
 
     // Settings
     "settings.title": "الإعدادات",
@@ -1499,7 +1511,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.system.time.format": "تنسيق الوقت",
     "settings.system.time.12": "12 ساعة",
     "settings.system.time.24": "24 ساعة",
-    "settings.system.low.stock.threshold": "حد المخزون المنخفض",
+    "settings.system.low.stock.threshold": "حد المخزن المنخفض",
     "settings.receipt.customization": "تخصيص الإيصال",
     "settings.receipt.header": "رأس الإيصال",
     "settings.receipt.footer": "تذييل الإيصال",
@@ -1507,7 +1519,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.receipt.print.logo": "طباعة الشعار على الإيصال",
     "settings.receipt.auto.print": "طباعة تلقائية للإيصالات",
     "settings.notifications.alerts": "إعدادات التنبيه",
-    "settings.notifications.low.stock": "تنبيهات المخزون المنخفض",
+    "settings.notifications.low.stock": "تنبيهات المخزن المنخفض",
     "settings.notifications.email": "إشعارات البريد الإلكتروني",
     "settings.notifications.sound": "المؤثرات الصوتية",
     "settings.security.access": "التحكم في الوصول",

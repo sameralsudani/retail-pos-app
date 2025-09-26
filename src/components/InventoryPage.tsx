@@ -22,6 +22,7 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 
 interface InventoryItem extends Product {
+  id: string;
   lastRestocked: Date;
   costPrice: number;
   reorderLevel: number;
@@ -76,11 +77,7 @@ const InventoryPage = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Load data on component mount
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
+  const loadInitialData = React.useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -91,7 +88,11 @@ const InventoryPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   const loadProducts = async () => {
     try {
@@ -118,6 +119,7 @@ const InventoryPage = () => {
 
         const products: InventoryItem[] = response.data.map(
           (product: ProductAPIResponse): InventoryItem => ({
+            _id: product._id || "",
             id: product._id || product.id || "",
             name: product.name,
             price: product.price,
