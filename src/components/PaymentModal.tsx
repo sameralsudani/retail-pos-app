@@ -9,7 +9,6 @@ interface PaymentModalProps {
     method: string,
     amountPaid: number,
     amountDue: number,
-    status: string
   ) => void;
 }
 
@@ -28,7 +27,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const amountPaid = parseFloat(cashReceived) || total;
     const amountDue = total - amountPaid;
-    onPaymentComplete("cash", amountPaid, amountDue, "completed");
+    onPaymentComplete("cash", amountPaid, amountDue);
     setIsProcessing(false);
   };
 
@@ -38,7 +37,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const amountPaid = parseFloat(cashReceived) || 0;
     const amountDue = total - amountPaid;
-    onPaymentComplete("cash", amountPaid, amountDue, "due");
+    onPaymentComplete("cash", amountPaid, amountDue);
     setIsProcessing(false);
   };
 

@@ -15,7 +15,6 @@ import SettingsPage from './components/SettingsPage';
 import ReportsPage from './components/ReportsPage';
 import TenantRegistrationPage from './components/TenantRegistrationPage';
 import Dashboard from './components/Dashboard';
-import Employees from './components/Employees';
 import Customers from './components/Customers';
 
 // Error boundary component
@@ -115,14 +114,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Customers />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/employees" 
-              element={
-                <ProtectedRoute>
-                  <Employees />
                 </ProtectedRoute>
               } 
             />

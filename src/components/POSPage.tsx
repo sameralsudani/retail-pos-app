@@ -57,8 +57,8 @@ const PosPage: React.FC = () => {
   const tax = getCartTax();
   const total = getCartTotal();
 
-  const handlePaymentComplete = (paymentMethod: string, amountPaid: number, amountDue: number, status: string) => {
-    completeTransaction(paymentMethod, amountPaid, amountDue, status);
+  const handlePaymentComplete = (paymentMethod: string, amountPaid: number, amountDue: number) => {
+    completeTransaction(paymentMethod, amountPaid, amountDue);
     setShowPaymentModal(false);
     setShowReceiptModal(true);
   };

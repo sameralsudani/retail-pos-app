@@ -79,7 +79,6 @@ interface StoreActions {
     paymentMethod: string,
     amountPaid: number,
     amountDue: number,
-    status: string
   ) => Promise<void>;
   loadTransactions: () => Promise<void>;
   updateTransaction: (
@@ -515,7 +514,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     paymentMethod: string,
     amountPaid: number,
     amountDue: number,
-    status: string
   ) => {
     try {
       const total = getCartTotal();
