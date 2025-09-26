@@ -54,6 +54,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "receipt.email": "Email",
     "receipt.download": "Download PDF",
     "receipt.new.transaction": "New Transaction",
+    "sidebar.transactions": "Transactions",
     "customers.invoice.create.due": "Create Invoice (Mark as Due)",
     "customers.invoice.due.amount": "Due Amount",
     // Invoice Modal
@@ -805,6 +806,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "receipt.email": "إرسال بالبريد",
     "receipt.download": "تحميل PDF",
     "receipt.new.transaction": "عملية جديدة",
+    "sidebar.transactions": "المعاملات",
     "customers.invoice.create.due": "إنشاء الفاتورة (تسجيل كمديونية)",
     "customers.invoice.due.amount": "المبلغ المستحق",
     // Invoice Modal
