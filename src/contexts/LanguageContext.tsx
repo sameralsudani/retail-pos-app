@@ -267,9 +267,9 @@ const translations: Record<Language, { [key: string]: string }> = {
     "common.active": "Active",
     "common.inactive": "Inactive",
 
-  // Customer Modal
-  "customer.modal.noClient": "No customer selected",
-  "customer.modal.walkIn": "Walk-in customer",
+    // Customer Modal
+    "customer.modal.noClient": "No customer selected",
+    "customer.modal.walkIn": "Walk-in customer",
 
     // Employees
     "employees.title": "Employees",
@@ -1028,9 +1028,9 @@ const translations: Record<Language, { [key: string]: string }> = {
     "common.active": "نشط",
     "common.inactive": "غير نشط",
 
-  // Customer Modal
-  "customer.modal.noClient": "لم يتم اختيار عميل",
-  "customer.modal.walkIn": "عميل مباشر",
+    // Customer Modal
+    "customer.modal.noClient": "لم يتم اختيار عميل",
+    "customer.modal.walkIn": "عميل مباشر",
 
     // Employees
     "employees.title": "الموظفين",
