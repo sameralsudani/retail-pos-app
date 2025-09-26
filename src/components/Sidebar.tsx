@@ -39,6 +39,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     {
+      label: t("header.title"),
+      icon: Store,
+      onClick: () => {
+        navigate("/pos");
+        onClose();
+      },
+    },
+    {
       label: t("sidebar.dashboard"),
       icon: LayoutDashboard,
       onClick: () => {
@@ -135,11 +143,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },);
   }
 
-  const handlePOSClick = () => {
-    navigate("/pos");
-    onClose();
-  };
-
   return (
     <>
       {/* Overlay */}
@@ -162,32 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             : "-translate-x-full"
         }`}
       >
-        {/* Header */}
-        <div
-          className={`flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 ${
-            language === "ar" ? "flex-row-reverse" : ""
-          }`}
-        >
-          <button
-            onClick={handlePOSClick}
-            className={`flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg p-2 -m-2 transition-colors min-w-0 flex-1 ${
-              language === "ar"
-                ? "space-x-reverse space-x-2 sm:space-x-3"
-                : "space-x-2 sm:space-x-3"
-            }`}
-          >
-            <Store className={`h-6 w-6 sm:h-8 sm:w-8 text-blue-600 flex-shrink-0${language === "ar" ? ' ml-2' : ''}`} />
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
-              {t("header.title")}
-            </h2>
-          </button>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-          >
-            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </button>
-        </div>
+       
 
         {/* User Info */}
         <div
@@ -213,7 +191,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 {user?.role || t("sidebar.cashier.role")}
               </div>
             </div>
+            <div className="flex-shrink-0">
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 hover:scale-105"
+                title={t("sidebar.close")}
+              >
+                <X className="h-5 w-5 sm:h-6 sm:w-6" />
+              </button>
+            </div>
           </div>
+         
         </div>
 
         {/* Menu Items */}
