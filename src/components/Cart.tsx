@@ -47,7 +47,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
       <div className="flex-1 overflow-y-auto">
         <div className="p-2 sm:p-3 space-y-2 sm:space-y-3">
           {items.map((item) => (
-            <div key={item.product.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+            <div key={item.product._id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 sm:p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <img
                   src={item.product.image}
@@ -70,7 +70,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
                       <p className="text-xs text-gray-500 dark:text-gray-400">{item.product.sku}</p>
                     </div>
                     <button
-                      onClick={() => onRemoveItem(item.product.id)}
+                      onClick={() => onRemoveItem(item.product._id)}
                       className="ml-1 sm:ml-2 text-gray-400 hover:text-red-600 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors flex-shrink-0"
                     >
                       <X className="h-3 w-3" />
@@ -80,7 +80,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
                   <div className="flex items-center justify-between mt-1 sm:mt-2">
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <button
-                        onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
+                        onClick={() => onUpdateQuantity(item.product._id, item.quantity - 1)}
                         className="p-1 hover:bg-white dark:hover:bg-gray-800 rounded-full transition-colors"
                       >
                         <Minus className="h-3 w-3" />
@@ -91,7 +91,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
                       </span>
                       
                       <button
-                        onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
+                        onClick={() => onUpdateQuantity(item.product._id, item.quantity + 1)}
                         className="p-1 hover:bg-white dark:hover:bg-gray-800 rounded-full transition-colors"
                       >
                         <Plus className="h-3 w-3" />

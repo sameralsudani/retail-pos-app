@@ -75,7 +75,12 @@ interface StoreActions {
   loadClients: () => Promise<void>;
 
   // Transaction Actions
-  completeTransaction: (paymentMethod: string, amountPaid: number) => void;
+  completeTransaction: (
+    paymentMethod: string,
+    amountPaid: number,
+    amountDue: number,
+    status: string
+  ) => Promise<void>;
   loadTransactions: () => Promise<void>;
   updateTransaction: (
     id: string,
@@ -230,24 +235,10 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           supplier?: { name: string } | string;
         }
 
-        interface MappedProduct {
-          id: string;
-          name: string;
-          price: number;
-          category: string;
-          sku: string;
-          stock: number;
-          image: string;
-          description: string;
-          costPrice?: number;
-          reorderLevel?: number;
-          supplier?: string;
-        }
-
-        const products: MappedProduct[] = response.data.map(
-          (product: APIProduct): MappedProduct => {
-            const mappedProduct: MappedProduct = {
-              id: product._id || product.id || "",
+        const products: Product[] = response.data.map(
+          (product: APIProduct): Product => {
+            const mappedProduct: Product = {
+              _id: product._id || product.id || "",
               name: product.name,
               price: product.price,
               category: (typeof product.category === "object" &&
@@ -273,7 +264,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             return mappedProduct;
           }
         );
-        console.log("Processed products:", products.length);
         setState((prev) => ({ ...prev, products }));
       } else {
         console.error("Failed to load products:", response);
@@ -399,6 +389,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           cashier?: APITransactionCashier;
         }
 
+        const allowedStatuses = ["completed", "refunded", "cancelled", "due"] as const;
+        type AllowedStatus = typeof allowedStatuses[number];
+
         const transactions = (response.data as APITransaction[]).map(
           (transaction) => ({
             id: transaction._id,
@@ -420,7 +413,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             total: transaction.total,
             paymentMethod: transaction.paymentMethod,
             amountPaid: transaction.amountPaid,
-            status: transaction.status,
+            status: allowedStatuses.includes(transaction.status as AllowedStatus)
+              ? (transaction.status as AllowedStatus)
+              : undefined,
             customer: transaction.customer
               ? {
                   id: transaction.customer._id,
@@ -449,7 +444,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     setState((prev) => ({
       ...prev,
       products: prev.products.map((product) =>
-        product.id === productId ? { ...product, ...updates } : product
+        product._id === productId ? { ...product, ...updates } : product
       ),
     }));
   };
@@ -518,13 +513,17 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
   const completeTransaction = async (
     paymentMethod: string,
-    amountPaid: number
+    amountPaid: number,
+    amountDue: number,
+    status: string
   ) => {
     try {
       const total = getCartTotal();
 
+      const isPartial = amountPaid < total;
+
       // Validate cart items have valid product IDs
-      const invalidItems = state.cartItems.filter((item) => !item.product.id);
+      const invalidItems = state.cartItems.filter((item) => !item.product._id);
       if (invalidItems.length > 0) {
         console.error("Invalid cart items found:", invalidItems);
         setError("Invalid products in cart. Please refresh and try again.");
@@ -534,7 +533,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       // Prepare transaction data for backend
       const transactionData = {
         items: state.cartItems.map((item) => ({
-          product: item.product.id,
+          product: item.product._id,
           quantity: item.quantity,
         })),
         ...(state.currentCustomer?.id && {
@@ -542,7 +541,8 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         }),
         paymentMethod,
         amountPaid,
-        total,
+        dueAmount: isPartial ? amountDue : 0,
+        isPaid: !isPartial,
       };
 
       const response = await transactionsAPI.create(transactionData);
@@ -618,7 +618,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
 
       if (response.success) {
         const product = {
-          id: response.data._id,
+          _id: response.data._id,
           name: response.data.name,
           price: response.data.price,
           category: response.data.category?.name || response.data.category,
@@ -669,14 +669,14 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     console.log("Adding product to cart:", product);
     setState((prev) => {
       const existingItem = prev.cartItems.find(
-        (item) => item.product.id === product.id
+        (item) => item.product._id === product._id
       );
       if (existingItem) {
         console.log("Product already in cart, increasing quantity");
         return {
           ...prev,
           cartItems: prev.cartItems.map((item) =>
-            item.product.id === product.id
+            item.product._id === product._id
               ? { ...item, quantity: item.quantity + 1 }
               : item
           ),
@@ -697,7 +697,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       setState((prev) => ({
         ...prev,
         cartItems: prev.cartItems.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          item.product._id === productId ? { ...item, quantity } : item
         ),
       }));
     }
@@ -706,7 +706,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const removeFromCart = (productId: string) => {
     setState((prev) => ({
       ...prev,
-      cartItems: prev.cartItems.filter((item) => item.product.id !== productId),
+      cartItems: prev.cartItems.filter((item) => item.product._id !== productId),
     }));
   };
 

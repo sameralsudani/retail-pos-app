@@ -91,14 +91,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
 
           {/* Totals */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">{t('receipt.subtotal')}</span>
-              <span className="text-gray-900 dark:text-gray-100">${transaction.subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">{t('receipt.tax')}</span>
-              <span className="text-gray-900 dark:text-gray-100">${transaction.tax.toFixed(2)}</span>
-            </div>
+           
+            
             <div className="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-700 pt-2 text-gray-900 dark:text-gray-100">
               <span>{t('receipt.total')}</span>
               <span>${transaction.total.toFixed(2)}</span>
@@ -115,12 +109,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.amount.paid')}</span>
               <span className="text-gray-900 dark:text-gray-100">${transaction.amountPaid.toFixed(2)}</span>
             </div>
-            {transaction.change > 0 && (
-              <div className="flex justify-between text-sm font-medium text-green-600">
-                <span>{t('receipt.change')}</span>
-                <span>${transaction.change.toFixed(2)}</span>
-              </div>
-            )}
+           
           </div>
 
           {/* Footer */}
