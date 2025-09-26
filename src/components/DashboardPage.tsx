@@ -16,7 +16,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Header from './Header';
 import Sidebar from './Sidebar';
 
-const Dashboard: React.FC = () => {
+const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
   const [showSidebar, setShowSidebar] = useState(false);
 
@@ -176,49 +176,7 @@ const Dashboard: React.FC = () => {
 
         {/* Employee Schedule & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Current Shift */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('dashboard.current.shift')}</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className={`flex items-center ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 font-semibold text-sm">SM</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Sarah Miller</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Cashier • 9:00 AM - 5:00 PM</p>
-                  </div>
-                </div>
-                <span className="text-green-600 dark:text-green-400 text-sm font-medium">{t('dashboard.on.duty')}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className={`flex items-center ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">MR</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Mike Rodriguez</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Manager • 8:00 AM - 6:00 PM</p>
-                  </div>
-                </div>
-                <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">{t('dashboard.on.duty')}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className={`flex items-center ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-semibold text-sm">AT</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">Alex Thompson</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Stock Clerk • 3:00 PM - 11:00 PM</p>
-                  </div>
-                </div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm font-medium">{t('dashboard.starts.at')} 3:00 PM</span>
-              </div>
-            </div>
-          </div>
-
+          
           {/* Quick Actions */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('dashboard.quick.actions')}</h2>
@@ -253,4 +211,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;

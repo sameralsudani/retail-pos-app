@@ -54,7 +54,6 @@ const translations: Record<Language, { [key: string]: string }> = {
     "receipt.email": "Email",
     "receipt.download": "Download PDF",
     "receipt.new.transaction": "New Transaction",
-    "sidebar.transactions": "Transactions",
     "customers.invoice.create.due": "Create Invoice (Mark as Due)",
     "customers.invoice.due.amount": "Due Amount",
     // Invoice Modal
