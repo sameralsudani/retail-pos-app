@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   DollarSign,
   Users,
@@ -15,60 +14,164 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import { reportsAPI, transactionsAPI, productsAPI, usersAPI } from '../services/api';
 
 const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
   const [showSidebar, setShowSidebar] = useState(false);
+  type Stat = {
+    title: string;
+    value: string | number;
+    change: string;
+    changeType: 'positive' | 'negative';
+    icon: React.ElementType;
+    color: string;
+  };
+  type Sale = {
+    id: string | number;
+    customer: string;
+    amount: string;
+    time: string;
+    items: number;
+    cashier: string;
+    itemsLabel: string;
+  };
+  type Alert = {
+    id: string | number;
+    type: 'warning' | 'success' | 'info';
+    message: string;
+    time: string;
+  };
+  const [stats, setStats] = useState<Stat[]>([]);
+  const [recentSales, setRecentSales] = useState<Sale[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const stats = [
-    {
-      title: t('dashboard.stats.today.sales'),
-      value: '$3,247',
-      change: '+12.5%',
-      changeType: 'positive',
-      icon: DollarSign,
-      color: 'bg-green-500'
-    },
-    {
-      title: t('dashboard.stats.active.employees'),
-      value: '24',
-      change: '+2',
-      changeType: 'positive',
-      icon: Users,
-      color: 'bg-blue-500'
-    },
-    {
-      title: t('dashboard.stats.low.stock'),
-      value: '8',
-      change: '-3',
-      changeType: 'positive',
-      icon: Package,
-      color: 'bg-orange-500'
-    },
-    {
-      title: t('dashboard.stats.orders.today'),
-      value: '156',
-      change: '+23%',
-      changeType: 'positive',
-      icon: ShoppingCart,
-      color: 'bg-purple-500'
-    }
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch stats overview
+        const overview = await reportsAPI.getOverview();
+        // Fetch recent sales (transactions)
+        const salesRes = await transactionsAPI.getAll({ limit: 5, sort: 'desc' });
+        // Fetch low stock products
+        const lowStockRes = await productsAPI.getAll({ lowStock: true });
+        // Fetch active employees (users)
+        let usersStats: { active?: string | number; change?: string } = { active: '0', change: '' };
+        try {
+          const res = await usersAPI.getStats();
+          if (res && typeof res === 'object' && !Array.isArray(res) && 'active' in res) {
+            usersStats = res;
+          } else {
+            // If the response is a string or not the expected object, fallback
+            console.warn('usersAPI.getStats() returned unexpected:', res);
+            usersStats = { active: '0', change: '' };
+          }
+        } catch (err) {
+          console.warn('usersAPI.getStats() failed:', err);
+          usersStats = { active: '0', change: '' };
+        }
 
-  const recentSales = [
-    { id: 1, customer: 'Walk-in Customer', amount: '$45.50', time: '2:30 PM', items: 3, cashier: 'Sarah M.', itemsLabel: t('dashboard.items') },
-    { id: 2, customer: 'John Smith', amount: '$127.80', time: '2:15 PM', items: 8, cashier: 'Mike R.', itemsLabel: t('dashboard.items') },
-    { id: 3, customer: 'Walk-in Customer', amount: '$23.99', time: '2:00 PM', items: 2, cashier: 'Sarah M.', itemsLabel: t('dashboard.items') },
-    { id: 4, customer: 'Emily Davis', amount: '$89.45', time: '1:45 PM', items: 5, cashier: 'Alex T.', itemsLabel: t('dashboard.items') },
-    { id: 5, customer: 'Walk-in Customer', amount: '$156.20', time: '1:30 PM', items: 12, cashier: 'Mike R.', itemsLabel: t('dashboard.items') }
-  ];
+        setStats([
+          {
+            title: t('dashboard.stats.today.sales'),
+            value: overview?.todaySales ? `$${overview.todaySales.toFixed(2)}` : '$0.00',
+            change: overview?.salesChange ?? '',
+            changeType: overview?.salesChange && overview.salesChange.startsWith('+') ? 'positive' : 'negative',
+            icon: DollarSign,
+            color: 'bg-green-500'
+          },
+          {
+            title: t('dashboard.stats.active.employees'),
+            value: usersStats?.active ?? '0',
+            change: usersStats?.change ?? '',
+            changeType: usersStats?.change && usersStats.change.startsWith('+') ? 'positive' : 'negative',
+            icon: Users,
+            color: 'bg-blue-500'
+          },
+          {
+            title: t('dashboard.stats.low.stock'),
+            value: lowStockRes?.data?.length ?? '0',
+            change: '',
+            changeType: 'negative',
+            icon: Package,
+            color: 'bg-orange-500'
+          },
+          {
+            title: t('dashboard.stats.orders.today'),
+            value: overview?.ordersToday ?? '0',
+            change: overview?.ordersChange ?? '',
+            changeType: overview?.ordersChange && overview.ordersChange.startsWith('+') ? 'positive' : 'negative',
+            icon: ShoppingCart,
+            color: 'bg-purple-500'
+          }
+        ]);
 
-  const alerts = [
-    { id: 1, type: 'warning', message: 'Aspirin stock running low (12 units left)', time: '10 min ago' },
-    { id: 2, type: 'info', message: 'Employee shift change at 3:00 PM', time: '30 min ago' },
-    { id: 3, type: 'success', message: 'Daily sales target achieved!', time: '1 hour ago' },
-    { id: 4, type: 'warning', message: 'Milk expires tomorrow (15 units)', time: '2 hours ago' }
-  ];
+        setRecentSales(
+          salesRes?.data?.map((sale: {
+            id: string | number;
+            customer?: { name?: string };
+            total: number;
+            timestamp: string;
+            items?: unknown[];
+            cashier: string | { name?: string; employeeId?: string };
+          }) => ({
+            id: sale.id,
+            customer: sale.customer?.name || t('dashboard.walkin.customer'),
+            amount: `$${sale.total.toFixed(2)}`,
+            time: new Date(sale.timestamp).toLocaleTimeString(),
+            items: Array.isArray(sale.items) ? sale.items.length : 0,
+            cashier: typeof sale.cashier === 'object' && sale.cashier !== null
+              ? sale.cashier.name || sale.cashier.employeeId || t('dashboard.unknown.cashier')
+              : sale.cashier || t('dashboard.unknown.cashier'),
+            itemsLabel: t('dashboard.items')
+          })) || []
+        );
+
+        setAlerts([
+          ...(lowStockRes?.data?.map((p: { id: string | number; name: string; stock: number }) => ({
+            id: p.id,
+            type: 'warning' as const,
+            message: `${p.name} stock running low (${p.stock} units left)`,
+            time: ''
+          })) || []),
+        ]);
+      } catch (err) {
+        if (typeof err === 'object' && err && 'message' in err) {
+          setError((err as { message: string }).message || 'Failed to load dashboard data');
+        } else {
+          setError('Failed to load dashboard data');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, [t]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">{t('loading.dashboard')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -78,7 +181,6 @@ const DashboardPage: React.FC = () => {
       />
 
       <div className="p-6 space-y-6">
-       
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => {
@@ -176,7 +278,6 @@ const DashboardPage: React.FC = () => {
 
         {/* Employee Schedule & Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
           {/* Quick Actions */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('dashboard.quick.actions')}</h2>

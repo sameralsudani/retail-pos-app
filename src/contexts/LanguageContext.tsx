@@ -443,7 +443,11 @@ const translations: Record<Language, { [key: string]: string }> = {
     "dashboard.on.duty": "On Duty",
     "dashboard.starts.at": "Starts at",
     "dashboard.view.all.notifications": "View all notifications",
-    "dashboard.items": "items",
+  "dashboard.items": "items",
+  "loading.dashboard": "Loading dashboard...",
+  "dashboard.unknown.cashier": "Unknown cashier",
+  "dashboard.walkin.customer": "Walk-in Customer",
+  "dashboard.low.stock.alert": "{name} stock running low ({stock} units left)",
 
     // Users
     "users.title": "Users",
@@ -1193,7 +1197,11 @@ const translations: Record<Language, { [key: string]: string }> = {
     "dashboard.on.duty": "في الخدمة",
     "dashboard.starts.at": "يبدأ في",
     "dashboard.view.all.notifications": "عرض جميع الإشعارات",
-    "dashboard.items": "عناصر",
+  "dashboard.items": "عناصر",
+  "loading.dashboard": "جاري تحميل لوحة التحكم...",
+  "dashboard.unknown.cashier": "أمين صندوق غير معروف",
+  "dashboard.walkin.customer": "عميل مباشر",
+  "dashboard.low.stock.alert": "المخزون منخفض للمنتج {name} (المتبقي {stock} وحدة)",
 
     // Users
     "users.title": "المستخدمين",
