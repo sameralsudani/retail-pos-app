@@ -52,7 +52,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
                 <img
                   src={item.product.image}
                   alt={item.product.name}
-                  className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
+                  className={`w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0${document?.documentElement?.dir === 'rtl' ? ' ml-2' : ''}`}
                 />
                 
                 <div className="flex-1 min-w-0">
@@ -67,7 +67,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemoveItem, onCl
                         {/* If you have an icon, place it here, otherwise remove this comment */}
                         {item.product.name}
                       </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{item.product.sku}</p>
+                      <p className={`text-xs text-gray-500 dark:text-gray-400${document?.documentElement?.dir === 'rtl' ? ' mr-2' : ''}`}>{item.product.sku}</p>
                     </div>
                     <button
                       onClick={() => onRemoveItem(item.product._id)}
