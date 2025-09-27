@@ -49,7 +49,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
               )}
               <button
                 onClick={() => {
-                  console.log("Product clicked:", product);
                   onAddToCart(product);
                 }}
                 className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 bg-blue-600 text-white p-1.5 sm:p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg opacity-0 group-hover:opacity-100"

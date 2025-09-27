@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
+declare global {
+  interface Window {
+    authInitializing?: boolean;
+  }
+}
+
 export interface User {
   id: string;
   name: string;
@@ -54,12 +60,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         // Prevent multiple simultaneous initializations with a more robust check
         if (window.authInitializing) {
-          console.log('Auth initialization already in progress, skipping...');
           return;
         }
         window.authInitializing = true;
         
-        console.log('Starting auth initialization...');
         const userData = localStorage.getItem('pos_user');
         if (userData) {
           try {
@@ -81,16 +85,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 updatedAt: new Date(parsed.updatedAt)
               };
               setUser(userFromStorage);
-              console.log('User loaded from localStorage successfully');
               
               // Skip token validation on refresh to prevent CORS issues
               // Token will be validated on first API call instead
             } else {
-              console.log('Invalid user data in localStorage, clearing...');
               localStorage.removeItem('pos_user');
             }
-          } catch (error) {
-            console.error('Error parsing stored user data:', error);
+          } catch {
             localStorage.removeItem('pos_user');
           }
         } else {
@@ -101,7 +102,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         // Mark initialization as complete
         window.authInitializing = false;
-        console.log('Auth initialization completed');
         setIsLoading(false);
       }
     };
@@ -116,7 +116,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('AuthContext login called with:', { email, password: '***' });
       const result = await authAPI.login(email, password);
       console.log('AuthAPI login result:', result);
       
@@ -233,7 +232,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         return { success: false, error: result.message };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Failed to update profile. Please try again.' };
     }
   };
@@ -251,7 +250,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         return { success: false, error: result.message };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Failed to change password. Please try again.' };
     }
   };
@@ -265,7 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         return { success: false, error: result.message };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Failed to refresh token. Please try again.' };
     }
   };

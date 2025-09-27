@@ -167,6 +167,20 @@ export const authAPI = {
       }),
     });
   },
+  refreshToken: async () => {
+    // Example implementation, replace with actual API call
+    try {
+      // Replace with your actual refresh token API endpoint
+      const response = await fetch('/api/auth/refresh-token', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      return data;
+    } catch {
+      return { success: false, message: 'Failed to refresh token.' };
+    }
+  }
 };
 
 // Tenants API

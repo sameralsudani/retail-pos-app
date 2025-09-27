@@ -138,11 +138,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   // Load initial data when user is authenticated
   useEffect(() => {
     if (user) {
-      console.log("User authenticated, loading initial data...");
 
       // Prevent multiple simultaneous loads with a more robust check
       if (window.storeDataLoading) {
-        console.log("Store data loading already in progress, skipping...");
         return;
       }
 
@@ -166,7 +164,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
       }
       window.storeDataLoading = true;
 
-      console.log("Starting to load initial data...");
       setLoading(true);
 
       // Load data sequentially to prevent overwhelming the server
@@ -188,8 +185,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         console.error("Error in sequential loading:", error);
         throw error;
       }
-
-      console.log("Initial data loading completed");
     } catch (error) {
       console.error("Error loading initial data:", error);
       // Don't set error on refresh, just log it
@@ -214,9 +209,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   // API Integration Functions
   const loadProducts = async () => {
     try {
-      console.log("Loading products from API...");
       const response = await productsAPI.getAll();
-      console.log("Products API response:", response);
 
       if (response.success) {
         interface APIProduct {
