@@ -103,11 +103,15 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ transaction, onClose }) => 
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.payment.method')}</span>
-              <span className="capitalize text-gray-900 dark:text-gray-100">{t(`payment.method.${transaction.paymentMethod}`)}</span>
+              <span className="capitalize text-gray-900 dark:text-gray-100">{t(`payment.method.cash`)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">{t('receipt.amount.paid')}</span>
               <span className="text-gray-900 dark:text-gray-100">${transaction.amountPaid.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600 dark:text-gray-400">{t('receipt.amount.due')}</span>
+              <span className="text-gray-900 dark:text-gray-100">${transaction.dueAmount?.toFixed(2)}</span>
             </div>
            
           </div>

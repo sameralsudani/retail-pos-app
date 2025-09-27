@@ -47,6 +47,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "receipt.total": "Total",
     "receipt.payment.method": "Payment Method",
     "receipt.amount.paid": "Amount Paid",
+  "receipt.amount.due": "Amount Due",
     "receipt.thank.you": "Thank you for your purchase!",
     "receipt.keep.receipt": "Please keep this receipt for your records.",
     "receipt.loyalty.points": "Loyalty Points:",
@@ -174,6 +175,7 @@ const translations: Record<Language, { [key: string]: string }> = {
 
     // Payment
     "customers.title": "Customers",
+  "payment.method.cash": "Cash",
     "customers.add.customer": "Add Customer",
     "customers.add.title": "Add New Customer",
     "customers.edit.title": "Edit Customer",
@@ -808,6 +810,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "receipt.total": "الإجمالي",
     "receipt.payment.method": "طريقة الدفع",
     "receipt.amount.paid": "المبلغ المدفوع",
+  "receipt.amount.due": "المبلغ المتبقي",
     "receipt.thank.you": "شكرًا لشرائك!",
     "receipt.keep.receipt": "يرجى الاحتفاظ بهذا الإيصال لسجلاتك.",
     "receipt.loyalty.points": "نقاط الولاء:",
@@ -936,6 +939,7 @@ const translations: Record<Language, { [key: string]: string }> = {
 
     // Payment
     "customers.title": "العملاء",
+  "payment.method.cash": "نقدًا",
     "customers.add.customer": "إضافة عميل",
     "customers.add.title": "إضافة عميل جديد",
     "customers.edit.title": "تعديل العميل",

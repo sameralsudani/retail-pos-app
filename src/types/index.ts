@@ -67,6 +67,7 @@ export interface Transaction {
   total: number;
   paymentMethod: string;
   amountPaid: number;
+  dueAmount: number;
   customer: Client | null;
   timestamp: Date;
   cashier: string;

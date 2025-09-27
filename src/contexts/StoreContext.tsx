@@ -259,7 +259,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
                   ? (product.supplier as { name: string }).name
                   : product.supplier,
             };
-            console.log("Mapped product:", mappedProduct);
             return mappedProduct;
           }
         );
@@ -383,6 +382,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           total: number;
           paymentMethod: string;
           amountPaid: number;
+          dueAmount?: number;
           customer?: APITransactionCustomer | null;
           createdAt: string;
           cashier?: APITransactionCashier;
@@ -412,6 +412,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             total: transaction.total,
             paymentMethod: transaction.paymentMethod,
             amountPaid: transaction.amountPaid,
+            dueAmount: transaction.dueAmount || 0,
             status: allowedStatuses.includes(transaction.status as AllowedStatus)
               ? (transaction.status as AllowedStatus)
               : undefined,
@@ -552,6 +553,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           total,
           paymentMethod,
           amountPaid,
+          dueAmount: response.data.dueAmount || 0,
           customer: state.currentCustomer,
           timestamp: new Date(response.data.createdAt),
           cashier: user?.name || "Unknown",
