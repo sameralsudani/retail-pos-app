@@ -317,11 +317,8 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
       });
     }
 
-    // Soft delete - set isActive to false
-    await User.findOneAndUpdate(
-      { _id: req.params.id, tenantId: userTenantId },
-      { isActive: false }
-    );
+  // Hard delete - remove document from DB
+  await User.deleteOne({ _id: req.params.id, tenantId: userTenantId });
 
     res.json({
       success: true,

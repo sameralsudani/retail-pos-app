@@ -34,6 +34,7 @@ const InventoryPage = () => {
 
   // State management
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  console.log("🚀 ~ InventoryPage ~ inventory:", inventory)
   interface Category {
     _id: string;
     name: string;
@@ -96,9 +97,7 @@ const InventoryPage = () => {
 
   const loadProducts = async () => {
     try {
-      console.log("Loading products for inventory...");
       const response = await productsAPI.getAll();
-      console.log("Products API response:", response);
 
       if (response.success) {
         interface ProductAPIResponse {
@@ -143,7 +142,6 @@ const InventoryPage = () => {
             lastRestocked: new Date(product.updatedAt || "2024-01-10"),
           })
         );
-        console.log("Processed inventory items:", products.length);
         setInventory(products);
       } else {
         setError("Failed to load products");
@@ -352,7 +350,6 @@ const InventoryPage = () => {
           category: categoryId,
         };
 
-        console.log("Updating product with data:", updateData);
         const response = await productsAPI.update(selectedItem.id, updateData);
 
         if (response.success) {
@@ -391,6 +388,7 @@ const InventoryPage = () => {
 
   // Statistics
   const totalItems = inventory.length;
+  console.log("🚀 ~ InventoryPage ~ totalItems:", totalItems)
   const lowStockItems = inventory.filter(
     (item) => item.stock <= item.reorderLevel
   ).length;

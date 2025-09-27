@@ -78,7 +78,7 @@ interface StoreActions {
   completeTransaction: (
     paymentMethod: string,
     amountPaid: number,
-    amountDue: number,
+    amountDue: number
   ) => Promise<void>;
   loadTransactions: () => Promise<void>;
   updateTransaction: (
@@ -138,7 +138,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   // Load initial data when user is authenticated
   useEffect(() => {
     if (user) {
-
       // Prevent multiple simultaneous loads with a more robust check
       if (window.storeDataLoading) {
         return;
@@ -381,8 +380,13 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           cashier?: APITransactionCashier;
         }
 
-        const allowedStatuses = ["completed", "refunded", "cancelled", "due"] as const;
-        type AllowedStatus = typeof allowedStatuses[number];
+        const allowedStatuses = [
+          "completed",
+          "refunded",
+          "cancelled",
+          "due",
+        ] as const;
+        type AllowedStatus = (typeof allowedStatuses)[number];
 
         const transactions = (response.data as APITransaction[]).map(
           (transaction) => ({
@@ -390,8 +394,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             items: transaction.items.map((item) => ({
               product: {
                 _id:
-                  (item.product as { _id?: string })._id ||
-                  (typeof item.product === "string" ? item.product : ""),
+                  typeof item.product === "object" && item.product !== null
+                    ? item.product._id || ""
+                    : "",
                 name: item.productSnapshot.name,
                 price: item.unitPrice,
                 category: "",
@@ -406,7 +411,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
             paymentMethod: transaction.paymentMethod,
             amountPaid: transaction.amountPaid,
             dueAmount: transaction.dueAmount || 0,
-            status: allowedStatuses.includes(transaction.status as AllowedStatus)
+            status: allowedStatuses.includes(
+              transaction.status as AllowedStatus
+            )
               ? (transaction.status as AllowedStatus)
               : undefined,
             customer: transaction.customer
@@ -507,7 +514,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const completeTransaction = async (
     paymentMethod: string,
     amountPaid: number,
-    amountDue: number,
+    amountDue: number
   ) => {
     try {
       const total = getCartTotal();
@@ -699,7 +706,9 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const removeFromCart = (productId: string) => {
     setState((prev) => ({
       ...prev,
-      cartItems: prev.cartItems.filter((item) => item.product._id !== productId),
+      cartItems: prev.cartItems.filter(
+        (item) => item.product._id !== productId
+      ),
     }));
   };
 
