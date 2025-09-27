@@ -403,7 +403,7 @@ router.delete("/:id", protect, authorize("admin"), async (req, res) => {
 
     res.json({
       success: true,
-      message: "Product deleted successfully",
+      message: "Product deleted successfully444",
     });
   } catch (error) {
     res.status(500).json({

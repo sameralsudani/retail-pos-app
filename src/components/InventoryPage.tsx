@@ -292,7 +292,6 @@ const InventoryPage = () => {
           formData.append("image", selectedImage);
         }
 
-        console.log("Creating product with form data");
         const response = await productsAPI.createWithImage(formData);
 
         if (response.success) {
