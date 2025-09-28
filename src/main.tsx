@@ -1,20 +1,24 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { StoreProvider } from './contexts/StoreContext';
-import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import './index.css';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { StoreProvider } from "./contexts/StoreContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { CurrencyProvider } from "./contexts/CurrencyContext";
 
-createRoot(document.getElementById('root')!).render(
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <AuthProvider>
         <LanguageProvider>
-          <StoreProvider>
-            <App />
-          </StoreProvider>
+          <CurrencyProvider>
+            <StoreProvider>
+              <App />
+            </StoreProvider>
+          </CurrencyProvider>
         </LanguageProvider>
       </AuthProvider>
     </ThemeProvider>

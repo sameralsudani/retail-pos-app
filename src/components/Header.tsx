@@ -3,6 +3,7 @@ import { Menu, User, Store } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
+import CurrencySelector from "./CurrencySelector";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -66,6 +67,11 @@ const Header: React.FC<HeaderProps> = ({
 
           {showActions && (
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+               <div
+                className={document.documentElement.dir === "rtl" ? "ml-2" : ""}
+              >
+                <CurrencySelector />
+              </div>
               <div
                 className={document.documentElement.dir === "rtl" ? "ml-2" : ""}
               >

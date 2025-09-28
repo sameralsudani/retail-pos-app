@@ -15,8 +15,11 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import { reportsAPI, transactionsAPI, productsAPI, usersAPI } from '../services/api';
+import { useCurrency } from '../contexts/CurrencyContext';
 
 const DashboardPage: React.FC = () => {
+    const { formatAmount } = useCurrency();
+
   const { t } = useLanguage();
   const [showSidebar, setShowSidebar] = useState(false);
   type Stat = {
@@ -78,7 +81,7 @@ const DashboardPage: React.FC = () => {
         setStats([
           {
             title: t('dashboard.stats.today.sales'),
-            value: overview?.todaySales ? `$${overview.todaySales.toFixed(2)}` : '$0.00',
+            value: overview?.todaySales ? formatAmount(overview.todaySales) : '$0.00',
             change: overview?.salesChange ?? '',
             changeType: overview?.salesChange && overview.salesChange.startsWith('+') ? 'positive' : 'negative',
             icon: DollarSign,

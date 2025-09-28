@@ -19,9 +19,10 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { Transaction } from "../types";
 import UpdateTransactionModal from "./UpdateTransactionModal";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 const TransactionsPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { transactions, isLoading, updateTransaction } = useStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -64,17 +65,26 @@ const TransactionsPage: React.FC = () => {
 
     return matchesSearch && matchesStatus;
   });
+  const { formatAmount } = useCurrency();
 
   // Print receipt function (outside component)
-  const printReceipt = (t: (key: string) => string, transaction: OrderWithCustomer) => {
+  const printReceipt = (
+    t: (key: string) => string,
+    transaction: OrderWithCustomer
+  ) => {
     const receiptWindow = window.open("", "PRINT", "height=600,width=400");
     if (!receiptWindow) return;
     const itemsHtml = transaction.items
       .map(
-        (item: { product: { name: string; price: number }; quantity: number }) =>
+        (item: {
+          product: { name: string; price: number };
+          quantity: number;
+        }) =>
           `<tr><td style='padding:4px 8px;'>${
             item.product.name
-          }</td><td style='padding:4px 8px;'>${item.quantity}</td><td style='padding:4px 8px;'>$${(
+          }</td><td style='padding:4px 8px;'>${
+            item.quantity
+          }</td><td style='padding:4px 8px;'>$${(
             item.product.price * item.quantity
           ).toFixed(2)}</td></tr>`
       )
@@ -254,7 +264,7 @@ const TransactionsPage: React.FC = () => {
                   {t("transactions.stats.revenue")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${totalRevenue.toFixed(2)}
+                  {formatAmount(totalRevenue)}
                 </p>
               </div>
             </div>
@@ -303,31 +313,67 @@ const TransactionsPage: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.transaction")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.customer")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.items")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.total")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.amountPaid")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.amountDue")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.status")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.date")}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    className={`px-6 py-3 ${
+                      language === "ar" ? "text-right" : "text-left"
+                    } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                  >
                     {t("transactions.table.actions")}
                   </th>
                 </tr>
@@ -375,7 +421,7 @@ const TransactionsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        ${transaction.total.toFixed(2)}
+                        {formatAmount(transaction.total)}
                       </div>
                       <div className="text-sm text-gray-500 capitalize">
                         {transaction.paymentMethod}
@@ -384,7 +430,7 @@ const TransactionsPage: React.FC = () => {
 
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        ${transaction.amountPaid.toFixed(2)}
+                        {formatAmount(transaction.amountPaid)}
                       </div>
                       <div className="text-sm text-gray-500 capitalize">
                         {transaction.paymentMethod}
@@ -392,12 +438,11 @@ const TransactionsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        $
                         {transaction.total.toFixed(2) !==
                         transaction.amountPaid.toFixed(2)
-                          ? (
+                          ? formatAmount(
                               transaction.total - transaction.amountPaid
-                            ).toFixed(2)
+                            )
                           : "0.00"}
                       </div>
                       <div className="text-sm text-gray-500 capitalize">
