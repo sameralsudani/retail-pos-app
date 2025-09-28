@@ -158,7 +158,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
   const loadInitialData = async () => {
     try {
       if (window.storeDataLoading) {
-        console.log("Store data loading already in progress, aborting...");
         return;
       }
       window.storeDataLoading = true;
@@ -257,25 +256,10 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
         setState((prev) => ({ ...prev, products }));
       } else {
         console.error("Failed to load products:", response);
-        // Fallback to sample data if API fails
-        console.log("Using fallback sample data...");
-        const { products: sampleProducts } = await import("../data/products");
-        setState((prev) => ({ ...prev, products: sampleProducts }));
         setError("Failed to load products");
       }
     } catch (error) {
       console.error("Error loading products:", error);
-      // Fallback to sample data if API fails
-      console.log("Using fallback sample data due to error...");
-      try {
-        const { products: sampleProducts } = await import("../data/products");
-        setState((prev) => ({ ...prev, products: sampleProducts }));
-        setError("Using sample data - backend connection failed");
-      } catch (fallbackError) {
-        console.error("Failed to load fallback data:", fallbackError);
-        setError("Failed to load products");
-      }
-      setError("Failed to load products");
     }
   };
 

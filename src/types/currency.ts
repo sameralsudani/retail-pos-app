@@ -26,7 +26,7 @@ export const CURRENCIES: Currency[] = [
   {
     code: 'IQD',
     name: 'Iraqi Dinar',
-    symbol: 'د.ع',
+    symbol: 'دينار',
     rate: 1310 // 1 USD = 1310 IQD (approximate rate)
   }
 ];

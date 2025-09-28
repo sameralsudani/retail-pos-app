@@ -21,8 +21,8 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useStore } from '../contexts/StoreContext';
 import { customersAPI, productsAPI, transactionsAPI } from "../services/api";
-import Header from "./Header";
-import Sidebar from "./Sidebar";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 import { Product } from "../types";
 
 interface InvoiceItem {
@@ -30,7 +30,7 @@ interface InvoiceItem {
   quantity: number;
 }
 
-const Customers: React.FC = () => {
+const CustomersPage: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const { loadTransactions } = useStore();
@@ -1546,4 +1546,4 @@ const Customers: React.FC = () => {
   );
 };
 
-export default Customers;
+export default CustomersPage;
