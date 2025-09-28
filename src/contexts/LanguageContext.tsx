@@ -25,6 +25,7 @@ interface LanguageProviderProps {
 // Translation dictionaries
 const translations: Record<Language, { [key: string]: string }> = {
   en: {
+  "inventory.export.excel": "Export to Excel",
     "settings.currency.exchangeRate.title": "Exchange Rate Settings",
     "settings.currency.exchangeRate.current": "Current Exchange Rate",
     "settings.currency.exchangeRate.current.desc": "Current exchange rate",
@@ -803,6 +804,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.unsaved.changes": "You have unsaved changes",
   },
   ar: {
+  "inventory.export.excel": "تصدير إلى إكسل",
     "settings.currency.exchangeRate.title": "إعدادات سعر الصرف",
     "settings.currency.exchangeRate.current": "سعر الصرف الحالي",
     "settings.currency.exchangeRate.current.desc": "سعر الصرف الحالي",

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import {
   Search,
   Filter,
@@ -20,6 +21,7 @@ import { productsAPI, categoriesAPI, suppliersAPI } from "../services/api";
 import { Product } from "../types";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 interface InventoryItem extends Product {
   id: string;
@@ -29,7 +31,28 @@ interface InventoryItem extends Product {
 }
 
 const InventoryPage = () => {
+  // Export to Excel
+  const handleExportExcel = () => {
+    // Prepare data for export
+    const data = filteredInventory.map((item) => ({
+      Name: item.name,
+      SKU: item.sku,
+      Category: item.category,
+      Stock: item.stock,
+      ReorderLevel: item.reorderLevel,
+      Price: item.price,
+      CostPrice: item.costPrice,
+      Supplier: item.supplier,
+      Description: item.description,
+      LastRestocked: item.lastRestocked.toLocaleDateString(),
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
+    XLSX.writeFile(workbook, "inventory.xlsx");
+  };
   const { t } = useLanguage();
+  const { formatAmount } = useCurrency();
   const { user } = useAuth();
 
   // State management
@@ -387,7 +410,6 @@ const InventoryPage = () => {
 
   // Statistics
   const totalItems = inventory.length;
-  console.log("🚀 ~ InventoryPage ~ totalItems:", totalItems)
   const lowStockItems = inventory.filter(
     (item) => item.stock <= item.reorderLevel
   ).length;
@@ -504,7 +526,7 @@ const InventoryPage = () => {
                   {t("inventory.stats.total.value")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${totalValue.toFixed(2)}
+                  {formatAmount(totalValue)}
                 </p>
               </div>
             </div>
@@ -560,6 +582,7 @@ const InventoryPage = () => {
               </select>
 
               {canEdit && (
+                <>
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -567,6 +590,14 @@ const InventoryPage = () => {
                   <Plus className="h-5 w-5" />
                   <span>{t("inventory.add.item")}</span>
                 </button>
+                  <button
+                    onClick={handleExportExcel}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Upload className="h-5 w-5" />
+                    <span>{t("inventory.export.excel")}</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -650,10 +681,10 @@ const InventoryPage = () => {
                       </td>
                       <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          ${item.price.toFixed(2)}
+                          {formatAmount(item.price)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Cost: ${item.costPrice.toFixed(2)}
+                          Cost: {formatAmount(item.costPrice)}
                         </div>
                       </td>
                       <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
