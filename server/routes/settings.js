@@ -54,10 +54,11 @@ router.put('/', protect, authorize('admin'), [
   body('receiptFooter').optional().trim().isLength({ max: 200 }).withMessage('Receipt footer cannot exceed 200 characters'),
   body('printLogo').optional().isBoolean().withMessage('Print logo must be boolean'),
   body('autoprint').optional().isBoolean().withMessage('Auto print must be boolean'),
-  body('currency').optional().isIn(['USD', 'EUR', 'GBP', 'SAR', 'AED']).withMessage('Invalid currency'),
+  body('currency').optional().isIn(['USD', 'IQD']).withMessage('Invalid currency'),
   body('dateFormat').optional().isIn(['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']).withMessage('Invalid date format'),
   body('timeFormat').optional().isIn(['12', '24']).withMessage('Invalid time format'),
   body('lowStockThreshold').optional().isInt({ min: 0 }).withMessage('Low stock threshold must be non-negative'),
+  body('exchangeRate').optional().isInt({ min: 0 }).withMessage('Exchange rate must be non-negative'),
   body('lowStockAlerts').optional().isBoolean().withMessage('Low stock alerts must be boolean'),
   body('emailNotifications').optional().isBoolean().withMessage('Email notifications must be boolean'),
   body('soundEffects').optional().isBoolean().withMessage('Sound effects must be boolean'),
@@ -66,7 +67,8 @@ router.put('/', protect, authorize('admin'), [
   body('twoFactorAuth').optional().isBoolean().withMessage('Two factor auth must be boolean'),
   body('theme').optional().isIn(['light', 'dark', 'auto']).withMessage('Invalid theme'),
   body('compactMode').optional().isBoolean().withMessage('Compact mode must be boolean'),
-  body('showProductImages').optional().isBoolean().withMessage('Show product images must be boolean')
+  body('showProductImages').optional().isBoolean().withMessage('Show product images must be boolean'),
+  
 ], async (req, res) => {
   try {
     // Extract tenantId from user (handle both populated and non-populated)
