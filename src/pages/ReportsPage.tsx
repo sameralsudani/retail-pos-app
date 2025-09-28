@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Download, Filter, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, BarChart3, PieChart, FileText, Printer, AlertTriangle, X } from 'lucide-react';
+import  { useState, useEffect } from 'react';
+import { Calendar, Download, Filter, TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, BarChart3, Printer, AlertTriangle, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { reportsAPI } from '../services/api';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 
 const ReportsPage = () => {
   const { t } = useLanguage();

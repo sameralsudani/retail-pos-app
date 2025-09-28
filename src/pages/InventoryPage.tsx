@@ -18,8 +18,8 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import { productsAPI, categoriesAPI, suppliersAPI } from "../services/api";
 import { Product } from "../types";
-import Header from "./Header";
-import Sidebar from "./Sidebar";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 
 interface InventoryItem extends Product {
   id: string;

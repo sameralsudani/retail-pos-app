@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, Receipt, User, Lock, Mail, Badge, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Receipt, User, Lock, Mail, Badge, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageSwitcher from './LanguageSwitcher';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const SignupPage = () => {
   const { signup, isAuthenticated, isLoading } = useAuth();

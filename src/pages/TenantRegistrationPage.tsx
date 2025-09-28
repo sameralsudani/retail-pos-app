@@ -4,7 +4,7 @@ import { Store, User, MapPin, ArrowRight, ArrowLeft, Check, AlertCircle, Receipt
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { tenantsAPI } from '../services/api';
-import LanguageSwitcher from './LanguageSwitcher';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const TenantRegistrationPage = () => {
   const { isAuthenticated } = useAuth();

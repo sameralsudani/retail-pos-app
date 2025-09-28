@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Edit3, Save, X, Camera, Shield, Clock, Award, Receipt, AlertTriangle, Eye, EyeOff, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Calendar, Edit3, Save, X, Camera, Shield, Clock, Award, Receipt, AlertTriangle, Eye, EyeOff, Lock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../services/api';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 
 interface ProfileData {
   phone: string;

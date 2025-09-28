@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Plus, Edit3, Trash2, Truck, Eye, Save, X, AlertTriangle, Phone, Mail, MapPin, Calendar } from 'lucide-react';
+import { Search, Plus, Edit3, Trash2, Truck, Eye, X, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { suppliersAPI } from '../services/api';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 
 interface Supplier {
   id: string;
@@ -70,7 +70,28 @@ const SupplierPage = () => {
       console.log('Suppliers API response:', response);
       
       if (response.success) {
-        const mappedSuppliers = response.data.map(apiSupplier => ({
+        interface ApiSupplier {
+          _id?: string;
+          id?: string;
+          name: string;
+          contactPerson: string;
+          email: string;
+          phone: string;
+          address?: {
+            street?: string;
+            city?: string;
+            state?: string;
+            zipCode?: string;
+            country?: string;
+          };
+          productCount?: number;
+          isActive: boolean;
+          paymentTerms?: string;
+          createdAt: string;
+          updatedAt: string;
+        }
+
+        const mappedSuppliers = response.data.map((apiSupplier: ApiSupplier) => ({
           id: apiSupplier._id || apiSupplier.id,
           name: apiSupplier.name,
           contactPerson: apiSupplier.contactPerson,

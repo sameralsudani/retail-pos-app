@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, Package } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { Product } from "../types";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 interface ProductGridProps {
   products: Product[];
@@ -10,6 +11,7 @@ interface ProductGridProps {
 
 const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
   const { t } = useLanguage();
+  const { formatAmount } = useCurrency();
 
   if (products.length === 0) {
     return (
@@ -72,10 +74,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart }) => {
 
               <div className="flex items-center justify-between">
                 <span className="text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400">
-                  ${product.price.toFixed(2)}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 capitalize px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded">
-                  {t(`category.${product.category}`)}
+                  {formatAmount(product.price)}
                 </span>
               </div>
             </div>

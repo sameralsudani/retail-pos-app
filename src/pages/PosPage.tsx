@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import { ShoppingCart, Search, User, Banknote } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useStore } from "../contexts/StoreContext";
-import Header from "./Header";
-import Sidebar from "./Sidebar";
-import ProductGrid from "./ProductGrid";
-import Cart from "./Cart";
-import PaymentModal from "./PaymentModal";
-import CustomerModal from "./CustomerModal";
-import ReceiptModal from "./ReceiptModal";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+import ProductGrid from "../components/ProductGrid";
+import Cart from "../components/Cart";
+import PaymentModal from "../components/PaymentModal";
+import CustomerModal from "../components/CustomerModal";
+import ReceiptModal from "../components/ReceiptModal";
 
 const PosPage: React.FC = () => {
   const { t } = useLanguage();

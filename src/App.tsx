@@ -2,19 +2,19 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './components/LoginPage';
-import SignupPage from './components/SignupPage';
-import POSPage from './components/POSPage';
-import TransactionsPage from './components/TransactionsPage';
-import InventoryPage from './components/InventoryPage';
-import CategoryPage from './components/CategoryPage';
-import UsersPage from './components/UsersPage';
-import SupplierPage from './components/SupplierPage';
-import ProfilePage from './components/ProfilePage';
-import SettingsPage from './components/SettingsPage';
-import ReportsPage from './components/ReportsPage';
-import TenantRegistrationPage from './components/TenantRegistrationPage';
-import DashboardPage from './components/DashboardPage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+import PosPage from './pages/PosPage';
+import TransactionsPage from './pages/TransactionsPage';
+import InventoryPage from './pages/InventoryPage';
+import CategoryPage from './pages/CategoryPage';
+import UsersPage from './pages/UsersPage';
+import SupplierPage from './pages/SupplierPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+import ReportsPage from './pages/ReportsPage';
+import TenantRegistrationPage from './pages/TenantRegistrationPage';
+import DashboardPage from './pages/DashboardPage';
 import Customers from './components/Customers';
 
 // Error boundary component
@@ -87,7 +87,7 @@ function App() {
               path="/pos" 
               element={
                 <ProtectedRoute>
-                  <POSPage />
+                  <PosPage />
                 </ProtectedRoute>
               } 
             />

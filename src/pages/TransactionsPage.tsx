@@ -15,10 +15,10 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useStore } from "../contexts/StoreContext";
-import Header from "./Header";
-import Sidebar from "./Sidebar";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
 import { Transaction } from "../types";
-import UpdateTransactionModal from "./UpdateTransactionModal";
+import UpdateTransactionModal from "../components/UpdateTransactionModal";
 import { useCurrency } from "../contexts/CurrencyContext";
 
 const TransactionsPage: React.FC = () => {

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import LanguageSwitcher from "./LanguageSwitcher";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 const LoginPage = () => {
   const { login, isAuthenticated, isLoading } = useAuth();

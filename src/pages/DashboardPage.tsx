@@ -12,8 +12,8 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 import { reportsAPI, transactionsAPI, productsAPI, usersAPI } from '../services/api';
 import { useCurrency } from '../contexts/CurrencyContext';
 
