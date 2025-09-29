@@ -473,12 +473,31 @@ router.get(
         },
       ]);
 
+
+      // Calculate todaySales by aggregating for today's date
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+      const todayQuery = { tenantId: userTenantId, createdAt: { $gte: todayStart, $lte: todayEnd } };
+      const todayStats = await Transaction.aggregate([
+        { $match: todayQuery },
+        {
+          $group: {
+            _id: null,
+            todaySales: { $sum: "$total" },
+          },
+        },
+      ]);
+
       const result = stats[0] || {
         totalTransactions: 0,
         totalRevenue: 0,
         averageTransaction: 0,
         totalItemsSold: 0,
       };
+
+      result.todaySales = todayStats[0]?.todaySales || 0;
 
       res.json({
         success: true,

@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import PosPage from './pages/PosPage';
+import SalesPage from './pages/SalesPage';
 import TransactionsPage from './pages/TransactionsPage';
 import InventoryPage from './pages/InventoryPage';
 import CategoryPage from './pages/CategoryPage';
@@ -178,6 +179,15 @@ function App() {
                   <SettingsPage />
                 </ProtectedRoute>
               } 
+            />
+
+            <Route
+              path="/sales"
+              element={
+                <ProtectedRoute>
+                  <SalesPage />
+                </ProtectedRoute>
+              }
             />
             
             {/* Catch all route - redirect based on user role */}
