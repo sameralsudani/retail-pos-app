@@ -1,32 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   DollarSign,
   Users,
   Package,
   ShoppingCart,
   Clock,
-  ArrowUp,
-  ArrowDown,
   AlertTriangle,
   CheckCircle,
-  BarChart3
-} from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import { reportsAPI, transactionsAPI, productsAPI, usersAPI } from '../services/api';
-import { useCurrency } from '../contexts/CurrencyContext';
+  BarChart3,
+} from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+import {
+  reportsAPI,
+  transactionsAPI,
+  productsAPI,
+  usersAPI,
+} from "../services/api";
+import { useCurrency } from "../contexts/CurrencyContext";
 
 const DashboardPage: React.FC = () => {
-    const { formatAmount } = useCurrency();
+  const { formatAmount } = useCurrency();
 
   const { t } = useLanguage();
   const [showSidebar, setShowSidebar] = useState(false);
   type Stat = {
     title: string;
     value: string | number;
-    change: string;
-    changeType: 'positive' | 'negative';
     icon: React.ElementType;
     color: string;
   };
@@ -41,7 +42,7 @@ const DashboardPage: React.FC = () => {
   };
   type Alert = {
     id: string | number;
-    type: 'warning' | 'success' | 'info';
+    type: "warning" | "success" | "info";
     message: string;
     time: string;
   };
@@ -59,94 +60,109 @@ const DashboardPage: React.FC = () => {
         // Fetch stats overview
         const overview = await reportsAPI.getOverview();
         // Fetch recent sales (transactions)
-        const salesRes = await transactionsAPI.getAll({ limit: 5, sort: 'desc' });
+        const salesRes = await transactionsAPI.getAll({
+          limit: 5,
+          sort: "desc",
+        });
         // Fetch low stock products
         const lowStockRes = await productsAPI.getAll({ lowStock: true });
         // Fetch active employees (users)
-        let usersStats: { active?: string | number; change?: string } = { active: '0', change: '' };
+        let usersStats: { active?: string | number; change?: string } = {
+          active: "0",
+          change: "",
+        };
         try {
           const res = await usersAPI.getStats();
-          if (res && typeof res === 'object' && !Array.isArray(res) && 'active' in res) {
+          if (
+            res &&
+            typeof res === "object" &&
+            !Array.isArray(res) &&
+            "active" in res
+          ) {
             usersStats = res;
           } else {
             // If the response is a string or not the expected object, fallback
-            console.warn('usersAPI.getStats() returned unexpected:', res);
-            usersStats = { active: '0', change: '' };
+            console.warn("usersAPI.getStats() returned unexpected:", res);
+            usersStats = { active: "0", change: "" };
           }
         } catch (err) {
-          console.warn('usersAPI.getStats() failed:', err);
-          usersStats = { active: '0', change: '' };
+          console.warn("usersAPI.getStats() failed:", err);
+          usersStats = { active: "0", change: "" };
         }
 
         setStats([
           {
-            title: t('dashboard.stats.today.sales'),
-            value: overview?.todaySales ? formatAmount(overview.todaySales) : '$0.00',
-            change: overview?.salesChange ?? '',
-            changeType: overview?.salesChange && overview.salesChange.startsWith('+') ? 'positive' : 'negative',
+            title: t("dashboard.stats.today.sales"),
+            value: overview?.data.sales.totalRevenueToday
+              ? formatAmount(overview.data.sales.totalRevenueToday)
+              : "$0.00",
             icon: DollarSign,
-            color: 'bg-green-500'
+            color: "bg-green-500",
           },
           {
-            title: t('dashboard.stats.active.employees'),
-            value: usersStats?.active ?? '0',
-            change: usersStats?.change ?? '',
-            changeType: usersStats?.change && usersStats.change.startsWith('+') ? 'positive' : 'negative',
+            title: t("dashboard.stats.active.employees"),
+            value: usersStats?.active ?? "0",
             icon: Users,
-            color: 'bg-blue-500'
+            color: "bg-blue-500",
           },
           {
-            title: t('dashboard.stats.low.stock'),
-            value: lowStockRes?.data?.length ?? '0',
-            change: '',
-            changeType: 'negative',
+            title: t("dashboard.stats.low.stock"),
+            value: lowStockRes?.data?.length ?? "0",
             icon: Package,
-            color: 'bg-orange-500'
+            color: "bg-orange-500",
           },
           {
-            title: t('dashboard.stats.orders.today'),
-            value: overview?.ordersToday ?? '0',
-            change: overview?.ordersChange ?? '',
-            changeType: overview?.ordersChange && overview.ordersChange.startsWith('+') ? 'positive' : 'negative',
+            title: t("dashboard.stats.orders.today"),
+            value: overview?.data.sales.totalItemsSoldToday ?? "0",
             icon: ShoppingCart,
-            color: 'bg-purple-500'
-          }
+            color: "bg-purple-500",
+          },
         ]);
 
         setRecentSales(
-          salesRes?.data?.map((sale: {
-            id: string | number;
-            customer?: { name?: string };
-            total: number;
-            timestamp: string;
-            items?: unknown[];
-            cashier: string | { name?: string; employeeId?: string };
-          }) => ({
-            id: sale.id,
-            customer: sale.customer?.name || t('dashboard.walkin.customer'),
-            amount: `$${sale.total.toFixed(2)}`,
-            time: new Date(sale.timestamp).toLocaleTimeString(),
-            items: Array.isArray(sale.items) ? sale.items.length : 0,
-            cashier: typeof sale.cashier === 'object' && sale.cashier !== null
-              ? sale.cashier.name || sale.cashier.employeeId || t('dashboard.unknown.cashier')
-              : sale.cashier || t('dashboard.unknown.cashier'),
-            itemsLabel: t('dashboard.items')
-          })) || []
+          salesRes?.data?.map(
+            (sale: {
+              id: string | number;
+              customer?: { name?: string };
+              total: number;
+              timestamp: string;
+              items?: unknown[];
+              cashier: string | { name?: string; employeeId?: string };
+            }) => ({
+              id: sale.id,
+              customer: sale.customer?.name || t("dashboard.walkin.customer"),
+              amount: `$${sale.total.toFixed(2)}`,
+              time: new Date(sale.timestamp).toLocaleTimeString(),
+              items: Array.isArray(sale.items) ? sale.items.length : 0,
+              cashier:
+                typeof sale.cashier === "object" && sale.cashier !== null
+                  ? sale.cashier.name ||
+                    sale.cashier.employeeId ||
+                    t("dashboard.unknown.cashier")
+                  : sale.cashier || t("dashboard.unknown.cashier"),
+              itemsLabel: t("dashboard.items"),
+            })
+          ) || []
         );
 
         setAlerts([
-          ...(lowStockRes?.data?.map((p: { id: string | number; name: string; stock: number }) => ({
-            id: p.id,
-            type: 'warning' as const,
-            message: `${p.name} stock running low (${p.stock} units left)`,
-            time: ''
-          })) || []),
+          ...(lowStockRes?.data?.map(
+            (p: { id: string | number; name: string; stock: number }) => ({
+              id: p.id,
+              type: "warning" as const,
+              message: `${p.name} stock running low (${p.stock} units left)`,
+              time: "",
+            })
+          ) || []),
         ]);
       } catch (err) {
-        if (typeof err === 'object' && err && 'message' in err) {
-          setError((err as { message: string }).message || 'Failed to load dashboard data');
+        if (typeof err === "object" && err && "message" in err) {
+          setError(
+            (err as { message: string }).message ||
+              "Failed to load dashboard data"
+          );
         } else {
-          setError('Failed to load dashboard data');
+          setError("Failed to load dashboard data");
         }
       } finally {
         setLoading(false);
@@ -160,7 +176,7 @@ const DashboardPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('loading.dashboard')}</p>
+          <p className="text-gray-600">{t("loading.dashboard")}</p>
         </div>
       </div>
     );
@@ -178,9 +194,9 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        onMenuClick={() => setShowSidebar(true)} 
-        title={t('dashboard.title')}
+      <Header
+        onMenuClick={() => setShowSidebar(true)}
+        title={t("dashboard.title")}
       />
 
       <div className="p-6 space-y-6">
@@ -189,23 +205,18 @@ const DashboardPage: React.FC = () => {
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+              <div
+                key={index}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                    <div className="flex items-center mt-2">
-                      {stat.changeType === 'positive' ? (
-                        <ArrowUp className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <ArrowDown className="w-4 h-4 text-red-500" />
-                      )}
-                      <span className={`text-sm font-medium ml-1 ${
-                        stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {stat.change}
-                      </span>
-                    </div>
+                    <p className="text-sm font-medium text-gray-600">
+                      {stat.title}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 mt-2">
+                      {stat.value}
+                    </p>
                   </div>
                   <div className={`p-3 rounded-lg ${stat.color}`}>
                     <Icon className="w-6 h-6 text-white" />
@@ -220,19 +231,35 @@ const DashboardPage: React.FC = () => {
           {/* Recent Sales */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.recent.sales')}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {t("dashboard.recent.sales")}
+              </h2>
             </div>
             <div className="p-6">
               <div className="space-y-4">
                 {recentSales.map((sale) => (
-                  <div key={sale.id} className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                    <div className={`flex items-center ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
+                  <div
+                    key={sale.id}
+                    className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <div
+                      className={`flex items-center ${
+                        document.documentElement.dir === "rtl"
+                          ? "space-x-reverse space-x-4"
+                          : "space-x-4"
+                      }`}
+                    >
                       <div className="p-2 rounded-full bg-green-100">
                         <ShoppingCart className="w-4 h-4 text-green-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{sale.customer}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{sale.items} {sale.itemsLabel} • {sale.cashier} • {sale.time}</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {sale.customer}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {sale.items} {sale.itemsLabel} • {sale.cashier} •{" "}
+                          {sale.time}
+                        </p>
                       </div>
                     </div>
                     <div className="font-semibold text-green-600">
@@ -247,33 +274,51 @@ const DashboardPage: React.FC = () => {
           {/* Alerts & Notifications */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.alerts.notifications')}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {t("dashboard.alerts.notifications")}
+              </h2>
             </div>
             <div className="p-6">
               <div className="space-y-4">
                 {alerts.map((alert) => (
-                  <div key={alert.id} className={`flex items-start p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${document.documentElement.dir === 'rtl' ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
-                    <div className={`p-1 rounded-full ${
-                      alert.type === 'warning' ? 'bg-orange-100' :
-                      alert.type === 'success' ? 'bg-green-100' : 'bg-blue-100'
-                    }`}>
-                      {alert.type === 'warning' ? (
+                  <div
+                    key={alert.id}
+                    className={`flex items-start p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                      document.documentElement.dir === "rtl"
+                        ? "space-x-reverse space-x-3"
+                        : "space-x-3"
+                    }`}
+                  >
+                    <div
+                      className={`p-1 rounded-full ${
+                        alert.type === "warning"
+                          ? "bg-orange-100"
+                          : alert.type === "success"
+                          ? "bg-green-100"
+                          : "bg-blue-100"
+                      }`}
+                    >
+                      {alert.type === "warning" ? (
                         <AlertTriangle className="w-4 h-4 text-orange-600" />
-                      ) : alert.type === 'success' ? (
+                      ) : alert.type === "success" ? (
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       ) : (
                         <Clock className="w-4 h-4 text-blue-600" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{alert.message}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{alert.time}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {alert.message}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {alert.time}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
               <button className="w-full mt-4 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
-                {t('dashboard.view.all.notifications')}
+                {t("dashboard.view.all.notifications")}
               </button>
             </div>
           </div>
@@ -283,23 +328,33 @@ const DashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Quick Actions */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{t('dashboard.quick.actions')}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              {t("dashboard.quick.actions")}
+            </h2>
             <div className="grid grid-cols-2 gap-4">
               <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                 <ShoppingCart className="w-8 h-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('dashboard.new.sale')}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.new.sale")}
+                </span>
               </button>
               <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
                 <Package className="w-8 h-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('dashboard.add.inventory')}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.add.inventory")}
+                </span>
               </button>
               <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
                 <Users className="w-8 h-8 text-purple-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('dashboard.schedule.staff')}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.schedule.staff")}
+                </span>
               </button>
               <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
                 <BarChart3 className="w-8 h-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('dashboard.view.reports')}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.view.reports")}
+                </span>
               </button>
             </div>
           </div>
@@ -307,10 +362,7 @@ const DashboardPage: React.FC = () => {
       </div>
 
       {/* Sidebar */}
-      <Sidebar 
-        isOpen={showSidebar} 
-        onClose={() => setShowSidebar(false)}
-      />
+      <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
     </div>
   );
 };

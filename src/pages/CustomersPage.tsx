@@ -6,8 +6,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  FileText,
-  DollarSign,
   Edit,
   Trash2,
   User,
@@ -38,8 +36,6 @@ const CustomersPage: React.FC = () => {
   const [stats, setStats] = useState({
     totalCustomers: 0,
     activeCustomers: 0,
-    totalRevenue: 0,
-    totalActiveInvoices: 0,
     newCustomersThisMonth: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -242,7 +238,6 @@ const CustomersPage: React.FC = () => {
       product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
       product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
   );
-  console.log("🚀 ~ Customers ~ filteredProducts:", filteredProducts);
 
   const closeInvoiceModal = () => {
     setShowInvoiceModal(false);
@@ -278,10 +273,7 @@ const CustomersPage: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      console.log("Loading clients from API...");
-
       const response = await customersAPI.getAll();
-      console.log("Clients API response:", response);
 
       if (response.success) {
         interface ApiCustomer {
@@ -374,9 +366,7 @@ const CustomersPage: React.FC = () => {
         setStats({
           totalCustomers: response.data.totalCustomers || 0,
           activeCustomers: response.data.activeCustomers || 0,
-          totalRevenue: response.data.totalRevenue || 0,
-          totalActiveInvoices: response.data.totalActiveInvoices || 0,
-          newCustomersThisMonth: 3, // This would be calculated from recent clients
+          newCustomersThisMonth: response.data.recentCustomersThisMonth || 0,
         });
       }
     } catch (error) {
@@ -602,36 +592,8 @@ const CustomersPage: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("customers.stats.total.revenue")}
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  ${stats.totalRevenue.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <DollarSign className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {t("customers.stats.active.invoices")}
-                </p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {stats.totalActiveInvoices}
-                </p>
-              </div>
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <FileText className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
+          
+          
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -808,48 +770,7 @@ const CustomersPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("customers.total.revenue")}
-                      </p>
-                      <p className="font-semibold text-green-600">
-                        ${(customer.totalRevenue ?? 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("customers.projects")}
-                      </p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100">
-                        {customer.projects}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-2">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("customers.active.invoices")}
-                      </p>
-                      <p className="font-semibold text-orange-600">
-                        {customer.activeInvoices}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {t("customers.last.transaction")}
-                      </p>
-                      <p className="font-semibold text-gray-900 dark:text-gray-100 text-xs">
-                        {customer.lastTransaction
-                          ? new Date(
-                              customer.lastTransaction
-                            ).toLocaleDateString()
-                          : ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              
 
                 <div
                   className={`mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex ${

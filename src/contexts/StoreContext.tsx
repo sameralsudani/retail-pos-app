@@ -100,8 +100,6 @@ interface StoreActions {
 
   // Computed Values
   getFilteredProducts: () => Product[];
-  getCartSubtotal: () => number;
-  getCartTax: () => number;
   getCartTotal: () => number;
 
   // Utility Actions
@@ -738,19 +736,12 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     });
   };
 
-  const getCartSubtotal = () => {
-    return state.cartItems.reduce(
+
+  const getCartTotal = () => {
+     return state.cartItems.reduce(
       (sum, item) => sum + item.product.price * item.quantity,
       0
     );
-  };
-
-  const getCartTax = () => {
-    return getCartSubtotal() * 0.08; // 8% tax
-  };
-
-  const getCartTotal = () => {
-    return getCartSubtotal() + getCartTax();
   };
 
   const contextValue: StoreContextType = {
@@ -782,8 +773,6 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
     updateTransaction,
     // Computed Values
     getFilteredProducts,
-    getCartSubtotal,
-    getCartTax,
     getCartTotal,
   };
 

@@ -455,11 +455,23 @@ router.get("/stats/summary", protect, async (req, res) => {
           _id: null,
           totalCustomers: { $sum: 1 },
           activeCustomers: {
-            $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
+            $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
           },
-          totalRevenue: { $sum: "$totalRevenue" },
-          totalActiveInvoices: { $sum: "$activeInvoices" },
-          totalProjects: { $sum: "$projects" },
+          
+        recentCustomersThisMonth: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $gte: ["$createdAt", new Date(new Date().setDate(1))] },
+                    { $lt: ["$createdAt", new Date()] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
         },
       },
     ]);
@@ -468,8 +480,6 @@ router.get("/stats/summary", protect, async (req, res) => {
       totalCustomers: 0,
       activeCustomers: 0,
       totalRevenue: 0,
-      totalActiveInvoices: 0,
-      totalProjects: 0,
     };
 
     res.json({

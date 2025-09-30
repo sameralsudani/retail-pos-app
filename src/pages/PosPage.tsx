@@ -62,7 +62,6 @@ const PosPage: React.FC = () => {
   ];
 
   // Get cart totals
-
   const total = getCartTotal();
 
   const handlePaymentComplete = (
