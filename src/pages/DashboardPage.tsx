@@ -16,7 +16,6 @@ import {
   reportsAPI,
   transactionsAPI,
   productsAPI,
-  usersAPI,
 } from "../services/api";
 import { useCurrency } from "../contexts/CurrencyContext";
 
@@ -67,28 +66,7 @@ const DashboardPage: React.FC = () => {
         // Fetch low stock products
         const lowStockRes = await productsAPI.getAll({ lowStock: true });
         // Fetch active employees (users)
-        let usersStats: { active?: string | number; change?: string } = {
-          active: "0",
-          change: "",
-        };
-        try {
-          const res = await usersAPI.getStats();
-          if (
-            res &&
-            typeof res === "object" &&
-            !Array.isArray(res) &&
-            "active" in res
-          ) {
-            usersStats = res;
-          } else {
-            // If the response is a string or not the expected object, fallback
-            console.warn("usersAPI.getStats() returned unexpected:", res);
-            usersStats = { active: "0", change: "" };
-          }
-        } catch (err) {
-          console.warn("usersAPI.getStats() failed:", err);
-          usersStats = { active: "0", change: "" };
-        }
+
 
         setStats([
           {
@@ -100,8 +78,8 @@ const DashboardPage: React.FC = () => {
             color: "bg-green-500",
           },
           {
-            title: t("dashboard.stats.active.employees"),
-            value: usersStats?.active ?? "0",
+            title: t("dashboard.stats.totalTransactionsToday"),
+            value: overview.data.sales.totalTransactionsToday,
             icon: Users,
             color: "bg-blue-500",
           },
@@ -112,7 +90,7 @@ const DashboardPage: React.FC = () => {
             color: "bg-orange-500",
           },
           {
-            title: t("dashboard.stats.orders.today"),
+            title: t("dashboard.stats.totalItemsSoldToday"),
             value: overview?.data.sales.totalItemsSoldToday ?? "0",
             icon: ShoppingCart,
             color: "bg-purple-500",
