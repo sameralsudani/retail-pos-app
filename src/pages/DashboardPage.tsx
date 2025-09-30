@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   CheckCircle,
   BarChart3,
+  CreditCard,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import Header from "../components/Header";
@@ -80,7 +81,7 @@ const DashboardPage: React.FC = () => {
           {
             title: t("dashboard.stats.totalTransactionsToday"),
             value: overview.data.sales.totalTransactionsToday,
-            icon: Users,
+            icon: CreditCard,
             color: "bg-blue-500",
           },
           {
