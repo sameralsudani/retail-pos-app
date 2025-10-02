@@ -592,8 +592,7 @@ const CustomersPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -769,8 +768,6 @@ const CustomersPage: React.FC = () => {
                           .join(", ") || "No address provided"}
                   </div>
                 </div>
-
-              
 
                 <div
                   className={`mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex ${

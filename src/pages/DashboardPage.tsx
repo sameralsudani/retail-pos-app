@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+
 import {
   DollarSign,
   Users,
@@ -15,6 +17,8 @@ import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { reportsAPI, transactionsAPI, productsAPI } from "../services/api";
 import { useCurrency } from "../contexts/CurrencyContext";
+import { Product } from "../types";
+import NewSaleModal from "../components/newSaleModal";
 
 const DashboardPage: React.FC = () => {
   const { formatAmount } = useCurrency();
@@ -47,6 +51,109 @@ const DashboardPage: React.FC = () => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Invoice modal state (for new sale)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  console.log("🚀 ~ DashboardPage ~ showInvoiceModal:", showInvoiceModal)
+  const [selectedCustomer, setSelectedCustomer] = useState<Client | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  type InvoiceItem = { product: Product; quantity: number };
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+  const [productSearchTerm, setProductSearchTerm] = useState("");
+  const [invoiceStep, setInvoiceStep] = useState<
+    "products" | "review" | "payment"
+  >("products");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "card" | "digital"
+  >("cash");
+  const [amountPaid, setAmountPaid] = useState<string>("");
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  const handleNewSale = () => {
+    setSelectedCustomer(null); // Force customer picker to show
+    setShowInvoiceModal(true);
+    setInvoiceItems([]);
+    setProductSearchTerm("");
+    setInvoiceStep("products");
+    setPaymentMethod("cash");
+    setAmountPaid("");
+    loadProducts();
+  };
+
+  interface Client {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+    address:
+      | {
+          street?: string;
+          city?: string;
+          state?: string;
+          zipCode?: string;
+          country?: string;
+        }
+      | string;
+    notes?: string;
+    status?: string;
+    totalRevenue?: number;
+    activeInvoices?: number;
+    lastTransaction?: string | Date;
+    projects?: number;
+    avatar?: string;
+  }
+
+  // Load products for invoice modal
+  const loadProducts = async () => {
+    try {
+      setIsLoadingProducts(true);
+      const response = await productsAPI.getAll();
+      if (response.success) {
+        setProducts(response.data);
+      }
+    } catch {
+      setError("Failed to load products");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  const addToInvoice = (product: Product) => {
+    setInvoiceItems((prev) => {
+      // Use only _id for uniqueness
+      const productId = product._id;
+      const existingItem = prev.find((item) => item.product._id === productId);
+      if (existingItem) {
+        return prev.map((item) =>
+          item.product._id === productId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const updateInvoiceItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setInvoiceItems((prev) =>
+        prev.filter((item) => item.product._id !== productId)
+      );
+    } else {
+      setInvoiceItems((prev) =>
+        prev.map((item) =>
+          item.product._id === productId ? { ...item, quantity } : item
+        )
+      );
+    }
+  };
+
+  const removeFromInvoice = (productId: string) => {
+    setInvoiceItems((prev) =>
+      prev.filter((item) => item.product._id !== productId)
+    );
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -145,6 +252,88 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   }, [t]);
 
+  const getInvoiceTotal = () => {
+    return invoiceItems.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
+  };
+
+  const submitInvoice = async () => {
+    if (!selectedCustomer) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      const total = getInvoiceTotal();
+      const amountPaidNum = parseFloat(amountPaid) || 0;
+      const isPartial = amountPaidNum < total;
+
+      // Allow partial payment, mark as due if not fully paid
+      const transactionData = {
+        items: invoiceItems.map((item) => ({
+          product: item.product._id,
+          quantity: item.quantity,
+        })),
+        customer: selectedCustomer._id,
+        paymentMethod,
+        amountPaid: amountPaidNum,
+        dueAmount: isPartial ? total - amountPaidNum : 0,
+        isPaid: !isPartial,
+      };
+
+      const response = await transactionsAPI.create(transactionData);
+
+      if (response.success) {
+        // Close modal and reset
+        setShowInvoiceModal(false);
+        setInvoiceItems([]);
+        setProductSearchTerm("");
+        setInvoiceStep("products");
+        setPaymentMethod("cash");
+        setAmountPaid("");
+        setSelectedCustomer(null);
+
+        // Show success message
+        if (isPartial) {
+          toast.success(
+            `Invoice created with due amount: $${(
+              total - amountPaidNum
+            ).toFixed(2)}. Transaction ID: ${response.data._id}`
+          );
+        } else {
+          toast.success(
+            `Invoice created successfully! Transaction ID: ${response.data._id}`
+          );
+        }
+      } else {
+        setError(response.message || "Failed to create invoice");
+      }
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      setError("Failed to create invoice. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
+  );
+
+  const closeInvoiceModal = () => {
+    setShowInvoiceModal(false);
+    setInvoiceItems([]);
+    setProductSearchTerm("");
+    setInvoiceStep("products");
+    setPaymentMethod("cash");
+    setAmountPaid("");
+    setSelectedCustomer(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -208,7 +397,10 @@ const DashboardPage: React.FC = () => {
               {t("dashboard.quick.actions")}
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+              <button
+                className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                onClick={handleNewSale}
+              >
                 <ShoppingCart className="w-8 h-8 text-blue-600 mb-2" />
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {t("dashboard.new.sale")}
@@ -396,6 +588,45 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Invoice Modal for New Sale */}
+      {showInvoiceModal && (
+        <NewSaleModal
+          selectedCustomer={selectedCustomer}
+          setSelectedCustomer={(customer) =>
+            setSelectedCustomer(
+              customer
+                ? {
+                    _id: customer._id ?? "",
+                    name: customer.name,
+                    email: customer.email ?? "",
+                    phone: customer.phone ?? "",
+                    address: "", // or provide a sensible default/lookup if available
+                  }
+                : null
+            )
+          }
+          closeInvoiceModal={closeInvoiceModal}
+          invoiceStep={invoiceStep}
+          productSearchTerm={productSearchTerm}
+          setProductSearchTerm={setProductSearchTerm}
+          isLoadingProducts={isLoadingProducts}
+          invoiceItems={invoiceItems}
+          addToInvoice={addToInvoice}
+          updateInvoiceItemQuantity={updateInvoiceItemQuantity}
+          removeFromInvoice={removeFromInvoice}
+          getInvoiceTotal={getInvoiceTotal}
+          setInvoiceStep={setInvoiceStep}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          amountPaid={amountPaid}
+          setAmountPaid={setAmountPaid}
+          submitInvoice={submitInvoice}
+          isSubmitting={isSubmitting}
+          t={t}
+          filteredProducts={filteredProducts}
+        />
+      )}
 
       {/* Sidebar */}
       <Sidebar isOpen={showSidebar} onClose={() => setShowSidebar(false)} />

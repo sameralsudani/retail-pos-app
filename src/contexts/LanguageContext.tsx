@@ -25,6 +25,8 @@ interface LanguageProviderProps {
 // Translation dictionaries
 const translations: Record<Language, { [key: string]: string }> = {
   en: {
+    "customers.search": "Search customers...",
+    "customers.select.customer": "Select customer",
     "sales.hidePOS": "Hide POS",
     "sales.openPOS": "Open POS",
     "sales.stats.0": "Today's Sales",
@@ -829,6 +831,8 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.unsaved.changes": "You have unsaved changes",
   },
   ar: {
+    "customers.search": "ابحث عن الزبائن...",
+    "customers.select.customer": "اختر الزبون",
     "sales.hidePOS": "إخفاء نقطة البيع",
     "sales.openPOS": "فتح نقطة البيع",
     "sales.stats.0": "مبيعات اليوم",
