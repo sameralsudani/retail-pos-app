@@ -409,7 +409,7 @@ const TransactionsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {transaction.items.length}{" "}
-                        {t("transactions.table.items.count")}
+                        {t("invoices.table.items.count")}
                       </div>
                       <div className="text-sm text-gray-500">
                         {transaction.items
