@@ -211,7 +211,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="ml-4">
+              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.total")}
                 </p>
@@ -227,7 +227,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
-              <div className="ml-4">
+              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.completed")}
                 </p>
@@ -243,7 +243,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Clock className="h-6 w-6 text-yellow-600" />
               </div>
-              <div className="ml-4">
+              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.due")}
                 </p>
@@ -259,7 +259,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-emerald-100 rounded-lg">
                 <DollarSign className="h-6 w-6 text-emerald-600" />
               </div>
-              <div className="ml-4">
+              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.revenue")}
                 </p>

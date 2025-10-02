@@ -64,34 +64,36 @@ const UsersPage = () => {
       const response = await usersAPI.getAll();
 
       if (response.success) {
-        const mappedUsers = response.data.map((apiUser: {
-          _id?: string;
-          id?: string;
-          name: string;
-          email: string;
-          phone?: string;
-          role: "admin" | "manager" | "cashier";
-          employeeId: string;
-          isActive: boolean;
-          lastLogin?: string | Date;
-          createdAt: string | Date;
-          updatedAt: string | Date;
-        }) => ({
-          id: apiUser._id || apiUser.id,
-          name: apiUser.name,
-          email: apiUser.email,
-          phone: apiUser.phone || "",
-          role: apiUser.role,
-          employeeId: apiUser.employeeId,
-          status: apiUser.isActive
-            ? "active"
-            : ("inactive" as "active" | "inactive"),
-          lastLogin: apiUser.lastLogin
-            ? new Date(apiUser.lastLogin)
-            : new Date(),
-          createdAt: new Date(apiUser.createdAt),
-          updatedAt: new Date(apiUser.updatedAt),
-        }));
+        const mappedUsers = response.data.map(
+          (apiUser: {
+            _id?: string;
+            id?: string;
+            name: string;
+            email: string;
+            phone?: string;
+            role: "admin" | "manager" | "cashier";
+            employeeId: string;
+            isActive: boolean;
+            lastLogin?: string | Date;
+            createdAt: string | Date;
+            updatedAt: string | Date;
+          }) => ({
+            id: apiUser._id || apiUser.id,
+            name: apiUser.name,
+            email: apiUser.email,
+            phone: apiUser.phone || "",
+            role: apiUser.role,
+            employeeId: apiUser.employeeId,
+            status: apiUser.isActive
+              ? "active"
+              : ("inactive" as "active" | "inactive"),
+            lastLogin: apiUser.lastLogin
+              ? new Date(apiUser.lastLogin)
+              : new Date(),
+            createdAt: new Date(apiUser.createdAt),
+            updatedAt: new Date(apiUser.updatedAt),
+          })
+        );
         setUsers(mappedUsers);
       } else {
         setError(response.message || "Failed to load users");
@@ -310,7 +312,11 @@ const UsersPage = () => {
               >
                 <User className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="ml-4">
+              <div
+                className={`${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <p className="text-sm font-medium text-gray-600">
                   {t("users.stats.total")}
                 </p>
@@ -328,7 +334,12 @@ const UsersPage = () => {
               >
                 <User className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="ml-4">
+
+              <div
+                className={`${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <p className="text-sm font-medium text-gray-600">
                   {t("users.stats.active")}
                 </p>
@@ -341,14 +352,19 @@ const UsersPage = () => {
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-             <div
+              <div
                 className={`p-2 bg-green-100 rounded-lg ${
                   document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
                 }`}
               >
                 <Shield className="h-6 w-6 text-red-600" />
               </div>
-              <div className="ml-4">
+
+              <div
+                className={`${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <p className="text-sm font-medium text-gray-600">
                   {t("users.stats.admins")}
                 </p>
@@ -366,7 +382,12 @@ const UsersPage = () => {
               >
                 <User className="h-6 w-6 text-purple-600" />
               </div>
-              <div className="ml-4">
+
+              <div
+                className={`${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <p className="text-sm font-medium text-gray-600">
                   {t("users.stats.managers")}
                 </p>
@@ -485,13 +506,21 @@ const UsersPage = () => {
                     </td>
                     {/* Role */}
                     <td className="w-48 py-4 whitespace-nowrap ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getRoleColor(systemUser.role)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getRoleColor(
+                          systemUser.role
+                        )}`}
+                      >
                         {t(`auth.role.${systemUser.role}`)}
                       </span>
                     </td>
                     {/* Status */}
                     <td className="w-48 py-4 whitespace-nowrap ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(systemUser.status)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize ${getStatusColor(
+                          systemUser.status
+                        )}`}
+                      >
                         {t(`users.status.${systemUser.status}`)}
                       </span>
                     </td>
