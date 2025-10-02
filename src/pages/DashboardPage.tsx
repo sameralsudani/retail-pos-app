@@ -13,11 +13,7 @@ import {
 import { useLanguage } from "../contexts/LanguageContext";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import {
-  reportsAPI,
-  transactionsAPI,
-  productsAPI,
-} from "../services/api";
+import { reportsAPI, transactionsAPI, productsAPI } from "../services/api";
 import { useCurrency } from "../contexts/CurrencyContext";
 
 const DashboardPage: React.FC = () => {
@@ -67,7 +63,6 @@ const DashboardPage: React.FC = () => {
         // Fetch low stock products
         const lowStockRes = await productsAPI.getAll({ lowStock: true });
         // Fetch active employees (users)
-
 
         setStats([
           {
@@ -206,6 +201,104 @@ const DashboardPage: React.FC = () => {
           })}
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Quick Actions */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              {t("dashboard.quick.actions")}
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                <ShoppingCart className="w-8 h-8 text-blue-600 mb-2" />
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.new.sale")}
+                </span>
+              </button>
+              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+                <Package className="w-8 h-8 text-green-600 mb-2" />
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.add.inventory")}
+                </span>
+              </button>
+              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
+                <Users className="w-8 h-8 text-purple-600 mb-2" />
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.schedule.staff")}
+                </span>
+              </button>
+              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
+                <BarChart3 className="w-8 h-8 text-orange-600 mb-2" />
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {t("dashboard.view.reports")}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Current Shift */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              {t("dashboard.current.shift")}
+            </h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-semibold text-sm">
+                      SM
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Sarah Miller</p>
+                    <p className="text-sm text-gray-600">
+                      {t("auth.role.cashier")} • 9:00 AM - 5:00 PM
+                    </p>
+                  </div>
+                </div>
+                <span className="text-green-600 text-sm font-medium">
+                  {t("dashboard.on.duty")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold text-sm">
+                      MR
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Mike Rodriguez</p>
+                    <p className="text-sm text-gray-600">
+                      {t("auth.role.manager")} • 8:00 AM - 6:00 PM
+                    </p>
+                  </div>
+                </div>
+                <span className="text-blue-600 text-sm font-medium">
+                  {t("dashboard.on.duty")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span className="text-gray-600 font-semibold text-sm">
+                      AT
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Alex Thompson</p>
+                    <p className="text-sm text-gray-600">
+                      {t("auth.role.stockClerk")} • 3:00 PM - 11:00 PM
+                    </p>
+                  </div>
+                </div>
+                <span className="text-gray-600 text-sm font-medium">
+                  {t("dashboard.starts.at")} 3:00 PM
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Sales */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
@@ -298,42 +391,6 @@ const DashboardPage: React.FC = () => {
               </div>
               <button className="w-full mt-4 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
                 {t("dashboard.view.all.notifications")}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Employee Schedule & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Quick Actions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {t("dashboard.quick.actions")}
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                <ShoppingCart className="w-8 h-8 text-blue-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {t("dashboard.new.sale")}
-                </span>
-              </button>
-              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
-                <Package className="w-8 h-8 text-green-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {t("dashboard.add.inventory")}
-                </span>
-              </button>
-              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
-                <Users className="w-8 h-8 text-purple-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {t("dashboard.schedule.staff")}
-                </span>
-              </button>
-              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors">
-                <BarChart3 className="w-8 h-8 text-orange-600 mb-2" />
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {t("dashboard.view.reports")}
-                </span>
               </button>
             </div>
           </div>
