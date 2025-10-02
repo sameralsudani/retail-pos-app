@@ -72,6 +72,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
+     {
+      icon: Truck,
+      label: t("sidebar.purchases"),
+      onClick: () => {
+        navigate("/purchases");
+        onClose();
+      },
+    },
     {
       label: t("sidebar.customers"),
       icon: Users,

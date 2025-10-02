@@ -518,10 +518,6 @@ const TransactionsPage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          
-
-        
         </div>
 
         {/* Filters & Advanced Search */}
