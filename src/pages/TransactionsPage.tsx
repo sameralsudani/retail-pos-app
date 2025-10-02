@@ -92,7 +92,7 @@ const TransactionsPage: React.FC = () => {
     receiptWindow.document.write(`
     <html>
       <head>
-        <title>${t("transactions.receipt.title")}</title>
+        <title>${t("invoices.receipt.title")}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 24px; }
           h2 { text-align: center; }
@@ -103,20 +103,20 @@ const TransactionsPage: React.FC = () => {
         </style>
       </head>
       <body>
-        <h2>${t("transactions.receipt.title")}</h2>
-        <div>${t("transactions.detail.transaction.id")}: ${transaction.id}</div>
-        <div>${t("transactions.detail.customer")}: ${
+        <h2>${t("invoices.receipt.title")}</h2>
+        <div>${t("invoices.detail.transaction.id")}: ${transaction.id}</div>
+        <div>${t("invoices.detail.customer")}: ${
       transaction.customerName
     }</div>
         <div>${t(
-          "transactions.detail.date"
+          "invoices.detail.date"
         )}: ${transaction.orderDate.toLocaleString()}</div>
         <table>
           <thead>
             <tr>
-              <th>${t("transactions.detail.items")}</th>
-              <th>${t("transactions.table.items.count")}</th>
-              <th>${t("transactions.detail.total")}</th>
+              <th>${t("invoices.detail.items")}</th>
+              <th>${t("invoices.table.items.count")}</th>
+              <th>${t("invoices.detail.total")}</th>
             </tr>
           </thead>
           <tbody>
@@ -124,10 +124,10 @@ const TransactionsPage: React.FC = () => {
           </tbody>
         </table>
         <div class='total' style='margin-top:16px;'>${t(
-          "transactions.detail.total"
+          "invoices.detail.total"
         )}: $${transaction.total.toFixed(2)}</div>
         <div>${t(
-          "transactions.detail.payment.method"
+          "invoices.detail.payment.method"
         )}: <span class='capitalize'>${transaction.paymentMethod}</span></div>
       </body>
     </html>
@@ -172,7 +172,7 @@ const TransactionsPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <Header
           onMenuClick={() => setShowSidebar(true)}
-          title={t("users.title")}
+          title={t("invoices.title")}
         />
         <div className="p-6 flex items-center justify-center">
           <div className="text-center">
@@ -200,7 +200,7 @@ const TransactionsPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Header
         onMenuClick={() => setShowSidebar(true)}
-        title={t("transactions.title")}
+        title={t("invoices.title")}
       />
 
       <div className="p-6">
@@ -213,7 +213,7 @@ const TransactionsPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("transactions.stats.total")}
+                  {t("invoices.stats.total")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {totalTransactions}
@@ -229,7 +229,7 @@ const TransactionsPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("transactions.stats.completed")}
+                  {t("invoices.stats.completed")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {completedTransactions}
@@ -245,7 +245,7 @@ const TransactionsPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("transactions.stats.due")}
+                  {t("invoices.stats.due")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {dueTransactions}
@@ -261,7 +261,7 @@ const TransactionsPage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  {t("transactions.stats.revenue")}
+                  {t("invoices.stats.revenue")}
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatAmount(totalRevenue)}
@@ -278,7 +278,7 @@ const TransactionsPage: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder={t("transactions.search.placeholder")}
+                placeholder={t("invoices.search.placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -293,13 +293,13 @@ const TransactionsPage: React.FC = () => {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="all">{t("transactions.filter.all")}</option>
+                  <option value="all">{t("invoices.filter.all")}</option>
                   <option value="completed">
-                    {t("transactions.filter.completed")}
+                    {t("invoices.filter.completed")}
                   </option>
-                  <option value="due">{t("transactions.filter.due")}</option>
+                  <option value="due">{t("invoices.filter.due")}</option>
                   <option value="cancelled">
-                    {t("transactions.filter.cancelled")}
+                    {t("invoices.filter.cancelled")}
                   </option>
                 </select>
               </div>
@@ -318,63 +318,63 @@ const TransactionsPage: React.FC = () => {
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.transaction")}
+                    {t("invoices.table.invoices")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.customer")}
+                    {t("invoices.table.customer")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.items")}
+                    {t("invoices.table.items")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.total")}
+                    {t("invoices.table.total")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.amountPaid")}
+                    {t("invoices.table.amountPaid")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.amountDue")}
+                    {t("invoices.table.amountDue")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.status")}
+                    {t("invoices.table.status")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.date")}
+                    {t("invoices.table.date")}
                   </th>
                   <th
                     className={`px-6 py-3 ${
                       language === "ar" ? "text-right" : "text-left"
                     } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                   >
-                    {t("transactions.table.actions")}
+                    {t("invoices.table.actions")}
                   </th>
                 </tr>
               </thead>
@@ -463,7 +463,7 @@ const TransactionsPage: React.FC = () => {
                           <XCircle className="h-4 w-4" />
                         )}
                         <span className="capitalize">
-                          {t(`transactions.status.${transaction.status}`)}
+                          {t(`invoices.status.${transaction.status}`)}
                         </span>
                       </span>
                     </td>
@@ -476,7 +476,7 @@ const TransactionsPage: React.FC = () => {
                         <button
                           onClick={() => setSelectedOrder(transaction)}
                           className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                          title={t("transactions.actions.view")}
+                          title={t("invoices.actions.view")}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
@@ -484,7 +484,7 @@ const TransactionsPage: React.FC = () => {
                           onClick={() => printReceipt(t, transaction)}
                           // Print receipt function
                           className="text-gray-600 hover:text-gray-900 p-1 hover:bg-gray-50 rounded"
-                          title={t("transactions.actions.print")}
+                          title={t("invoices.actions.print")}
                         >
                           <Printer className="h-4 w-4" />
                         </button>
@@ -493,7 +493,7 @@ const TransactionsPage: React.FC = () => {
                             setUpdateModal({ open: true, transaction })
                           }
                           className="text-yellow-600 hover:text-yellow-900 p-1 hover:bg-yellow-50 rounded"
-                          title={t("transactions.actions.update")}
+                          title={t("invoices.actions.update")}
                         >
                           <Pen className="h-4 w-4" />
                         </button>
@@ -509,10 +509,10 @@ const TransactionsPage: React.FC = () => {
             <div className="text-center py-12">
               <Package className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {t("transactions.empty.title")}
+                {t("invoices.empty.title")}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {t("transactions.empty.subtitle")}
+                {t("invoices.empty.subtitle")}
               </p>
             </div>
           )}
@@ -525,7 +525,7 @@ const TransactionsPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
-                {t("transactions.detail.title")}
+                {t("invoices.detail.title")}
               </h2>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -540,7 +540,7 @@ const TransactionsPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("transactions.detail.transaction.id")}
+                    {t("invoices.detail.transaction.id")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedOrder.id}
@@ -548,7 +548,7 @@ const TransactionsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("transactions.detail.status")}
+                    {t("invoices.detail.status")}
                   </label>
                   <span
                     className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
@@ -557,13 +557,13 @@ const TransactionsPage: React.FC = () => {
                   >
                     {getStatusIcon(selectedOrder.status ?? "completed")}
                     <span className="capitalize">
-                      {t(`transactions.status.${selectedOrder.status}`)}
+                      {t(`invoices.status.${selectedOrder.status}`)}
                     </span>
                   </span>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("transactions.detail.customer")}
+                    {t("invoices.detail.customer")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedOrder.customerName}
@@ -574,7 +574,7 @@ const TransactionsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    {t("transactions.detail.date")}
+                    {t("invoices.detail.date")}
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {selectedOrder.orderDate.toLocaleString()}
@@ -585,7 +585,7 @@ const TransactionsPage: React.FC = () => {
               {/* Items */}
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-3">
-                  {t("transactions.detail.items")}
+                  {t("invoices.detail.items")}
                 </h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item, index) => (
@@ -612,13 +612,13 @@ const TransactionsPage: React.FC = () => {
               {/* Total */}
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between items-center text-lg font-bold">
-                  <span>{t("transactions.detail.total")}</span>
+                  <span>{t("invoices.detail.total")}</span>
                   <span className="text-blue-600">
                     ${selectedOrder.total.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  {t("transactions.detail.payment.method")}:{" "}
+                  {t("invoices.detail.payment.method")}:{" "}
                   <span className="capitalize">
                     {selectedOrder.paymentMethod}
                   </span>
@@ -631,7 +631,7 @@ const TransactionsPage: React.FC = () => {
                 onClick={() => setSelectedOrder(null)}
                 className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
-                {t("transactions.detail.close")}
+                {t("invoices.detail.close")}
               </button>
             </div>
           </div>
