@@ -50,9 +50,7 @@ const Header: React.FC<HeaderProps> = ({
                 <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
                   {title || t("header.title")}
                 </h1>
-                <div className="hidden sm:block text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {t("header.subtitle")}
-                </div>
+               
               </div>
             </div>
 

@@ -21,7 +21,9 @@ const CurrencySelector: React.FC = () => {
     >
       <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
       <span className="hidden sm:inline font-medium text-sm">
-        {displayCurrency.symbol} {displayCurrency.code}
+        <span className={`${document.documentElement.dir === 'rtl' ? 'mr-2' : 'ml-2'}`}>
+          {displayCurrency.symbol} {displayCurrency.code}
+        </span>
       </span>
     </button>
   );

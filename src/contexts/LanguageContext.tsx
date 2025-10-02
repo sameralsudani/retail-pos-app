@@ -970,7 +970,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "sidebar.pos": "نقطة البيع",
     "sidebar.inventory": "المخزن",
     "sidebar.inventoryManagement": "إدارة المخزن",
-    "sidebar.orders": "الطلبات",
+    "sidebar.invoices": "الفواتير",
     "sidebar.categories": "الفئات",
     "sidebar.suppliers": "الموردين",
     "sidebar.users": "المستخدمين",

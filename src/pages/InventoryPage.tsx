@@ -475,62 +475,92 @@ const InventoryPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-              <div className={`p-2 bg-blue-100 rounded-lg ${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}> 
+              <div
+                className={`p-2 bg-blue-100 rounded-lg ${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  {t("inventory.stats.total.items")}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">{totalItems}</p>
+                <div
+                  className={`${
+                    document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                  }`}
+                >
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("inventory.stats.total.items")}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {totalItems}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-              <div className={`p-2 bg-yellow-100 rounded-lg ${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}> 
+              <div
+                className={`p-2 bg-yellow-100 rounded-lg ${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <TrendingDown className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  {t("inventory.stats.low.stock")}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {lowStockItems}
-                </p>
-              </div>
+                <div className={`${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("inventory.stats.low.stock")}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {lowStockItems}
+                  </p>
+                </div>
+                </div>
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-              <div className={`p-2 bg-red-100 rounded-lg ${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}> 
+              <div
+                className={`p-2 bg-red-100 rounded-lg ${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  {t("inventory.stats.out.of.stock")}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {outOfStockItems}
-                </p>
-              </div>
+                <div className={`${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("inventory.stats.out.of.stock")}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {outOfStockItems}
+                  </p>
+                </div>
+                </div>
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center">
-              <div className={`p-2 bg-green-100 rounded-lg ${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+              <div
+                className={`p-2 bg-green-100 rounded-lg ${
+                  document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                }`}
+              >
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  {t("inventory.stats.total.value")}
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatAmount(totalValue)}
-                </p>
+                <div className={`${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+                  <p className="text-sm font-medium text-gray-600">
+                    {t("inventory.stats.total.value")}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatAmount(totalValue)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -586,13 +616,13 @@ const InventoryPage = () => {
 
               {canEdit && (
                 <>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>{t("inventory.add.item")}</span>
-                </button>
+                  <button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                    <span>{t("inventory.add.item")}</span>
+                  </button>
                   <button
                     onClick={handleExportExcel}
                     className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -695,13 +725,14 @@ const InventoryPage = () => {
                           {item.supplier}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {t("inventory.last.restocked")}: {item.lastRestocked.toLocaleDateString()}
+                          {t("inventory.last.restocked")}:{" "}
+                          {item.lastRestocked.toLocaleDateString()}
                         </div>
                       </td>
                       {/* Actions */}
-                    <td className="w-48 py-4 whitespace-nowrap text-sm font-medium ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
-                      <div className="flex items-center ltr:space-x-2 rtl:space-x-reverse rtl:space-x-2 ltr:flex-row rtl:flex-row-reverse rtl:justify-end">
-                        {canEdit ? (
+                      <td className="w-48 py-4 whitespace-nowrap text-sm font-medium ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
+                        <div className="flex items-center ltr:space-x-2 rtl:space-x-reverse rtl:space-x-2 ltr:flex-row rtl:flex-row-reverse rtl:justify-end">
+                          {canEdit ? (
                             <>
                               <button
                                 onClick={() => {

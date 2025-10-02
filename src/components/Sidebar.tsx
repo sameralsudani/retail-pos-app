@@ -40,7 +40,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   // Always put POSPage (header.title) at the top
   const menuItems = [
-    
     {
       label: t("header.title"),
       icon: Store,
@@ -49,20 +48,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-   
+
     {
       label: t("sidebar.dashboard"),
       icon: LayoutDashboard,
       onClick: () => {
         navigate("/dashboard");
-        onClose();
-      },
-    },
-    {
-      label: t("sidebar.customers"),
-      icon: Users,
-      onClick: () => {
-        navigate("/customers");
         onClose();
       },
     },
@@ -74,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-     {
+    {
       label: t("sidebar.sales"),
       icon: ShoppingCart,
       onClick: () => {
@@ -82,14 +73,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-    {
+     {
       icon: FileText,
-      label: t("sidebar.transactions"),
+      label: t("sidebar.invoices"),
       onClick: () => {
         navigate("/transactions");
         onClose();
       },
     },
+    {
+      label: t("sidebar.customers"),
+      icon: Users,
+      onClick: () => {
+        navigate("/customers");
+        onClose();
+      },
+    },
+
+   
     {
       icon: Tag,
       label: t("sidebar.categories"),
@@ -139,16 +140,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   // Add Users menu item only for Admin and Manager
   if (user?.role === "admin" || user?.role === "manager") {
-    const insertIndex =
-      user?.role === "admin" || user?.role === "manager" ? 3 : 2; // After Categories
-    menuItems.splice(insertIndex, 0, {
+    // Always insert Users after Sales (index 4)
+    menuItems.splice(5, 0, {
       icon: Users,
       label: t("sidebar.users"),
       onClick: () => {
         navigate("/users");
         onClose();
       },
-    },);
+    });
   }
 
   return (
@@ -173,8 +173,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             : "-translate-x-full"
         }`}
       >
-       
-
         {/* User Info */}
         <div
           className={`p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/20 ${
@@ -188,7 +186,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 : "space-x-2 sm:space-x-3"
             }`}
           >
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0${language === "ar" ? ' ml-2' : ''}`}>
+            <div
+              className={`w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0${
+                language === "ar" ? " ml-2" : ""
+              }`}
+            >
               <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <div className="min-w-0 flex-1">
@@ -209,7 +211,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
           </div>
-         
         </div>
 
         {/* Menu Items */}
@@ -229,7 +230,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     : "space-x-2 sm:space-x-3 text-left"
                 }`}
               >
-                <item.icon className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0${language === "ar" ? ' ml-2' : ''}`} />
+                <item.icon
+                  className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0${
+                    language === "ar" ? " ml-2" : ""
+                  }`}
+                />
                 <span className="font-medium text-sm sm:text-base truncate">
                   {item.label}
                 </span>
@@ -252,7 +257,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 : "space-x-2 sm:space-x-3 text-left"
             }`}
           >
-            <LogOut className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0${language === "ar" ? ' ml-2' : ''}`} />
+            <LogOut
+              className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0${
+                language === "ar" ? " ml-2" : ""
+              }`}
+            />
             <span className="font-medium text-sm sm:text-base">
               {t("sidebar.logout")}
             </span>
