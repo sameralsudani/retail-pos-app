@@ -18,7 +18,7 @@ import Sidebar from "../components/Sidebar";
 import { reportsAPI, transactionsAPI, productsAPI } from "../services/api";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { Product } from "../types";
-import NewSaleModal from "../components/newSaleModal";
+import NewSaleModal from "../components/NewSaleModal";
 
 const DashboardPage: React.FC = () => {
   const { formatAmount } = useCurrency();
