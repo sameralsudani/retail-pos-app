@@ -22,6 +22,7 @@ import { Product } from "../types";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useCurrency } from "../contexts/CurrencyContext";
+import { toast } from "react-toastify/unstyled";
 
 interface InventoryItem extends Product {
   id: string;
@@ -57,7 +58,6 @@ const InventoryPage = () => {
 
   // State management
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  console.log("🚀 ~ InventoryPage ~ inventory:", inventory)
   interface Category {
     _id: string;
     name: string;
@@ -334,8 +334,11 @@ const InventoryPage = () => {
           setSelectedImage(null);
           setImagePreview(null);
           setShowAddModal(false);
+          setError(null);
+          toast.success("Product added successfully");
         } else {
           setError(response.message || "Failed to create product");
+          toast.error("Failed to create product");
         }
       } catch (error) {
         console.error("Error creating product:", error);

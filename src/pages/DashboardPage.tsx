@@ -11,11 +11,20 @@ import {
   CheckCircle,
   BarChart3,
   CreditCard,
+  X,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { reportsAPI, transactionsAPI, productsAPI } from "../services/api";
+import {
+  reportsAPI,
+  transactionsAPI,
+  productsAPI,
+  categoriesAPI,
+  suppliersAPI,
+} from "../services/api";
 import { useCurrency } from "../contexts/CurrencyContext";
 import { Product } from "../types";
 import NewSaleModal from "../components/NewSaleModal";
@@ -46,16 +55,25 @@ const DashboardPage: React.FC = () => {
     message: string;
     time: string;
   };
+  interface Category {
+    _id: string;
+    name: string;
+  }
   const [stats, setStats] = useState<Stat[]>([]);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [suppliers, setSuppliers] = useState<{ _id: string; name: string }[]>(
+    []
+  );
 
   // Invoice modal state (for new sale)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  console.log("🚀 ~ DashboardPage ~ showInvoiceModal:", showInvoiceModal)
+  console.log("🚀 ~ DashboardPage ~ showInvoiceModal:", showInvoiceModal);
   const [selectedCustomer, setSelectedCustomer] = useState<Client | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   type InvoiceItem = { product: Product; quantity: number };
@@ -69,6 +87,173 @@ const DashboardPage: React.FC = () => {
   >("cash");
   const [amountPaid, setAmountPaid] = useState<string>("");
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // Form state
+  const [newItem, setNewItem] = useState({
+    name: "",
+    price: 0,
+    category: "",
+    sku: "",
+    stock: 0,
+    costPrice: 0,
+    reorderLevel: 10,
+    supplier: "",
+    description: "",
+    image: "",
+  });
+
+  // Image upload state
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Load data on component mount
+  const loadInitialData = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await Promise.all([loadProducts(), loadCategories(), loadSuppliers()]);
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+      setError("Failed to load inventory data");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAll();
+      if (response.success) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
+
+  const loadSuppliers = async () => {
+    try {
+      const response = await suppliersAPI.getAll();
+      if (response.success) {
+        setSuppliers(response.data);
+      }
+    } catch (error) {
+      console.error("Error loading suppliers:", error);
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please select a valid image file");
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size must be less than 5MB");
+        return;
+      }
+
+      setSelectedImage(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const handleAddItem = async () => {
+    if (newItem.name && newItem.sku && newItem.price && newItem.category) {
+      try {
+        setIsSubmitting(true);
+        setError(null);
+
+        // Find category ID
+        const category = categories.find(
+          (cat) => cat.name.toLowerCase() === newItem.category?.toLowerCase()
+        );
+        if (!category) {
+          setError("Invalid category selected");
+          return;
+        }
+
+        // Find supplier ID if supplier is selected
+        let supplierId = undefined;
+        if (newItem.supplier) {
+          const supplier = suppliers.find(
+            (sup) => sup.name.toLowerCase() === newItem.supplier?.toLowerCase()
+          );
+          supplierId = supplier?._id;
+        }
+
+        // Prepare form data for file upload
+        const formData = new FormData();
+        formData.append("name", newItem.name);
+        formData.append("description", newItem.description || "");
+        formData.append("price", newItem.price.toString());
+        formData.append("costPrice", (newItem.costPrice || 0).toString());
+        formData.append("category", category._id);
+        formData.append("sku", newItem.sku);
+        formData.append("stock", (newItem.stock || 0).toString());
+        formData.append(
+          "reorderLevel",
+          (newItem.reorderLevel || 10).toString()
+        );
+        if (supplierId) {
+          formData.append("supplier", supplierId);
+        }
+        if (selectedImage) {
+          formData.append("image", selectedImage);
+        }
+
+        const response = await productsAPI.createWithImage(formData);
+
+        if (response.success) {
+          await loadProducts(); // Reload products
+          setNewItem({
+            name: "",
+            price: 0,
+            category: "",
+            sku: "",
+            stock: 0,
+            costPrice: 0,
+            reorderLevel: 10,
+            supplier: "",
+            description: "",
+            image: "",
+          });
+          setSelectedImage(null);
+          setImagePreview(null);
+          setShowAddModal(false);
+          toast.success("Product added successfully");
+        } else {
+          setError(response.message || "Failed to create product");
+          toast.error("Failed to create product");
+        }
+      } catch (error) {
+        console.error("Error creating product:", error);
+        setError("Failed to create product. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
 
   const handleNewSale = () => {
     setSelectedCustomer(null); // Force customer picker to show
@@ -334,7 +519,7 @@ const DashboardPage: React.FC = () => {
     setSelectedCustomer(null);
   };
 
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -406,12 +591,17 @@ const DashboardPage: React.FC = () => {
                   {t("dashboard.new.sale")}
                 </span>
               </button>
-              <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors">
+
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+              >
                 <Package className="w-8 h-8 text-green-600 mb-2" />
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {t("dashboard.add.inventory")}
                 </span>
               </button>
+
               <button className="flex flex-col items-center p-4 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors">
                 <Users className="w-8 h-8 text-purple-600 mb-2" />
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -626,6 +816,316 @@ const DashboardPage: React.FC = () => {
           t={t}
           filteredProducts={filteredProducts}
         />
+      )}
+
+      {/* Add Item Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {t("inventory.add.title")}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                  setNewItem({
+                    name: "",
+                    price: 0,
+                    category: "",
+                    sku: "",
+                    stock: 0,
+                    costPrice: 0,
+                    reorderLevel: 10,
+                    supplier: "",
+                    description: "",
+                    image: "",
+                  });
+                }}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Image Upload Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("inventory.form.image")}
+                </label>
+                <div className="flex items-center space-x-4">
+                  {/* Image Preview */}
+                  <div className="flex-shrink-0">
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="h-20 w-20 object-cover rounded-lg border border-gray-300"
+                        />
+                        <button
+                          onClick={removeImage}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          title={t("inventory.form.image.remove")}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Button */}
+                  <div className="flex-1">
+                    <label className="cursor-pointer">
+                      <div className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                        <span className="text-sm text-gray-600">
+                          {selectedImage ? selectedImage.name : "Choose image"}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t("inventory.form.image.help")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.name")} *
+                  </label>
+                  <input
+                    type="text"
+                    value={newItem.name}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t("inventory.form.name.placeholder")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.sku")} *
+                  </label>
+                  <input
+                    type="text"
+                    value={newItem.sku}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({ ...prev, sku: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={t("inventory.form.sku.placeholder")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.category")} *
+                  </label>
+                  <select
+                    value={newItem.category}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({
+                        ...prev,
+                        category: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">
+                      {t("inventory.form.select.category")}
+                    </option>
+                    {categories.map((category) => (
+                      <option
+                        key={category._id}
+                        value={category.name.toLowerCase()}
+                      >
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.supplier")}
+                  </label>
+                  <select
+                    value={newItem.supplier}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({
+                        ...prev,
+                        supplier: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">
+                      {t("inventory.form.select.supplier")}
+                    </option>
+                    {suppliers.map((supplier) => (
+                      <option key={supplier._id} value={supplier.name}>
+                        {supplier.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.cost.price")} *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newItem.costPrice}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({
+                        ...prev,
+                        costPrice: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.selling.price")} *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newItem.price}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({
+                        ...prev,
+                        price: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.stock")} *
+                  </label>
+                  <input
+                    type="number"
+                    value={newItem.stock}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({
+                        ...prev,
+                        stock: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t("inventory.form.reorder.level")} *
+                  </label>
+                  <input
+                    type="number"
+                    value={newItem.reorderLevel}
+                    onChange={(e) =>
+                      setNewItem((prev) => ({
+                        ...prev,
+                        reorderLevel: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("inventory.form.description")}
+                </label>
+                <textarea
+                  value={newItem.description}
+                  onChange={(e) =>
+                    setNewItem((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={t("inventory.form.description.placeholder")}
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedImage(null);
+                    setImagePreview(null);
+                    setNewItem({
+                      name: "",
+                      price: 0,
+                      category: "",
+                      sku: "",
+                      stock: 0,
+                      costPrice: 0,
+                      reorderLevel: 10,
+                      supplier: "",
+                      description: "",
+                      image: "",
+                    });
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {t("inventory.form.cancel")}
+                </button>
+                <button
+                  onClick={handleAddItem}
+                  disabled={
+                    !newItem.name ||
+                    !newItem.sku ||
+                    !newItem.price ||
+                    !newItem.category ||
+                    isSubmitting
+                  }
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSubmitting
+                    ? t("inventory.form.adding")
+                    : t("inventory.form.add")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Sidebar */}
