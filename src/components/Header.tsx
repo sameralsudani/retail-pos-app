@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, User, Store } from "lucide-react";
+import { Menu, User, Store, LogOut } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({
   showActions = true,
 }) => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [currentTime, setCurrentTime] = React.useState(new Date());
 
   React.useEffect(() => {
@@ -67,19 +67,23 @@ const Header: React.FC<HeaderProps> = ({
 
           {showActions && (
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-               <div
-                className={document.documentElement.dir === "rtl" ? "ml-2" : ""}
-              >
+              <div className={document.documentElement.dir === "rtl" ? "ml-2" : ""}>
                 <CurrencySelector />
               </div>
-              <div
-                className={document.documentElement.dir === "rtl" ? "ml-2" : ""}
-              >
+              <div className={document.documentElement.dir === "rtl" ? "ml-2" : ""}>
                 <LanguageSwitcher />
               </div>
-              {/* User Profile */}
-              <div className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-all duration-200 space-x-3">
-                <div className="relative flex-shrink-0"></div>
+              {/* Redesigned User Profile */}
+              <div className="hidden sm:flex items-center px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm hover:shadow-md transition-all duration-200 space-x-3">
+                {/* Avatar with initials */}
+                <div
+                  className={
+                    "flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg uppercase" +
+                    (document.documentElement.dir === "rtl" ? " ml-3" : "")
+                  }
+                >
+                  {user?.name ? user.name.split(' ').map(n => n[0]).join('').slice(0,2) : t("header.cashier")[0]}
+                </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
                     {user?.name || t("header.cashier")}
@@ -89,6 +93,16 @@ const Header: React.FC<HeaderProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Logout Button */}
+              <button
+                onClick={logout}
+                className="flex items-center px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-all duration-200 text-red-600 dark:text-red-400 font-medium text-sm space-x-2 ml-2"
+                title={t("sidebar.logout")}
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">{t("sidebar.logout")}</span>
+              </button>
 
               {/* Mobile User Avatar */}
               <div className="sm:hidden relative">
