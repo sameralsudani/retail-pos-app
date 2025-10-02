@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import {
   Search,
@@ -12,26 +13,57 @@ import {
   CheckCircle,
   XCircle,
   Pen,
+  ShoppingCart,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useStore } from "../contexts/StoreContext";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { Transaction } from "../types";
+import { Product, Transaction } from "../types";
 import UpdateTransactionModal from "../components/UpdateTransactionModal";
 import { useCurrency } from "../contexts/CurrencyContext";
+import NewSaleModal from "../components/NewSaleModal";
+import { transactionsAPI, productsAPI } from "../services/api";
+
+type OrderWithCustomer = Transaction & {
+  customerName: string;
+  customerEmail: string;
+  status: string;
+  orderDate: Date;
+};
+interface Client {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address:
+    | {
+        street?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+      }
+    | string;
+  notes?: string;
+  status?: string;
+  totalRevenue?: number;
+  activeInvoices?: number;
+  lastTransaction?: string | Date;
+  projects?: number;
+  avatar?: string;
+}
+
+type InvoiceItem = { product: Product; quantity: number };
 
 const TransactionsPage: React.FC = () => {
   const { t, language } = useLanguage();
-  const { transactions, isLoading, updateTransaction } = useStore();
+  const { transactions, updateTransaction, loadTransactions } = useStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  type OrderWithCustomer = Transaction & {
-    customerName: string;
-    customerEmail: string;
-    status: string;
-    orderDate: Date;
-  };
+  const [fromDate, setFromDate] = useState<string>("");
+  const [toDate, setToDate] = useState<string>("");
+
   const [selectedOrder, setSelectedOrder] = useState<OrderWithCustomer | null>(
     null
   );
@@ -40,6 +72,190 @@ const TransactionsPage: React.FC = () => {
     open: boolean;
     transaction: OrderWithCustomer | null;
   }>({ open: false, transaction: null });
+  const [error, setError] = useState<string | null>(null);
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Invoice modal state (for new sale)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  console.log("🚀 ~ TransactionsPage ~ showInvoiceModal:", showInvoiceModal);
+  const [selectedCustomer, setSelectedCustomer] = useState<Client | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
+  const [productSearchTerm, setProductSearchTerm] = useState("");
+  const [invoiceStep, setInvoiceStep] = useState<
+    "products" | "review" | "payment"
+  >("products");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "card" | "digital"
+  >("cash");
+  const [amountPaid, setAmountPaid] = useState<string>("");
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // Load data on component mount
+  const loadInitialData = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await Promise.all([loadProducts()]);
+    } catch (error) {
+      console.error("Error loading initial data:", error);
+      setError("Failed to load inventory data");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
+  // Load products for invoice modal
+  const loadProducts = async () => {
+    try {
+      setIsLoadingProducts(true);
+      const response = await productsAPI.getAll();
+      if (response.success) {
+        setProducts(response.data);
+      }
+    } catch {
+      setError("Failed to load products");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  };
+
+  const addToInvoice = (product: Product) => {
+    setInvoiceItems((prev) => {
+      // Use only _id for uniqueness
+      const productId = product._id;
+      const existingItem = prev.find((item) => item.product._id === productId);
+      if (existingItem) {
+        return prev.map((item) =>
+          item.product._id === productId
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const updateInvoiceItemQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      setInvoiceItems((prev) =>
+        prev.filter((item) => item.product._id !== productId)
+      );
+    } else {
+      setInvoiceItems((prev) =>
+        prev.map((item) =>
+          item.product._id === productId ? { ...item, quantity } : item
+        )
+      );
+    }
+  };
+
+  const removeFromInvoice = (productId: string) => {
+    setInvoiceItems((prev) =>
+      prev.filter((item) => item.product._id !== productId)
+    );
+  };
+
+  const getInvoiceTotal = () => {
+    return invoiceItems.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
+  };
+
+  const submitInvoice = async () => {
+    if (!selectedCustomer) return;
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      const total = getInvoiceTotal();
+      const amountPaidNum = parseFloat(amountPaid) || 0;
+      const isPartial = amountPaidNum < total;
+
+      // Allow partial payment, mark as due if not fully paid
+      const transactionData = {
+        items: invoiceItems.map((item) => ({
+          product: item.product._id,
+          quantity: item.quantity,
+        })),
+        customer: selectedCustomer._id,
+        paymentMethod,
+        amountPaid: amountPaidNum,
+        dueAmount: isPartial ? total - amountPaidNum : 0,
+        isPaid: !isPartial,
+      };
+
+      const response = await transactionsAPI.create(transactionData);
+
+      if (response.success) {
+        // Reload transactions so the table updates
+        await loadTransactions();
+        // Close modal and reset
+        setShowInvoiceModal(false);
+        setInvoiceItems([]);
+        setProductSearchTerm("");
+        setInvoiceStep("products");
+        setPaymentMethod("cash");
+        setAmountPaid("");
+        setSelectedCustomer(null);
+
+        // Show success message
+        if (isPartial) {
+          toast.success(
+            `Invoice created with due amount: $${(
+              total - amountPaidNum
+            ).toFixed(2)}. Transaction ID: ${response.data._id}`
+          );
+        } else {
+          toast.success(
+            `Invoice created successfully! Transaction ID: ${response.data._id}`
+          );
+        }
+      } else {
+        setError(response.message || "Failed to create invoice");
+      }
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      setError("Failed to create invoice. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNewSale = () => {
+    setSelectedCustomer(null); // Force customer picker to show
+    setShowInvoiceModal(true);
+    setInvoiceItems([]);
+    setProductSearchTerm("");
+    setInvoiceStep("products");
+    setPaymentMethod("cash");
+    setAmountPaid("");
+    loadProducts();
+  };
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(productSearchTerm.toLowerCase())
+  );
+
+  const closeInvoiceModal = () => {
+    setShowInvoiceModal(false);
+    setInvoiceItems([]);
+    setProductSearchTerm("");
+    setInvoiceStep("products");
+    setPaymentMethod("cash");
+    setAmountPaid("");
+    setSelectedCustomer(null);
+  };
 
   // Transactions list
   const transactionsList = transactions.map((transaction) => ({
@@ -63,7 +279,22 @@ const TransactionsPage: React.FC = () => {
     const matchesStatus =
       statusFilter === "all" || transaction.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    // Date range filter
+    let matchesDate = true;
+    if (fromDate) {
+      matchesDate =
+        matchesDate &&
+        new Date(transaction.orderDate).setHours(0, 0, 0, 0) >=
+          new Date(fromDate).setHours(0, 0, 0, 0);
+    }
+    if (toDate) {
+      matchesDate =
+        matchesDate &&
+        new Date(transaction.orderDate).setHours(0, 0, 0, 0) <=
+          new Date(toDate).setHours(0, 0, 0, 0);
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
   });
   const { formatAmount } = useCurrency();
 
@@ -105,9 +336,7 @@ const TransactionsPage: React.FC = () => {
       <body>
         <h2>${t("invoices.receipt.title")}</h2>
         <div>${t("invoices.detail.transaction.id")}: ${transaction.id}</div>
-        <div>${t("invoices.detail.customer")}: ${
-      transaction.customerName
-    }</div>
+        <div>${t("invoices.detail.customer")}: ${transaction.customerName}</div>
         <div>${t(
           "invoices.detail.date"
         )}: ${transaction.orderDate.toLocaleString()}</div>
@@ -126,9 +355,9 @@ const TransactionsPage: React.FC = () => {
         <div class='total' style='margin-top:16px;'>${t(
           "invoices.detail.total"
         )}: $${transaction.total.toFixed(2)}</div>
-        <div>${t(
-          "invoices.detail.payment.method"
-        )}: <span class='capitalize'>${transaction.paymentMethod}</span></div>
+        <div>${t("invoices.detail.payment.method")}: <span class='capitalize'>${
+      transaction.paymentMethod
+    }</span></div>
       </body>
     </html>
   `);
@@ -172,7 +401,7 @@ const TransactionsPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         <Header
           onMenuClick={() => setShowSidebar(true)}
-          title={t("invoices.title")}
+          title={t("sales.title")}
         />
         <div className="p-6 flex items-center justify-center">
           <div className="text-center">
@@ -196,12 +425,32 @@ const TransactionsPage: React.FC = () => {
     0
   );
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
         onMenuClick={() => setShowSidebar(true)}
-        title={t("invoices.title")}
+        title={t("sales.title")}
       />
+
+      <div className="flex items-center justify-end m-6">
+        <button
+          onClick={handleNewSale}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <ShoppingCart className="w-4 h-4 mr-2" />
+          {t("invoices.actions.newSale")}
+        </button>
+      </div>
 
       <div className="p-6">
         {/* Stats Cards */}
@@ -211,7 +460,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
-              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
+              <div className={`${language === "ar" ? "mr-4" : "ml-4"}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.total")}
                 </p>
@@ -227,7 +476,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
-              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
+              <div className={`${language === "ar" ? "mr-4" : "ml-4"}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.completed")}
                 </p>
@@ -243,7 +492,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Clock className="h-6 w-6 text-yellow-600" />
               </div>
-              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
+              <div className={`${language === "ar" ? "mr-4" : "ml-4"}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.due")}
                 </p>
@@ -259,7 +508,7 @@ const TransactionsPage: React.FC = () => {
               <div className="p-2 bg-emerald-100 rounded-lg">
                 <DollarSign className="h-6 w-6 text-emerald-600" />
               </div>
-              <div className={`${language === 'ar' ? 'mr-4' : 'ml-4'}`}>
+              <div className={`${language === "ar" ? "mr-4" : "ml-4"}`}>
                 <p className="text-sm font-medium text-gray-600">
                   {t("invoices.stats.revenue")}
                 </p>
@@ -269,9 +518,13 @@ const TransactionsPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          
+
+        
         </div>
 
-        {/* Filters */}
+        {/* Filters & Advanced Search */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
             <div className="flex-1 max-w-md relative">
@@ -284,7 +537,28 @@ const TransactionsPage: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-
+            {/* Date Range Advanced Search */}
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 shadow-sm">
+              <label className="text-xs font-medium text-gray-500">
+                {t("invoices.filter.from")}
+              </label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 text-sm shadow-sm hover:border-blue-400 transition-colors"
+              />
+              <span className="text-gray-400 mx-1">-</span>
+              <label className="text-xs font-medium text-gray-500">
+                {t("invoices.filter.to")}
+              </label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 text-sm shadow-sm hover:border-blue-400 transition-colors"
+              />
+            </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Filter className="h-5 w-5 text-gray-400" />
@@ -396,7 +670,9 @@ const TransactionsPage: React.FC = () => {
                             <User className="h-4 w-4 text-gray-500" />
                           </div>
                         </div>
-                        <div className="ml-3">
+                        <div
+                          className={`${language === "ar" ? "mr-3" : "ml-3"}`}
+                        >
                           <div className="text-sm font-medium text-gray-900">
                             {transaction.customerName}
                           </div>
@@ -656,6 +932,45 @@ const TransactionsPage: React.FC = () => {
             setUpdateModal({ open: false, transaction: null });
           }}
           t={t}
+        />
+      )}
+
+      {/* Invoice Modal for New Sale */}
+      {showInvoiceModal && (
+        <NewSaleModal
+          selectedCustomer={selectedCustomer}
+          setSelectedCustomer={(customer) =>
+            setSelectedCustomer(
+              customer
+                ? {
+                    _id: customer._id ?? "",
+                    name: customer.name,
+                    email: customer.email ?? "",
+                    phone: customer.phone ?? "",
+                    address: "", // or provide a sensible default/lookup if available
+                  }
+                : null
+            )
+          }
+          closeInvoiceModal={closeInvoiceModal}
+          invoiceStep={invoiceStep}
+          productSearchTerm={productSearchTerm}
+          setProductSearchTerm={setProductSearchTerm}
+          isLoadingProducts={isLoadingProducts}
+          invoiceItems={invoiceItems}
+          addToInvoice={addToInvoice}
+          updateInvoiceItemQuantity={updateInvoiceItemQuantity}
+          removeFromInvoice={removeFromInvoice}
+          getInvoiceTotal={getInvoiceTotal}
+          setInvoiceStep={setInvoiceStep}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          amountPaid={amountPaid}
+          setAmountPaid={setAmountPaid}
+          submitInvoice={submitInvoice}
+          isSubmitting={isSubmitting}
+          t={t}
+          filteredProducts={filteredProducts}
         />
       )}
 

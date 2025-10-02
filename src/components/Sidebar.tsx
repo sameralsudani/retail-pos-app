@@ -14,7 +14,6 @@ import {
   Users,
   Truck,
   LayoutDashboard,
-  FileText,
   ShoppingCart,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -65,19 +64,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-    {
-      label: t("sidebar.sales"),
+     {
       icon: ShoppingCart,
+      label: t("sidebar.sales"),
       onClick: () => {
         navigate("/sales");
-        onClose();
-      },
-    },
-     {
-      icon: FileText,
-      label: t("sidebar.invoices"),
-      onClick: () => {
-        navigate("/transactions");
         onClose();
       },
     },

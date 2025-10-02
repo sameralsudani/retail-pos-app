@@ -29,36 +29,59 @@ import { useCurrency } from "../contexts/CurrencyContext";
 import { Product } from "../types";
 import NewSaleModal from "../components/NewSaleModal";
 
+type Stat = {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  color: string;
+};
+type Sale = {
+  id: string | number;
+  customer: string;
+  amount: string;
+  time: string;
+  items: number;
+  cashier: string;
+  itemsLabel: string;
+};
+type Alert = {
+  id: string | number;
+  type: "warning" | "success" | "info";
+  message: string;
+  time: string;
+};
+interface Category {
+  _id: string;
+  name: string;
+}
+
+interface Client {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address:
+    | {
+        street?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+      }
+    | string;
+  notes?: string;
+  status?: string;
+  totalRevenue?: number;
+  activeInvoices?: number;
+  lastTransaction?: string | Date;
+  projects?: number;
+  avatar?: string;
+}
+
 const DashboardPage: React.FC = () => {
   const { formatAmount } = useCurrency();
-
   const { t } = useLanguage();
   const [showSidebar, setShowSidebar] = useState(false);
-  type Stat = {
-    title: string;
-    value: string | number;
-    icon: React.ElementType;
-    color: string;
-  };
-  type Sale = {
-    id: string | number;
-    customer: string;
-    amount: string;
-    time: string;
-    items: number;
-    cashier: string;
-    itemsLabel: string;
-  };
-  type Alert = {
-    id: string | number;
-    type: "warning" | "success" | "info";
-    message: string;
-    time: string;
-  };
-  interface Category {
-    _id: string;
-    name: string;
-  }
   const [stats, setStats] = useState<Stat[]>([]);
   const [recentSales, setRecentSales] = useState<Sale[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -73,7 +96,6 @@ const DashboardPage: React.FC = () => {
   // Invoice modal state (for new sale)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  console.log("🚀 ~ DashboardPage ~ showInvoiceModal:", showInvoiceModal);
   const [selectedCustomer, setSelectedCustomer] = useState<Client | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   type InvoiceItem = { product: Product; quantity: number };
@@ -265,29 +287,6 @@ const DashboardPage: React.FC = () => {
     setAmountPaid("");
     loadProducts();
   };
-
-  interface Client {
-    _id: string;
-    name: string;
-    email: string;
-    phone: string;
-    address:
-      | {
-          street?: string;
-          city?: string;
-          state?: string;
-          zipCode?: string;
-          country?: string;
-        }
-      | string;
-    notes?: string;
-    status?: string;
-    totalRevenue?: number;
-    activeInvoices?: number;
-    lastTransaction?: string | Date;
-    projects?: number;
-    avatar?: string;
-  }
 
   // Load products for invoice modal
   const loadProducts = async () => {

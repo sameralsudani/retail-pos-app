@@ -25,6 +25,9 @@ interface LanguageProviderProps {
 // Translation dictionaries
 const translations: Record<Language, { [key: string]: string }> = {
   en: {
+  "invoices.actions.newSale": "Start a new sale",
+  "invoices.filter.from": "From date",
+  "invoices.filter.to": "To date",
     "customers.search": "Search customers...",
     "customers.select.customer": "Select customer",
     "sales.hidePOS": "Hide POS",
@@ -440,7 +443,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "invoices.stats.pending": "Pending",
     "invoices.stats.due": "Due",
     "invoices.stats.revenue": "Total Revenue",
-    "invoices.table.transaction": "Transaction",
+    "invoices.table.invoices": "Invoices",
     "invoices.table.customer": "Customer",
     "invoices.table.items": "Items",
     "invoices.table.total": "Total",
@@ -831,6 +834,9 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.unsaved.changes": "You have unsaved changes",
   },
   ar: {
+  "invoices.actions.newSale": "بدء عملية بيع جديدة",
+  "invoices.filter.from": "من تاريخ",
+  "invoices.filter.to": "إلى تاريخ",
     "customers.search": "ابحث عن الزبائن...",
     "customers.select.customer": "اختر الزبون",
     "sales.hidePOS": "إخفاء نقطة البيع",
