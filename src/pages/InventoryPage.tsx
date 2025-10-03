@@ -17,7 +17,12 @@ import {
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { productsAPI, categoriesAPI, suppliersAPI } from "../services/api";
+import {
+  productsAPI,
+  categoriesAPI,
+  suppliersAPI,
+  inventoryAPI,
+} from "../services/api";
 import { Product } from "../types";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
@@ -27,6 +32,7 @@ import { toast } from "react-toastify/unstyled";
 interface InventoryItem extends Product {
   id: string;
   lastRestocked: Date;
+  lastUpdated?: string | Date;
   costPrice: number;
   reorderLevel: number;
 }
@@ -139,31 +145,46 @@ const InventoryPage = () => {
           updatedAt?: string;
         }
 
+        // Fetch inventory records for all products
+        const inventoryRes = await inventoryAPI.getAll();
+        const inventoryMap: Record<string, { product?: string | { _id: string }; lastUpdated?: string }> = {};
+        if (inventoryRes.success && Array.isArray(inventoryRes.data)) {
+          for (const inv of inventoryRes.data) {
+            if (inv.product) {
+              inventoryMap[typeof inv.product === 'object' ? inv.product._id : inv.product] = inv;
+            }
+          }
+        }
+
         const products: InventoryItem[] = response.data.map(
-          (product: ProductAPIResponse): InventoryItem => ({
-            _id: product._id || "",
-            id: product._id || product.id || "",
-            name: product.name,
-            price: product.price,
-            category: (
-              (product.category && typeof product.category === "object"
-                ? product.category.name
-                : product.category) || ""
-            ).toLowerCase(),
-            sku: product.sku,
-            stock: product.stock,
-            image:
-              product.image ||
-              "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300",
-            description: product.description || "",
-            costPrice: product.costPrice || product.price * 0.7,
-            reorderLevel: product.reorderLevel || 10,
-            supplier:
-              (product.supplier && typeof product.supplier === "object"
-                ? product.supplier.name
-                : product.supplier) || "Unknown Supplier",
-            lastRestocked: new Date(product.updatedAt || "2024-01-10"),
-          })
+          (product: ProductAPIResponse): InventoryItem => {
+            const inv = inventoryMap[product._id || product.id || ""];
+            return {
+              _id: product._id || "",
+              id: product._id || product.id || "",
+              name: product.name,
+              price: product.price,
+              category: (
+                (product.category && typeof product.category === "object"
+                  ? product.category.name
+                  : product.category) || ""
+              ).toLowerCase(),
+              sku: product.sku,
+              stock: product.stock,
+              image:
+                product.image ||
+                "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=300",
+              description: product.description || "",
+              costPrice: product.costPrice || product.price * 0.7,
+              reorderLevel: product.reorderLevel || 10,
+              supplier:
+                (product.supplier && typeof product.supplier === "object"
+                  ? product.supplier.name
+                  : product.supplier) || "Unknown Supplier",
+              lastRestocked: new Date(product.updatedAt || "2024-01-10"),
+              lastUpdated: inv && inv.lastUpdated ? inv.lastUpdated : undefined,
+            };
+          }
         );
         setInventory(products);
       } else {
@@ -317,7 +338,23 @@ const InventoryPage = () => {
 
         const response = await productsAPI.createWithImage(formData);
 
-        if (response.success) {
+        if (response.success && response.data && response.data._id) {
+          // Create inventory record for the new product
+          const inventoryRes = await inventoryAPI.create({
+            product: response.data._id,
+            category: category._id,
+            quantity: newItem.stock,
+            costPrice: newItem.costPrice,
+            reorderLevel: newItem.reorderLevel,
+            lastRestocked: new Date(),
+            lastUpdated: new Date(),
+            // Add other fields as needed
+          });
+          if (!inventoryRes.success) {
+            toast.error(
+              "Product created, but failed to create inventory record"
+            );
+          }
           await loadProducts(); // Reload products
           setNewItem({
             name: "",
@@ -335,7 +372,7 @@ const InventoryPage = () => {
           setImagePreview(null);
           setShowAddModal(false);
           setError(null);
-          toast.success("Product added successfully");
+          toast.success("Product and inventory record added successfully");
         } else {
           setError(response.message || "Failed to create product");
           toast.error("Failed to create product");
@@ -343,6 +380,7 @@ const InventoryPage = () => {
       } catch (error) {
         console.error("Error creating product:", error);
         setError("Failed to create product. Please try again.");
+        toast.error("Failed to create product. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
@@ -378,15 +416,43 @@ const InventoryPage = () => {
         const response = await productsAPI.update(selectedItem.id, updateData);
 
         if (response.success) {
+          // Update inventory record for this product
+          try {
+            // Find inventory record by product id and category
+            const invRes = await inventoryAPI.getByProduct(
+              selectedItem.id,
+              categoryId
+            );
+            if (invRes.success && invRes.data && invRes.data.length > 0) {
+              const inventoryRecord = invRes.data[0];
+              await inventoryAPI.update(inventoryRecord._id, {
+                quantity: selectedItem.stock,
+                costPrice: selectedItem.costPrice,
+                reorderLevel: selectedItem.reorderLevel,
+                lastUpdated: new Date(),
+              });
+            }
+          } catch (invErr) {
+            console.error(
+              "Failed to update inventory record after product edit",
+              invErr
+            );
+            toast.error(
+              t("inventory.toast.inventory_update_failed") ||
+                "Failed to update inventory record"
+            );
+          }
           await loadProducts(); // Reload products
           setShowEditModal(false);
           setSelectedItem(null);
+          toast.success(t("inventory.toast.updated"));
         } else {
           setError(response.message || "Failed to update product");
         }
       } catch (error) {
         console.error("Error updating product:", error);
         setError("Failed to update product. Please try again.");
+        toast.error("Failed to update product. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
@@ -400,7 +466,19 @@ const InventoryPage = () => {
         const response = await productsAPI.delete(id);
 
         if (response.success) {
+          // Update inventory record for this product (set quantity to 0)
+          try {
+            const invRes = await inventoryAPI.getByProduct(id);
+            if (invRes.success && invRes.data && invRes.data.length > 0) {
+              const inventoryRecord = invRes.data[0];
+              await inventoryAPI.update(inventoryRecord._id, { quantity: 0, lastUpdated: new Date() });
+            }
+          } catch (invErr) {
+            console.error("Failed to update inventory after product delete", invErr);
+            toast.error(t("inventory.toast.inventory_update_failed") || "Failed to update inventory record");
+          }
           await loadProducts(); // Reload products
+          toast.success(t("inventory.delete.success"));
         } else {
           setError(response.message || "Failed to delete product");
         }
@@ -418,7 +496,7 @@ const InventoryPage = () => {
   ).length;
   const outOfStockItems = inventory.filter((item) => item.stock === 0).length;
   const totalValue = inventory.reduce(
-    (sum, item) => sum + item.price * item.stock,
+    (sum, item) => sum + item.price + item.stock,
     0
   );
 
@@ -509,7 +587,11 @@ const InventoryPage = () => {
                 <TrendingDown className="h-6 w-6 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <div className={`${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+                <div
+                  className={`${
+                    document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                  }`}
+                >
                   <p className="text-sm font-medium text-gray-600">
                     {t("inventory.stats.low.stock")}
                   </p>
@@ -517,7 +599,7 @@ const InventoryPage = () => {
                     {lowStockItems}
                   </p>
                 </div>
-                </div>
+              </div>
             </div>
           </div>
 
@@ -531,7 +613,11 @@ const InventoryPage = () => {
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <div className="ml-4">
-                <div className={`${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+                <div
+                  className={`${
+                    document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                  }`}
+                >
                   <p className="text-sm font-medium text-gray-600">
                     {t("inventory.stats.out.of.stock")}
                   </p>
@@ -539,7 +625,7 @@ const InventoryPage = () => {
                     {outOfStockItems}
                   </p>
                 </div>
-                </div>
+              </div>
             </div>
           </div>
 
@@ -553,7 +639,11 @@ const InventoryPage = () => {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <div className={`${document.documentElement.dir === 'rtl' ? 'mr-4' : 'ml-4'}`}>
+                <div
+                  className={`${
+                    document.documentElement.dir === "rtl" ? "mr-4" : "ml-4"
+                  }`}
+                >
                   <p className="text-sm font-medium text-gray-600">
                     {t("inventory.stats.total.value")}
                   </p>
@@ -658,8 +748,16 @@ const InventoryPage = () => {
                     {t("inventory.table.price")}
                   </th>
                   <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t("inventory.table.totalCost")}
+                  </th>
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.supplier")}
                   </th>
+
+                  <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t("inventory.table.lastUpdated")}
+                  </th>
+
                   <th className="w-48 ltr:pl-6 rtl:pr-6 ltr:text-left rtl:text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t("inventory.table.actions")}
                   </th>
@@ -721,6 +819,11 @@ const InventoryPage = () => {
                         </div>
                       </td>
                       <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {formatAmount(item.price * item.stock)}
+                        </div>
+                      </td>
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {item.supplier}
                         </div>
@@ -729,6 +832,17 @@ const InventoryPage = () => {
                           {item.lastRestocked.toLocaleDateString()}
                         </div>
                       </td>
+
+                      <td className="w-48 ltr:pl-6 rtl:pr-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {/* Prefer lastUpdated if available, else lastRestocked */}
+                          {(item.lastUpdated
+                            ? new Date(item.lastUpdated)
+                            : item.lastRestocked
+                          ).toLocaleDateString()}
+                        </div>
+                      </td>
+
                       {/* Actions */}
                       <td className="w-48 py-4 whitespace-nowrap text-sm font-medium ltr:text-left rtl:text-right ltr:pl-6 rtl:pr-6">
                         <div className="flex items-center ltr:space-x-2 rtl:space-x-reverse rtl:space-x-2 ltr:flex-row rtl:flex-row-reverse rtl:justify-end">

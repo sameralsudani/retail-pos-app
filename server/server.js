@@ -154,6 +154,7 @@ app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/settings', require('./routes/settings'));
+app.use('/api/inventory', require('./routes/inventory'));
 
 // Request logging middleware for debugging (only in development)
 if (process.env.NODE_ENV === 'development') {

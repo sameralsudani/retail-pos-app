@@ -1,3 +1,4 @@
+
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Get auth token from localStorage
@@ -223,7 +224,7 @@ export const tenantsAPI = {
 
 // Products API
 export const productsAPI = {
-  getAll: async (params: Record<string, unknown> = {}) => {
+  getAll: async (params: Record<string, string> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/products${queryString ? `?${queryString}` : ''}`);
   },
@@ -368,7 +369,7 @@ export const categoriesAPI = {
 
 // Customers API
 export const customersAPI = {
-  getAll: async (params: Record<string, unknown> = {}) => {
+  getAll: async (params: Record<string, string> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/customers${queryString ? `?${queryString}` : ''}`);
   },
@@ -621,7 +622,7 @@ export const clientsAPI = {
 
 // Employees API
 export const employeesAPI = {
-  getAll: async (params: Record<string, unknown> = {}) => {
+  getAll: async (params: Record<string, string> = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return apiRequest(`/employees${queryString ? `?${queryString}` : ''}`);
   },
@@ -653,4 +654,51 @@ export const employeesAPI = {
   getStats: async (): Promise<any> => {
     return apiRequest('/employees/stats/summary');
   }
+};
+
+// Inventory API
+export const inventoryAPI = {
+  getByProduct: async (productId: string, categoryId?: string) => {
+    const params: Record<string, string> = { product: productId };
+    if (categoryId) params.category = categoryId;
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/inventory/by?${queryString}`);
+  },
+  getAll: async (params: Record<string, string> = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return apiRequest(`/inventory${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getById: async (id: string) => {
+    return apiRequest(`/inventory/${id}`);
+  },
+
+  create: async (inventoryData: unknown) => {
+    return apiRequest('/inventory', {
+      method: 'POST',
+      body: JSON.stringify(inventoryData),
+    });
+  },
+
+  update: async (id: string, inventoryData: unknown) => {
+    return apiRequest(`/inventory/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(inventoryData),
+    });
+  },
+
+  delete: async (id: string) => {
+    return apiRequest(`/inventory/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  adjustQuantity: async (id: string, amount: number) => {
+    return apiRequest(`/inventory/${id}/adjust`, {
+      method: 'PATCH',
+      body: JSON.stringify({ amount }),
+    });
+  },
+
+  // Add more endpoints as needed
 };

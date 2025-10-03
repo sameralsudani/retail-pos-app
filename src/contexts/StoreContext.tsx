@@ -19,6 +19,7 @@ import {
   customersAPI,
   transactionsAPI,
   suppliersAPI,
+  inventoryAPI,
 } from "../services/api";
 import { useAuth } from "./AuthContext";
 
@@ -548,6 +549,27 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({ children }) => {
           cartItems: [],
           currentCustomer: null,
         }));
+
+        // Update inventory for each product in the transaction
+        for (const item of state.cartItems) {
+          try {
+            // Fetch inventory record for this product (and category if needed)
+            const categoryId =
+              typeof item.product.category === "object" && item.product.category !== null
+                ? (item.product.category as { _id: string })._id
+                : undefined;
+            const invRes = await inventoryAPI.getByProduct(item.product._id, categoryId);
+            if (invRes.success && invRes.data && invRes.data.length > 0) {
+              const inventoryRecord = invRes.data[0];
+              await inventoryAPI.adjustQuantity(inventoryRecord._id, -item.quantity);
+              // Optionally update lastUpdated
+              await inventoryAPI.update(inventoryRecord._id, { lastUpdated: new Date() });
+              
+            }
+          } catch (err) {
+            console.error("Failed to update inventory for product", item.product._id, err);
+          }
+        }
 
         // Reload products to update stock levels
         await loadProducts();
