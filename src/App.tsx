@@ -22,6 +22,7 @@ import TenantRegistrationPage from "./pages/TenantRegistrationPage";
 import DashboardPage from "./pages/DashboardPage";
 import CustomersPage from "./pages/CustomersPage";
 import PurchasesPage from "./pages/PurchasesPage";
+import AccountStatementPage from "./pages/AccountStatementPage";
 
 // Error boundary component
 interface ErrorBoundaryState {
@@ -130,6 +131,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/account-statement"
+              element={
+                <ProtectedRoute>
+                  <AccountStatementPage />
+                </ProtectedRoute>
+              }
+            />
+            
             <Route
               path="/purchases"
               element={

@@ -64,7 +64,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-     {
+    {
+      icon: Package,
+      label: t("sidebar.accountStatement"),
+      onClick: () => {
+        navigate("/account-statement");
+        onClose();
+      },
+    },
+    {
       icon: ShoppingCart,
       label: t("sidebar.sales"),
       onClick: () => {
@@ -72,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         onClose();
       },
     },
-     {
+    {
       icon: Truck,
       label: t("sidebar.purchases"),
       onClick: () => {
@@ -89,7 +97,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       },
     },
 
-   
     {
       icon: Tag,
       label: t("sidebar.categories"),

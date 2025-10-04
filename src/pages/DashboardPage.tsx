@@ -352,7 +352,7 @@ const DashboardPage: React.FC = () => {
           sort: "desc",
         });
         // Fetch low stock products
-        const lowStockRes = await productsAPI.getAll({ lowStock: true });
+        const lowStockRes = await productsAPI.getAll({ lowStock: "true" });
         // Fetch active employees (users)
 
         setStats([
