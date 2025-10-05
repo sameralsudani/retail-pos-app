@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 interface SystemSettings {
   // Store Information
   storeName: string;
+  accountName: string;
   storeAddress: string;
   storePhone: string;
   storeEmail: string;
@@ -75,6 +76,7 @@ const SettingsPage = () => {
   const [settings, setSettings] = useState<SystemSettings>({
     // Store Information
     storeName: "",
+    accountName: "",
     storeAddress: "",
     storePhone: "",
     storeEmail: "",
@@ -124,6 +126,7 @@ const SettingsPage = () => {
         const apiSettings = response.data;
         setSettings({
           storeName: apiSettings.storeName,
+          accountName: apiSettings.accountName || "",
           storeAddress: apiSettings.storeAddress,
           storePhone: apiSettings.storePhone,
           storeEmail: apiSettings.storeEmail,
@@ -438,8 +441,8 @@ const SettingsPage = () => {
         <h3 className="text-lg font-medium text-gray-900 mb-4">
           {t("settings.store.info")}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Row 1: Store Name & Store Phone */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Row 1: Store Name & Account Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.name")}
@@ -454,6 +457,19 @@ const SettingsPage = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t("settings.store.accountName")}
+            </label>
+            <input
+              type="text"
+              value={settings.accountName}
+              onChange={(e) => handleSettingChange("accountName", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
+            />
+          </div>
+          {/* Row 2: Store Phone & Store Address */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.phone")}
             </label>
             <input
@@ -464,7 +480,6 @@ const SettingsPage = () => {
               disabled={!canEdit}
             />
           </div>
-          {/* Row 2: Store Address & Store Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.address")}
@@ -477,6 +492,7 @@ const SettingsPage = () => {
               disabled={!canEdit}
             />
           </div>
+          {/* Row 3: Store Email & Capital */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.email")}
@@ -489,7 +505,6 @@ const SettingsPage = () => {
               disabled={!canEdit}
             />
           </div>
-          {/* Row 3: Capital (single column, full width) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.capital")}
@@ -503,6 +518,7 @@ const SettingsPage = () => {
               disabled={!canEdit}
             />
           </div>
+
         </div>
       </div>
     </div>

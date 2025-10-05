@@ -17,18 +17,15 @@ import { useAuth } from "../contexts/AuthContext";
 import { settingsAPI } from "../services/api";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useCurrency } from "../contexts/CurrencyContext";
 
 interface SystemSettings {
   // Store Information
   storeName: string;
+  accountName: string;
   storeAddress: string;
   storePhone: string;
   storeEmail: string;
-
-  // Tax Settings
-  taxRate: number;
-  taxIncluded: boolean;
 
   // Receipt Settings
   receiptHeader: string;
@@ -62,8 +59,10 @@ interface SystemSettings {
 const SettingsPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-   const { exchangeRate, setExchangeRate } = useCurrency();
-  const [tempExchangeRate, setTempExchangeRate] = useState(exchangeRate.toString());
+  const { exchangeRate, setExchangeRate } = useCurrency();
+  const [tempExchangeRate, setTempExchangeRate] = useState(
+    exchangeRate.toString()
+  );
   const [showSidebar, setShowSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState("store");
   const [hasChanges, setHasChanges] = useState(false);
@@ -75,14 +74,11 @@ const SettingsPage = () => {
 
   const [settings, setSettings] = useState<SystemSettings>({
     // Store Information
-    storeName: t("settings.store.defaultName"),
-    storeAddress: t("settings.store.defaultAddress"),
-    storePhone: t("settings.store.defaultPhone"),
-    storeEmail: t("settings.store.defaultEmail"),
-
-    // Tax Settings
-    taxRate: 8.0,
-    taxIncluded: false,
+  storeName: t("settings.store.defaultName"),
+  accountName: t("settings.store.defaultAccountName"),
+  storeAddress: t("settings.store.defaultAddress"),
+  storePhone: t("settings.store.defaultPhone"),
+  storeEmail: t("settings.store.defaultEmail"),
 
     // Receipt Settings
     receiptHeader: t("settings.receipt.defaultHeader"),
@@ -90,12 +86,12 @@ const SettingsPage = () => {
     printLogo: true,
     autoprint: false,
 
-  // System Settings
-  currency: "USD",
-  dateFormat: "MM/DD/YYYY",
-  timeFormat: "12",
-  lowStockThreshold: 10,
-  capital: 0,
+    // System Settings
+    currency: "USD",
+    dateFormat: "MM/DD/YYYY",
+    timeFormat: "12",
+    lowStockThreshold: 10,
+    capital: 0,
 
     // Notification Settings
     lowStockAlerts: true,
@@ -127,26 +123,22 @@ const SettingsPage = () => {
 
       if (response.success) {
         const apiSettings = response.data;
-  setSettings({
-          storeName: apiSettings.storeName || t("settings.store.defaultName"),
-          storeAddress:
-            apiSettings.storeAddress || t("settings.store.defaultAddress"),
-          storePhone: apiSettings.storePhone || t("settings.store.defaultPhone"),
-          storeEmail: apiSettings.storeEmail || t("settings.store.defaultEmail"),
-          taxRate: apiSettings.taxRate || 8.0,
-          taxIncluded: apiSettings.taxIncluded || false,
-          receiptHeader:
-            apiSettings.receiptHeader || t("settings.receipt.defaultHeader"),
-          receiptFooter:
-            apiSettings.receiptFooter || t("settings.receipt.defaultFooter"),
-          printLogo:
-            apiSettings.printLogo !== undefined ? apiSettings.printLogo : true,
+        setSettings({
+          storeName: apiSettings.storeName,
+          accountName: apiSettings.accountName,
+          storeAddress: apiSettings.storeAddress,
+          storePhone: apiSettings.storePhone,
+          storeEmail: apiSettings.storeEmail,
+          receiptHeader: apiSettings.receiptHeader,
+          receiptFooter: apiSettings.receiptFooter,
+          printLogo: apiSettings.printLogo !== undefined ? apiSettings.printLogo : true,
           autoprint: apiSettings.autoprint || false,
           currency: apiSettings.currency || "USD",
           dateFormat: apiSettings.dateFormat || "MM/DD/YYYY",
           timeFormat: apiSettings.timeFormat || "12",
           lowStockThreshold: apiSettings.lowStockThreshold || 10,
-          capital: typeof apiSettings.capital === 'number' ? apiSettings.capital : 0,
+          capital:
+            typeof apiSettings.capital === "number" ? apiSettings.capital : 0,
           lowStockAlerts:
             apiSettings.lowStockAlerts !== undefined
               ? apiSettings.lowStockAlerts
@@ -269,9 +261,7 @@ const SettingsPage = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {t("settings.access.denied.title")}
           </h3>
-          <p className="text-gray-500">
-            {t("settings.access.denied.desc")}
-          </p>
+          <p className="text-gray-500">{t("settings.access.denied.desc")}</p>
         </div>
       </div>
     );
@@ -345,7 +335,9 @@ const SettingsPage = () => {
                     value={tempExchangeRate}
                     onChange={(e) => setTempExchangeRate(e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("settings.currency.exchangeRate.placeholder")}
+                    placeholder={t(
+                      "settings.currency.exchangeRate.placeholder"
+                    )}
                   />
                   <span className="text-sm text-gray-600 ml-2">IQD</span>
                 </div>
@@ -355,7 +347,10 @@ const SettingsPage = () => {
                   const newRate = parseFloat(tempExchangeRate);
                   if (newRate > 0) {
                     setExchangeRate(newRate);
-                    await settingsAPI.updateSettings({ ...settings, exchangeRate: newRate });
+                    await settingsAPI.updateSettings({
+                      ...settings,
+                      exchangeRate: newRate,
+                    });
                   }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -371,10 +366,12 @@ const SettingsPage = () => {
             </h4>
             <div className="space-y-1 text-sm text-gray-600">
               <p>
-                1 USD = {parseFloat(tempExchangeRate || "0").toLocaleString()} IQD
+                1 USD = {parseFloat(tempExchangeRate || "0").toLocaleString()}{" "}
+                IQD
               </p>
               <p>
-                1,000 IQD = {(1000 / parseFloat(tempExchangeRate || "1")).toFixed(2)} USD
+                1,000 IQD ={" "}
+                {(1000 / parseFloat(tempExchangeRate || "1")).toFixed(2)} USD
               </p>
             </div>
           </div>
@@ -420,7 +417,10 @@ const SettingsPage = () => {
               value={settings.currency}
               onChange={async (e) => {
                 handleSettingChange("currency", e.target.value);
-                await settingsAPI.updateSettings({ ...settings, currency: e.target.value });
+                await settingsAPI.updateSettings({
+                  ...settings,
+                  currency: e.target.value,
+                });
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
@@ -429,7 +429,6 @@ const SettingsPage = () => {
               <option value="IQD">{t("settings.currency.display.iqd")}</option>
             </select>
           </div>
-          
         </div>
       </div>
     </div>
@@ -505,49 +504,12 @@ const SettingsPage = () => {
               type="number"
               min={0}
               value={settings.capital}
-              onChange={(e) => handleSettingChange("capital", parseFloat(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={!canEdit}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {t("settings.tax.settings")}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("settings.tax.rate")} (%)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={settings.taxRate}
               onChange={(e) =>
-                handleSettingChange("taxRate", parseFloat(e.target.value) || 0)
+                handleSettingChange("capital", parseFloat(e.target.value) || 0)
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
-          </div>
-          <div className="flex items-center">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.taxIncluded}
-                onChange={(e) =>
-                  handleSettingChange("taxIncluded", e.target.checked)
-                }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                disabled={!canEdit}
-              />
-              <span className="text-sm font-medium text-gray-700">
-                {t("settings.tax.included")}
-              </span>
-            </label>
           </div>
         </div>
       </div>
@@ -1032,7 +994,9 @@ const SettingsPage = () => {
                 >
                   <Save className="h-4 w-4" />
                   <span>
-                    {isSaving ? t("settings.saving") : t("settings.save.changes")}
+                    {isSaving
+                      ? t("settings.saving")
+                      : t("settings.save.changes")}
                   </span>
                 </button>
               </>

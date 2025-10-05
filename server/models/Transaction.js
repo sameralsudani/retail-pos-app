@@ -1,90 +1,119 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const transactionItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true
+    ref: "Product",
+    required: true,
   },
   productSnapshot: {
     name: String,
     price: Number,
-    sku: String
+    sku: String,
   },
   quantity: {
     type: Number,
     required: true,
-    min: [1, 'Quantity must be at least 1']
+    min: [1, "Quantity must be at least 1"],
   },
   unitPrice: {
     type: Number,
     required: true,
-    min: [0, 'Unit price cannot be negative']
+    min: [0, "Unit price cannot be negative"],
   },
   totalPrice: {
     type: Number,
     required: true,
-    min: [0, 'Total price cannot be negative']
-  }
+    min: [0, "Total price cannot be negative"],
+  },
 });
 
-const transactionSchema = new mongoose.Schema({
-  tenantId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tenant',
-    required: [true, 'Tenant ID is required']
-  },
-  transactionId: {
-    type: String,
-    required: true,
-  },
-  items: [transactionItemSchema],
-  customer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer'
-  },
-  cashier: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
+const transactionSchema = new mongoose.Schema(
+  {
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: [true, "Tenant ID is required"],
+    },
+    transactionId: {
+      type: String,
+      required: true,
+    },
+    items: [transactionItemSchema],
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+    },
+    customerName: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Customer name cannot exceed 100 characters"],
+    },
+    transactionType: {
+      type: String,
+      enum: ["sale", "debit", "credit"],
+      required: true,
+    },
+    description: {
+      type: String,
+      maxlength: [500, "Description cannot exceed 500 characters"],
+    },
+    balance: {
+      type: Number,
+      min: [0, "Balance cannot be negative"],
+    },
+    reference: {
+      type: String,
+      maxlength: [100, "Reference cannot exceed 100 characters"],
+    },
+    category: {
+      type: String,
+      maxlength: [100, "Category cannot exceed 100 characters"],
+    },
+    cashier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
 
-  total: {
-    type: Number,
-    required: true,
-    min: [0, 'Total cannot be negative']
+    total: {
+      type: Number,
+      required: true,
+      min: [0, "Total cannot be negative"],
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["cash", "card", "digital"],
+      required: true,
+    },
+    amountPaid: {
+      type: Number,
+      required: true,
+      min: [0, "Amount paid cannot be negative"],
+    },
+    dueAmount: {
+      type: Number,
+    },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+
+    status: {
+      type: String,
+      enum: ["completed", "refunded", "cancelled", "due"],
+      default: "completed",
+    },
+
+    notes: {
+      type: String,
+      maxlength: [500, "Notes cannot exceed 500 characters"],
+    },
   },
-  paymentMethod: {
-    type: String,
-    enum: ['cash', 'card', 'digital'],
-    required: true
-  },
-  amountPaid: {
-    type: Number,
-    required: true,
-    min: [0, 'Amount paid cannot be negative']
-  },
-  dueAmount: {
-    type: Number,
-  },
-  isPaid: {
-    type: Boolean,
-    default: false
-  },
-  
-  status: {
-    type: String,
-    enum: ['completed', 'refunded', 'cancelled', 'due'],
-    default: 'completed'
-  },
-  
-  notes: {
-    type: String,
-    maxlength: [500, 'Notes cannot exceed 500 characters']
+  {
+    timestamps: true,
   }
-}, {
-  timestamps: true
-});
+);
 
 // Index for search and reporting
 transactionSchema.index({ tenantId: 1, transactionId: 1 }, { unique: true });
@@ -93,4 +122,4 @@ transactionSchema.index({ tenantId: 1, customer: 1 });
 transactionSchema.index({ tenantId: 1, createdAt: -1 });
 transactionSchema.index({ tenantId: 1, status: 1 });
 
-module.exports = mongoose.model('Transaction', transactionSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);

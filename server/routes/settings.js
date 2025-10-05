@@ -45,6 +45,7 @@ router.get('/', protect, authorize('admin', 'manager'), async (req, res) => {
 // @access  Private (Admin only)
 router.put('/', protect, authorize('admin'), [
   body('storeName').optional().trim().isLength({ min: 1, max: 100 }).withMessage('Store name must be between 1 and 100 characters'),
+  body('accountName').optional().trim().isLength({ max: 100 }).withMessage('Account name cannot exceed 100 characters'),
   body('storeAddress').optional().trim().isLength({ max: 200 }).withMessage('Store address cannot exceed 200 characters'),
   body('storePhone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
   body('storeEmail').optional().isEmail().withMessage('Please enter a valid email'),

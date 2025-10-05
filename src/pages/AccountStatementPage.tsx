@@ -53,7 +53,7 @@ interface ClientTransaction {
 const AccountStatementPage: React.FC = () => {
   const { formatAmount } = useCurrency();
   const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [selectedAccount, setSelectedAccount] = useState("business");
+  const [selectedAccount] = useState("business");
   const [statementType, setStatementType] = useState<"business" | "client">(
     "business"
   );
@@ -561,25 +561,10 @@ const AccountStatementPage: React.FC = () => {
                 {t("accountStatement.accountName")}
               </span>
               <span className="font-medium text-gray-900">
-                {currentAccount.name}
+                {typeof settings?.accountName === 'string' ? settings.accountName : ''}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">
-                {t("accountStatement.accountNumber")}
-              </span>
-              <span className="font-medium text-gray-900">
-                {currentAccount.number}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">
-                {t("accountStatement.accountType")}
-              </span>
-              <span className="font-medium text-gray-900">
-                {currentAccount.type}
-              </span>
-            </div>
+
           </div>
         </div>
         <div className="bg-blue-50 rounded-lg p-4">
@@ -1285,17 +1270,9 @@ const AccountStatementPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t("accountStatement.account")}
                 </label>
-                <select
-                  value={selectedAccount}
-                  onChange={(e) => setSelectedAccount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} ({account.number})
-                    </option>
-                  ))}
-                </select>
+               <div>
+                {typeof settings?.accountName === 'string' ? settings.accountName : ''}
+               </div>
               </div>
             ) : (
               <div>

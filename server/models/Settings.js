@@ -15,6 +15,12 @@ const settingsSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, "Store name cannot exceed 100 characters"],
     },
+    accountName: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: [100, "Account name cannot exceed 100 characters"],
+    },
     storeAddress: {
       type: String,
       default: "123 Main Street, City, State 12345",
@@ -36,6 +42,7 @@ const settingsSchema = new mongoose.Schema(
         "Please enter a valid email",
       ],
     },
+
 
     // Receipt Settings
     receiptHeader: {
