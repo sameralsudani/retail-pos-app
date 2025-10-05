@@ -52,7 +52,7 @@ const transactionSchema = new mongoose.Schema(
     transactionType: {
       type: String,
       enum: ["sale", "debit", "credit"],
-      required: true,
+      // required: true,
     },
     description: {
       type: String,

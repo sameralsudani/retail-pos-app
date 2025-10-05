@@ -56,6 +56,21 @@ router.post("/", async (req, res) => {
   }
 });
 
+// Update inventory record by ID
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const record = await Inventory.findByIdAndUpdate(id, updates, { new: true });
+    if (!record) {
+      return res.status(404).json({ success: false, message: "Inventory record not found" });
+    }
+    res.json({ success: true, data: record });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+});
+
 // Adjust inventory quantity (increment/decrement)
 router.patch("/:id/adjust", async (req, res) => {
   try {
