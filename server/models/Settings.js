@@ -37,18 +37,6 @@ const settingsSchema = new mongoose.Schema(
       ],
     },
 
-    // Tax Settings
-    taxRate: {
-      type: Number,
-      default: 8.0,
-      min: [0, "Tax rate cannot be negative"],
-      max: [100, "Tax rate cannot exceed 100%"],
-    },
-    taxIncluded: {
-      type: Boolean,
-      default: false,
-    },
-
     // Receipt Settings
     receiptHeader: {
       type: String,
@@ -70,6 +58,13 @@ const settingsSchema = new mongoose.Schema(
     },
 
     // System Settings
+
+    // Business Capital
+    capital: {
+      type: Number,
+      default: 0,
+      min: [0, "Capital cannot be negative"],
+    },
     currency: {
       type: String,
       enum: ["USD", "IQD"],

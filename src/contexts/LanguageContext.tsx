@@ -25,6 +25,20 @@ interface LanguageProviderProps {
 // Translation dictionaries
 const translations: Record<Language, { [key: string]: string }> = {
   en: {
+  // Account Statement Add Capital Modal
+  "accountStatement.addCapitalModalTitle": "Add Capital to Business Account",
+  "accountStatement.capitalSource": "Capital Source",
+  "accountStatement.ownerInvestment": "Owner Investment",
+  "accountStatement.partnerInvestment": "Partner Investment",
+  "accountStatement.businessLoan": "Business Loan",
+  "accountStatement.governmentGrant": "Government Grant",
+  "accountStatement.investorFunding": "Investor Funding",
+  "accountStatement.otherSource": "Other Source",
+  "accountStatement.amountPlaceholder": "0.00",
+  "accountStatement.capitalDescriptionPlaceholder": "Enter description for this capital injection...",
+  "accountStatement.capitalInjectionTitle": "Capital Injection",
+  "accountStatement.capitalInjectionDesc": "This will add capital to your business account and create a transaction record for proper financial tracking.",
+  "accountStatement.cancel": "Cancel",
     // Purchases Suppliers Section
     "purchases.suppliers.totalSuppliers": "Total Suppliers",
     "purchases.suppliers.activeSuppliers": "Active Suppliers",
@@ -207,8 +221,9 @@ const translations: Record<Language, { [key: string]: string }> = {
     "auth.error.passwords.match": "Passwords do not match",
     "auth.error.password.length": "Password must be at least 6 characters",
 
-    // Sidebar
-    "sidebar.dashboard": "Dashboard",
+  // Sidebar
+  "sidebar.dashboard": "Dashboard",
+  "accountStatement.addCapital": "Add Capital",
     "sidebar.pos": "Point of Sale",
     "sidebar.inventory": "Inventory",
     "sidebar.inventoryManagement": "Inventory Management",
@@ -225,6 +240,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "accountStatement.companyEmail": "contact@bizmanager.com",
     "accountStatement.businessTitle": "Business Account Statement",
     "accountStatement.statementType": "Statement Type",
+  // (removed duplicate addCapital keys)
     "accountStatement.businessAccount": "Business Account",
     "accountStatement.clientAccount": "Client Account",
     "accountStatement.account": "Account",
@@ -965,6 +981,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.store.address": "Store Address",
     "settings.store.phone": "Store Phone",
     "settings.store.email": "Store Email",
+  "settings.store.capital": "Business Capital",
     "settings.tax.settings": "Tax Settings",
     "settings.tax.rate": "Tax Rate",
     "settings.tax.included": "Tax Included in Prices",
@@ -1005,9 +1022,26 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.unsaved.changes": "You have unsaved changes",
   },
   ar: {
-    // Purchases Suppliers Section
-    "purchases.suppliers.totalSuppliers": "إجمالي الموردين",
+  // Account Statement Add Capital Modal
+  "accountStatement.addCapitalModalTitle": "إضافة رأس مال إلى حساب العمل",
+  "accountStatement.capitalSource": "مصدر رأس المال",
+  "accountStatement.ownerInvestment": "استثمار المالك",
+  "accountStatement.partnerInvestment": "استثمار الشريك",
+  "accountStatement.businessLoan": "قرض تجاري",
+  "accountStatement.governmentGrant": "منحة حكومية",
+  "accountStatement.investorFunding": "تمويل مستثمر",
+  "accountStatement.otherSource": "مصدر آخر",
+  "accountStatement.amountPlaceholder": "٠.٠٠",
+  "accountStatement.capitalDescriptionPlaceholder": "أدخل وصفًا لهذا الإيداع الرأسمالي...",
+  "accountStatement.capitalInjectionTitle": "إيداع رأس مال",
+  "accountStatement.capitalInjectionDesc": "سيضيف هذا رأس مال إلى حساب عملك وينشئ سجل معاملة لتتبع مالي صحيح.",
+  "accountStatement.cancel": "إلغاء",
+  // Purchases Suppliers Section
+  "accountStatement.addCapital": "إضافة رأس مال",
+  "purchases.suppliers.totalSuppliers": "إجمالي الموردين",
     "purchases.suppliers.activeSuppliers": "الموردون النشطون",
+  // Account Statement Add Capital
+  // (removed duplicate addCapital key)
     "purchases.suppliers.totalOrders": "إجمالي الطلبات",
     "purchases.suppliers.totalSpent": "إجمالي الإنفاق",
     "purchases.suppliers.status.active": "نشط",
@@ -1943,6 +1977,7 @@ const translations: Record<Language, { [key: string]: string }> = {
     "settings.store.address": "عنوان المتجر",
     "settings.store.phone": "هاتف المتجر",
     "settings.store.email": "بريد المتجر الإلكتروني",
+  "settings.store.capital": "رأس مال العمل",
     "settings.tax.settings": "إعدادات الضريبة",
     "settings.tax.rate": "معدل الضريبة",
     "settings.tax.included": "الضريبة مشمولة في الأسعار",

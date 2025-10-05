@@ -41,6 +41,7 @@ interface SystemSettings {
   dateFormat: string;
   timeFormat: "12" | "24";
   lowStockThreshold: number;
+  capital: number; // Business Capital
 
   // Notification Settings
   lowStockAlerts: boolean;
@@ -89,11 +90,12 @@ const SettingsPage = () => {
     printLogo: true,
     autoprint: false,
 
-    // System Settings
-    currency: "USD",
-    dateFormat: "MM/DD/YYYY",
-    timeFormat: "12",
-    lowStockThreshold: 10,
+  // System Settings
+  currency: "USD",
+  dateFormat: "MM/DD/YYYY",
+  timeFormat: "12",
+  lowStockThreshold: 10,
+  capital: 0,
 
     // Notification Settings
     lowStockAlerts: true,
@@ -125,7 +127,7 @@ const SettingsPage = () => {
 
       if (response.success) {
         const apiSettings = response.data;
-        setSettings({
+  setSettings({
           storeName: apiSettings.storeName || t("settings.store.defaultName"),
           storeAddress:
             apiSettings.storeAddress || t("settings.store.defaultAddress"),
@@ -144,6 +146,7 @@ const SettingsPage = () => {
           dateFormat: apiSettings.dateFormat || "MM/DD/YYYY",
           timeFormat: apiSettings.timeFormat || "12",
           lowStockThreshold: apiSettings.lowStockThreshold || 10,
+          capital: typeof apiSettings.capital === 'number' ? apiSettings.capital : 0,
           lowStockAlerts:
             apiSettings.lowStockAlerts !== undefined
               ? apiSettings.lowStockAlerts
@@ -489,6 +492,20 @@ const SettingsPage = () => {
               onChange={(e) =>
                 handleSettingChange("storeEmail", e.target.value)
               }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={!canEdit}
+            />
+          </div>
+          {/* Capital Field */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t("settings.store.capital")}
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={settings.capital}
+              onChange={(e) => handleSettingChange("capital", parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />

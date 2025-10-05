@@ -17,7 +17,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { settingsAPI } from "../services/api";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { useCurrency } from '../contexts/CurrencyContext';
+import { useCurrency } from "../contexts/CurrencyContext";
+import { toast } from "react-toastify";
 
 interface SystemSettings {
   // Store Information
@@ -25,10 +26,6 @@ interface SystemSettings {
   storeAddress: string;
   storePhone: string;
   storeEmail: string;
-
-  // Tax Settings
-  taxRate: number;
-  taxIncluded: boolean;
 
   // Receipt Settings
   receiptHeader: string;
@@ -41,6 +38,7 @@ interface SystemSettings {
   dateFormat: string;
   timeFormat: "12" | "24";
   lowStockThreshold: number;
+  capital: number; // Business Capital
 
   // Notification Settings
   lowStockAlerts: boolean;
@@ -61,8 +59,10 @@ interface SystemSettings {
 const SettingsPage = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-   const { exchangeRate, setExchangeRate } = useCurrency();
-  const [tempExchangeRate, setTempExchangeRate] = useState(exchangeRate.toString());
+  const { exchangeRate, setExchangeRate } = useCurrency();
+  const [tempExchangeRate, setTempExchangeRate] = useState(
+    exchangeRate.toString()
+  );
   const [showSidebar, setShowSidebar] = useState(false);
   const [activeTab, setActiveTab] = useState("store");
   const [hasChanges, setHasChanges] = useState(false);
@@ -74,26 +74,23 @@ const SettingsPage = () => {
 
   const [settings, setSettings] = useState<SystemSettings>({
     // Store Information
-    storeName: "RetailPOS Store",
-    storeAddress: "123 Main Street, City, State 12345",
-    storePhone: "(555) 123-4567",
-    storeEmail: "info@retailpos.com",
-
-    // Tax Settings
-    taxRate: 8.0,
-    taxIncluded: false,
+    storeName: "",
+    storeAddress: "",
+    storePhone: "",
+    storeEmail: "",
 
     // Receipt Settings
-    receiptHeader: "Thank you for your business!",
-    receiptFooter: "Please keep this receipt for your records",
+    receiptHeader: "",
+    receiptFooter: "",
     printLogo: true,
     autoprint: false,
 
     // System Settings
-    currency: "USD",
-    dateFormat: "MM/DD/YYYY",
+    currency: "",
+    dateFormat: "",
     timeFormat: "12",
     lowStockThreshold: 10,
+    capital: 0,
 
     // Notification Settings
     lowStockAlerts: true,
@@ -126,25 +123,20 @@ const SettingsPage = () => {
       if (response.success) {
         const apiSettings = response.data;
         setSettings({
-          storeName: apiSettings.storeName || "RetailPOS Store",
-          storeAddress:
-            apiSettings.storeAddress || "123 Main Street, City, State 12345",
-          storePhone: apiSettings.storePhone || "(555) 123-4567",
-          storeEmail: apiSettings.storeEmail || "info@retailpos.com",
-          taxRate: apiSettings.taxRate || 8.0,
-          taxIncluded: apiSettings.taxIncluded || false,
-          receiptHeader:
-            apiSettings.receiptHeader || "Thank you for your business!",
-          receiptFooter:
-            apiSettings.receiptFooter ||
-            "Please keep this receipt for your records",
-          printLogo:
-            apiSettings.printLogo !== undefined ? apiSettings.printLogo : true,
-          autoprint: apiSettings.autoprint || false,
-          currency: apiSettings.currency || "USD",
-          dateFormat: apiSettings.dateFormat || "MM/DD/YYYY",
-          timeFormat: apiSettings.timeFormat || "12",
-          lowStockThreshold: apiSettings.lowStockThreshold || 10,
+          storeName: apiSettings.storeName,
+          storeAddress: apiSettings.storeAddress,
+          storePhone: apiSettings.storePhone,
+          storeEmail: apiSettings.storeEmail,
+          receiptHeader: apiSettings.receiptHeader,
+          receiptFooter: apiSettings.receiptFooter,
+          printLogo: apiSettings.printLogo,
+          autoprint: apiSettings.autoprint,
+          currency: apiSettings.currency,
+          dateFormat: apiSettings.dateFormat,
+          timeFormat: apiSettings.timeFormat,
+          lowStockThreshold: apiSettings.lowStockThreshold,
+          capital:
+            typeof apiSettings.capital === "number" ? apiSettings.capital : 0,
           lowStockAlerts:
             apiSettings.lowStockAlerts !== undefined
               ? apiSettings.lowStockAlerts
@@ -173,9 +165,9 @@ const SettingsPage = () => {
           setTempExchangeRate(apiSettings.exchangeRate);
         }
         // Optionally sync display currency context here if needed
-        console.log("Settings loaded successfully");
       } else {
         setError(response.message || "Failed to load settings");
+        toast.error(response.message || "Failed to load settings");
       }
     } catch (error) {
       console.error("Error loading settings:", error);
@@ -201,10 +193,10 @@ const SettingsPage = () => {
       setError(null);
       setSuccess(null);
 
-      console.log("Saving settings:", settings);
       const response = await settingsAPI.updateSettings(settings);
 
       if (response.success) {
+        toast.success(t("settings.saved.successfully"));
         setHasChanges(false);
         setSuccess(t("settings.saved.successfully"));
         setShowSaveConfirm(true);
@@ -219,38 +211,36 @@ const SettingsPage = () => {
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-      setError("Failed to save settings. Please try again.");
+      toast.error("Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleReset = async () => {
-    if (confirm(t("settings.reset.confirm"))) {
-      try {
-        setIsSaving(true);
-        setError(null);
-        setSuccess(null);
+    try {
+      setIsSaving(true);
+      setError(null);
+      setSuccess(null);
 
-        console.log("Resetting settings to defaults...");
-        const response = await settingsAPI.resetSettings();
+      const response = await settingsAPI.resetSettings();
 
-        if (response.success) {
-          await loadSettings(); // Reload settings from server
-          setHasChanges(false);
-          setSuccess("Settings reset to defaults successfully");
+      if (response.success) {
+        toast.success(t("settings.reset.successfully"));
+        await loadSettings(); // Reload settings from server
+        setHasChanges(false);
+        setSuccess("Settings reset to defaults successfully");
 
-          // Clear success message after 3 seconds
-          setTimeout(() => setSuccess(null), 3000);
-        } else {
-          setError(response.message || "Failed to reset settings");
-        }
-      } catch (error) {
-        console.error("Error resetting settings:", error);
-        setError("Failed to reset settings. Please try again.");
-      } finally {
-        setIsSaving(false);
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setError(response.message || "Failed to reset settings");
       }
+    } catch {
+      toast.error("Failed to reset settings. Please try again.");
+      setError("Failed to reset settings. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -343,7 +333,9 @@ const SettingsPage = () => {
                     value={tempExchangeRate}
                     onChange={(e) => setTempExchangeRate(e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={t("settings.currency.exchangeRate.placeholder")}
+                    placeholder={t(
+                      "settings.currency.exchangeRate.placeholder"
+                    )}
                   />
                   <span className="text-sm text-gray-600 ml-2">IQD</span>
                 </div>
@@ -353,7 +345,10 @@ const SettingsPage = () => {
                   const newRate = parseFloat(tempExchangeRate);
                   if (newRate > 0) {
                     setExchangeRate(newRate);
-                    await settingsAPI.updateSettings({ ...settings, exchangeRate: newRate });
+                    await settingsAPI.updateSettings({
+                      ...settings,
+                      exchangeRate: newRate,
+                    });
                   }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -369,10 +364,12 @@ const SettingsPage = () => {
             </h4>
             <div className="space-y-1 text-sm text-gray-600">
               <p>
-                1 USD = {parseFloat(tempExchangeRate || "0").toLocaleString()} IQD
+                1 USD = {parseFloat(tempExchangeRate || "0").toLocaleString()}{" "}
+                IQD
               </p>
               <p>
-                1,000 IQD = {(1000 / parseFloat(tempExchangeRate || "1")).toFixed(2)} USD
+                1,000 IQD ={" "}
+                {(1000 / parseFloat(tempExchangeRate || "1")).toFixed(2)} USD
               </p>
             </div>
           </div>
@@ -418,7 +415,10 @@ const SettingsPage = () => {
               value={settings.currency}
               onChange={async (e) => {
                 handleSettingChange("currency", e.target.value);
-                await settingsAPI.updateSettings({ ...settings, currency: e.target.value });
+                await settingsAPI.updateSettings({
+                  ...settings,
+                  currency: e.target.value,
+                });
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
@@ -427,7 +427,6 @@ const SettingsPage = () => {
               <option value="IQD">{t("settings.currency.display.iqd")}</option>
             </select>
           </div>
-          
         </div>
       </div>
     </div>
@@ -440,6 +439,7 @@ const SettingsPage = () => {
           {t("settings.store.info")}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Row 1: Store Name & Store Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.name")}
@@ -459,79 +459,49 @@ const SettingsPage = () => {
             <input
               type="tel"
               value={settings.storePhone}
-              onChange={(e) =>
-                handleSettingChange("storePhone", e.target.value)
-              }
+              onChange={(e) => handleSettingChange("storePhone", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
           </div>
-          <div className="md:col-span-2">
+          {/* Row 2: Store Address & Store Email */}
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.address")}
             </label>
             <input
               type="text"
               value={settings.storeAddress}
-              onChange={(e) =>
-                handleSettingChange("storeAddress", e.target.value)
-              }
+              onChange={(e) => handleSettingChange("storeAddress", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
           </div>
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {t("settings.store.email")}
             </label>
             <input
               type="email"
               value={settings.storeEmail}
-              onChange={(e) =>
-                handleSettingChange("storeEmail", e.target.value)
-              }
+              onChange={(e) => handleSettingChange("storeEmail", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
           </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {t("settings.tax.settings")}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Row 3: Capital (single column, full width) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("settings.tax.rate")} (%)
+              {t("settings.store.capital")}
             </label>
             <input
               type="number"
-              step="0.1"
-              value={settings.taxRate}
-              onChange={(e) =>
-                handleSettingChange("taxRate", parseFloat(e.target.value) || 0)
-              }
+              min={0}
+              value={settings.capital}
+              onChange={(e) => handleSettingChange("capital", parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!canEdit}
             />
-          </div>
-          <div className="flex items-center">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={settings.taxIncluded}
-                onChange={(e) =>
-                  handleSettingChange("taxIncluded", e.target.checked)
-                }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                disabled={!canEdit}
-              />
-              <span className="text-sm font-medium text-gray-700">
-                {t("settings.tax.included")}
-              </span>
-            </label>
           </div>
         </div>
       </div>

@@ -59,6 +59,7 @@ router.put('/', protect, authorize('admin'), [
   body('timeFormat').optional().isIn(['12', '24']).withMessage('Invalid time format'),
   body('lowStockThreshold').optional().isInt({ min: 0 }).withMessage('Low stock threshold must be non-negative'),
   body('exchangeRate').optional().isInt({ min: 0 }).withMessage('Exchange rate must be non-negative'),
+  body('capital').optional().isFloat({ min: 0 }).withMessage('Capital must be a non-negative number'),
   body('lowStockAlerts').optional().isBoolean().withMessage('Low stock alerts must be boolean'),
   body('emailNotifications').optional().isBoolean().withMessage('Email notifications must be boolean'),
   body('soundEffects').optional().isBoolean().withMessage('Sound effects must be boolean'),
