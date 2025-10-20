@@ -25,6 +25,10 @@ router.post(
       .trim()
       .isLength({ min: 1 })
       .withMessage("Store name is required"),
+    body("transactionType")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Transaction type is required"),
     body("storeCapital")
       .trim()
       .isLength({ min: 1 })
@@ -77,6 +81,7 @@ router.post(
         ownerPassword,
         phone,
         address,
+        transactionType,
       } = req.body;
 
       // Check if owner email is already used
@@ -100,6 +105,7 @@ router.post(
           phone,
           email: ownerEmail,
         },
+        isActive: true,
       });
 
       // Create owner user (admin)
@@ -125,6 +131,7 @@ router.post(
         status: "completed",
         isPaid: true,
         customerName: "Business Capital",
+        transactionType: transactionType || "capital",
       });
 
       // Generate token for immediate login
