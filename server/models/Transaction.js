@@ -4,7 +4,7 @@ const transactionItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
-    required: true,
+    // required: true,
   },
   productSnapshot: {
     name: String,
@@ -13,18 +13,18 @@ const transactionItemSchema = new mongoose.Schema({
   },
   quantity: {
     type: Number,
-    required: true,
-    min: [1, "Quantity must be at least 1"],
+    // required: true,
+    // min: [1, "Quantity must be at least 1"],
   },
   unitPrice: {
     type: Number,
-    required: true,
-    min: [0, "Unit price cannot be negative"],
+    // required: true,
+    // min: [0, "Unit price cannot be negative"],
   },
   totalPrice: {
     type: Number,
-    required: true,
-    min: [0, "Total price cannot be negative"],
+    // required: true,
+    // min: [0, "Total price cannot be negative"],
   },
 });
 
@@ -49,31 +49,33 @@ const transactionSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, "Customer name cannot exceed 100 characters"],
     },
+    supplier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Supplier",
+    },
+    supplierName: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Supplier name cannot exceed 100 characters"],
+    },
+    productName: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Product name cannot exceed 100 characters"],
+    },
     transactionType: {
       type: String,
-      enum: ["sale", "debit", "credit"],
+      enum: ["sale", "debit", "credit", "refund", "capital"],
       // required: true,
     },
     description: {
       type: String,
       maxlength: [500, "Description cannot exceed 500 characters"],
     },
-    balance: {
-      type: Number,
-      min: [0, "Balance cannot be negative"],
-    },
-    reference: {
-      type: String,
-      maxlength: [100, "Reference cannot exceed 100 characters"],
-    },
-    category: {
-      type: String,
-      maxlength: [100, "Category cannot exceed 100 characters"],
-    },
     cashier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // required: true,
     },
 
     total: {
@@ -84,14 +86,17 @@ const transactionSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       enum: ["cash", "card", "digital"],
-      required: true,
+      // required: true,
     },
-    amountPaid: {
+    paidAmount: {
       type: Number,
       required: true,
       min: [0, "Amount paid cannot be negative"],
     },
     dueAmount: {
+      type: Number,
+    },
+    remainingAmount: {
       type: Number,
     },
     isPaid: {

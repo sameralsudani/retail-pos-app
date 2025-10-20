@@ -5,8 +5,17 @@ const Product = require("../models/Product");
 const { protect, authorize } = require("../middleware/auth");
 const { upload, handleUploadError } = require("../middleware/upload");
 const { uploadImage, deleteImage } = require("../config/cloudinary");
+const Transaction = require("../models/Transaction");
+const Tenant = require("../models/Tenant");
 
 const router = express.Router();
+// Generate unique transaction ID
+const generateTransactionId = (tenantId) => {
+  const timestamp = Date.now().toString();
+  const random = Math.random().toString(36).substr(2, 5).toUpperCase();
+  const tenantPrefix = tenantId.toString().slice(-4).toUpperCase();
+  return `${tenantPrefix}-${timestamp}-${random}`;
+};
 router.get(
   "/",
   protect,
@@ -167,6 +176,15 @@ router.post(
     body("price")
       .isFloat({ min: 0 })
       .withMessage("Price must be a positive number"),
+    body("paidAmount")
+      .isFloat({ min: 0 })
+      .withMessage("Paid amount must be a positive number"),
+    body("costPrice")
+      .isFloat({ min: 0 })
+      .withMessage("Cost price must be a positive number"),
+    body("remainingAmount")
+      .isFloat({ min: 0 })
+      .withMessage("Remaining amount must be a positive number"),
     body("category").isMongoId().withMessage("Valid category ID is required"),
     body("sku").trim().isLength({ min: 1 }).withMessage("SKU is required"),
     body("stock")
@@ -242,11 +260,39 @@ router.post(
         }
       }
 
+      const { costPrice, supplierName, remainingAmount, paidAmount, name } =
+        req.body;
+
+      // Create product
       const product = await Product.create({
         ...req.body,
         tenantId: userTenantId,
         sku: req.body.sku.toUpperCase(),
         image: imageUrl,
+        supplierName: supplierName,
+      });
+
+      // Create a new transaction for product creation
+      await Transaction.create({
+        tenantId: userTenantId,
+        transactionId: generateTransactionId(userTenantId),
+        transactionType: "debit",
+        paidAmount: paidAmount,
+        remainingAmount: remainingAmount,
+        total: costPrice,
+        cashier: req.user._id,
+        status: paidAmount >= costPrice ? "completed" : "due",
+        isPaid: paidAmount >= costPrice,
+        customerName: "Inventory Expense",
+        supplierName: supplierName,
+        description: `Initial stock for product ${product.name}`,
+        productName: name,
+        paymentMethod: "cash",
+      });
+
+      // Reduce capital by costPrice from tenant's account
+      await Tenant.findByIdAndUpdate(userTenantId, {
+        $inc: { capital: -costPrice },
       });
 
       const populatedProduct = await Product.findById(product._id)

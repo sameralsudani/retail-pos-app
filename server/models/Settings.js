@@ -43,7 +43,6 @@ const settingsSchema = new mongoose.Schema(
       ],
     },
 
-
     // Receipt Settings
     receiptHeader: {
       type: String,
@@ -63,9 +62,6 @@ const settingsSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
-    // System Settings
-
     // Business Capital
     capital: {
       type: Number,

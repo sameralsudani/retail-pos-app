@@ -196,9 +196,10 @@ router.post("/", protect, async (req, res) => {
       items,
       customer,
       paymentMethod,
-      amountPaid,
+      paidAmount,
       isPaid = false,
       dueAmount = 0,
+      transactionType,
     } = req.body;
 
     // Basic validation
@@ -219,7 +220,7 @@ router.post("/", protect, async (req, res) => {
       });
     }
 
-    if (typeof amountPaid !== "number" || amountPaid < 0) {
+    if (typeof paidAmount !== "number" || paidAmount < 0) {
       return res.status(400).json({
         success: false,
         message: "Amount paid must be a non-negative number",
@@ -268,9 +269,6 @@ router.post("/", protect, async (req, res) => {
       }
 
       if (product.stock < item.quantity) {
-        console.log(
-          `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
-        );
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`,
@@ -310,10 +308,11 @@ router.post("/", protect, async (req, res) => {
       cashier: req.user._id,
       total,
       paymentMethod,
-      amountPaid,
+      paidAmount,
       isPaid,
       dueAmount,
       status: isPaid ? "completed" : "due",
+      transactionType: transactionType || "sale",
     });
 
     // Populate transaction for response
@@ -340,7 +339,7 @@ router.post("/", protect, async (req, res) => {
 // @desc    Update a transaction
 // @route   PUT /api/transactions/:id
 // @access  Private
-router.put('/:id', protect, async (req, res) => {
+router.put("/:id", protect, async (req, res) => {
   try {
     // Extract tenantId from user (handle both populated and non-populated)
     let userTenantId;
@@ -371,22 +370,22 @@ router.put('/:id', protect, async (req, res) => {
 
     // Only allow updating certain fields
     const allowedFields = [
-      'status',
-      'amountPaid',
-      'paymentMethod',
-      'notes',
-      'dueAmount',
-      'isPaid',
+      "status",
+      "paidAmount",
+      "paymentMethod",
+      "notes",
+      "dueAmount",
+      "isPaid",
     ];
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (field in req.body) {
         transaction[field] = req.body[field];
       }
     });
 
-    // Optionally, recalculate dueAmount if amountPaid or total changed
-    if ('amountPaid' in req.body) {
-      transaction.dueAmount = transaction.total - transaction.amountPaid;
+    // Optionally, recalculate dueAmount if paidAmount or total changed
+    if ("paidAmount" in req.body) {
+      transaction.dueAmount = transaction.total - transaction.paidAmount;
     }
 
     await transaction.save();
@@ -404,7 +403,6 @@ router.put('/:id', protect, async (req, res) => {
     });
   }
 });
-
 
 // @desc    Get transaction statistics
 // @route   GET /api/transactions/stats
@@ -473,13 +471,15 @@ router.get(
         },
       ]);
 
-
       // Calculate todaySales by aggregating for today's date
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       const todayEnd = new Date();
       todayEnd.setHours(23, 59, 59, 999);
-      const todayQuery = { tenantId: userTenantId, createdAt: { $gte: todayStart, $lte: todayEnd } };
+      const todayQuery = {
+        tenantId: userTenantId,
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+      };
       const todayStats = await Transaction.aggregate([
         { $match: todayQuery },
         {
