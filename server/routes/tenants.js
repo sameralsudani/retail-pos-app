@@ -33,6 +33,10 @@ router.post(
       .trim()
       .isLength({ min: 1 })
       .withMessage("Store capital is required"),
+    body("exchangeRate")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Exchange rate is required"),
     body("currency")
       .trim()
       .isLength({ min: 1 })
@@ -53,12 +57,10 @@ router.post(
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
     body("phone").optional().trim(),
-    body("address.street").optional().trim(),
-    body("address.city").optional().trim(),
-    body("address.state").optional().trim(),
-    body("address.zipCode").optional().trim(),
-    body("address.country").optional().trim(),
+    body("address").optional().trim(),
+    body("description").optional().trim(),
   ],
+
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -82,6 +84,7 @@ router.post(
         phone,
         address,
         transactionType,
+        exchangeRate,
       } = req.body;
 
       // Check if owner email is already used
@@ -93,7 +96,7 @@ router.post(
         });
       }
 
-      // Create tenant
+      // Create a new tenant
       const tenant = await Tenant.create({
         name: storeName,
         capital: storeCapital,
@@ -106,6 +109,7 @@ router.post(
           email: ownerEmail,
         },
         isActive: true,
+        exchangeRate: exchangeRate,
       });
 
       // Create owner user (admin)
@@ -133,6 +137,8 @@ router.post(
         customerName: "Business Capital",
         transactionType: transactionType || "capital",
       });
+
+      // Create a setting document for the tenant (if applicable)
 
       // Generate token for immediate login
       const token = generateToken(owner._id);
@@ -224,22 +230,22 @@ router.put(
   protect,
   authorize("admin"),
   [
-    body("name")
+    body("storeName")
       .optional()
       .trim()
       .isLength({ min: 1 })
       .withMessage("Store name cannot be empty"),
     body("description").optional().trim(),
-    body("contact.phone").optional().trim(),
-    body("contact.email")
+    body("storePhone").optional().trim(),
+    body("storeEmail")
       .optional()
       .isEmail()
       .withMessage("Please enter a valid email"),
-    body("settings.currency")
+    body("currency")
       .optional()
-      .isIn(["USD", "EUR", "GBP", "SAR", "AED"])
+      .isIn(["USD", "IQD"])
       .withMessage("Invalid currency"),
-    body("settings.language")
+    body("language")
       .optional()
       .isIn(["en", "ar"])
       .withMessage("Invalid language"),
@@ -282,9 +288,33 @@ router.put(
         });
       }
 
+      const {
+        storeName,
+        storePhone,
+        storeEmail,
+        storeAddress,
+        currency,
+        language,
+        lowStockAlerts,
+        lowStockThreshold,
+        exchangeRate,
+      } = req.body;
+
       const updatedTenant = await Tenant.findByIdAndUpdate(
         userTenantId,
-        req.body,
+        {
+          name: storeName,
+          currency,
+          language,
+          address: storeAddress,
+          contact: {
+            phone: storePhone,
+            email: storeEmail,
+          },
+          lowStockAlerts,
+          lowStockThreshold,
+          exchangeRate,
+        },
         { new: true, runValidators: true }
       );
 

@@ -24,16 +24,13 @@ const tenantSchema = new mongoose.Schema(
       enum: ["USD", "IQD"],
       default: "USD",
     },
+    exchangeRate: { type: Number, default: 1 },
     language: { type: String, enum: ["en", "ar"], default: "en" },
-    logo: {
-      type: String,
-    },
     address: {
-      street: String,
-      city: String,
-      state: String,
-      zipCode: String,
-      country: String,
+      type: String,
+      default: "123 Main Street, City, State 12345",
+      trim: true,
+      maxlength: [200, "Store address cannot exceed 200 characters"],
     },
     contact: {
       phone: String,
@@ -62,10 +59,18 @@ const tenantSchema = new mongoose.Schema(
         transactions: { type: Number, default: 1000 },
       },
     },
-    settings: {
-      timezone: { type: String, default: "UTC" },
-    },
     isActive: {
+      type: Boolean,
+      default: true,
+    },
+    lowStockThreshold: {
+      type: Number,
+      default: 10,
+      min: [0, "Low stock threshold cannot be negative"],
+    },
+
+    // Notification Settings
+    lowStockAlerts: {
       type: Boolean,
       default: true,
     },
