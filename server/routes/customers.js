@@ -141,6 +141,10 @@ router.post(
       .trim()
       .isLength({ min: 1 })
       .withMessage("Customer name is required"),
+    body("address")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Customer address is required"),
     body("email")
       .isEmail()
       .normalizeEmail()
@@ -457,8 +461,8 @@ router.get("/stats/summary", protect, async (req, res) => {
           activeCustomers: {
             $sum: { $cond: [{ $eq: ["$isActive", true] }, 1, 0] },
           },
-          
-        recentCustomersThisMonth: {
+
+          recentCustomersThisMonth: {
             $sum: {
               $cond: [
                 {

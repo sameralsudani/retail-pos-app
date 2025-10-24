@@ -182,9 +182,6 @@ router.post(
     body("costPrice")
       .isFloat({ min: 0 })
       .withMessage("Cost price must be a positive number"),
-    body("remainingAmount")
-      .isFloat({ min: 0 })
-      .withMessage("Remaining amount must be a positive number"),
     body("category").isMongoId().withMessage("Valid category ID is required"),
     body("sku").trim().isLength({ min: 1 }).withMessage("SKU is required"),
     body("stock")
@@ -260,8 +257,7 @@ router.post(
         }
       }
 
-      const { costPrice, supplierName, remainingAmount, paidAmount, name } =
-        req.body;
+      const { costPrice, supplierName, paidAmount, name, stock } = req.body;
 
       // Create product
       const product = await Product.create({
@@ -278,21 +274,23 @@ router.post(
         transactionId: generateTransactionId(userTenantId),
         transactionType: "debit",
         paidAmount: paidAmount,
-        remainingAmount: remainingAmount,
-        total: costPrice,
+        remainingAmount: costPrice * stock - paidAmount,
+        total: costPrice * stock,
         cashier: req.user._id,
-        status: paidAmount >= costPrice ? "completed" : "due",
-        isPaid: paidAmount >= costPrice,
+        status: paidAmount >= costPrice * stock ? "completed" : "due",
+        isPaid: paidAmount >= costPrice * stock,
         customerName: "Inventory Expense",
         supplierName: supplierName,
         description: `Initial stock for product ${product.name}`,
         productName: name,
         paymentMethod: "cash",
+        productQuantity: stock,
+        productCostPricePerUnit: costPrice,
       });
 
       // Reduce capital by costPrice from tenant's account
       await Tenant.findByIdAndUpdate(userTenantId, {
-        $inc: { capital: -costPrice },
+        $inc: { capital: -costPrice * stock },
       });
 
       const populatedProduct = await Product.findById(product._id)

@@ -1,10 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const { body, validationResult, query } = require("express-validator");
+const { validationResult, query } = require("express-validator");
 const Transaction = require("../models/Transaction");
 const Product = require("../models/Product");
-const Customer = require("../models/Customer");
 const { protect } = require("../middleware/auth");
+const Tenant = require("../models/Tenant");
 
 const router = express.Router();
 
@@ -41,6 +41,10 @@ router.get(
       .withMessage("Invalid end date format"),
     query("cashier").optional().isMongoId().withMessage("Invalid cashier ID"),
     query("customer").optional().isMongoId().withMessage("Invalid customer ID"),
+    query("transactionType")
+      .optional()
+      .isIn(["sale", "debit", "capital"])
+      .withMessage("Transaction type must be sale, debit, or capital"),
   ],
   async (req, res) => {
     try {
@@ -94,6 +98,11 @@ router.get(
       // Customer filter
       if (req.query.customer) {
         query.customer = req.query.customer;
+      }
+
+      // Transaction type filter
+      if (req.query.transactionType) {
+        query.transactionType = req.query.transactionType;
       }
 
       const transactions = await Transaction.find(query)
@@ -314,6 +323,15 @@ router.post("/", protect, async (req, res) => {
       status: isPaid ? "completed" : "due",
       transactionType: transactionType || "sale",
     });
+    if (transactionType === "sale") {
+      // add paidAmount to store capital
+      await Tenant.findOneAndUpdate(
+        { _id: userTenantId },
+        {
+          $inc: { capital: paidAmount },
+        }
+      );
+    }
 
     // Populate transaction for response
     const populatedTransaction = await Transaction.findById(transaction._id)

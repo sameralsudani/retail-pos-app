@@ -155,10 +155,10 @@ router.post(
       .trim()
       .isLength({ min: 1 })
       .withMessage("Phone number is required"),
-    body("paymentTerms")
-      .optional()
-      .isIn(["Net 15", "Net 30", "Net 45", "Net 60", "COD"])
-      .withMessage("Invalid payment terms"),
+    body("address")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Address is required"),
   ],
   async (req, res) => {
     try {
@@ -246,10 +246,11 @@ router.put(
       .trim()
       .isLength({ min: 1 })
       .withMessage("Phone number cannot be empty"),
-    body("paymentTerms")
+    body("address")
       .optional()
-      .isIn(["Net 15", "Net 30", "Net 45", "Net 60", "COD"])
-      .withMessage("Invalid payment terms"),
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Address cannot be empty"),
   ],
   async (req, res) => {
     try {

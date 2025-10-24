@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const Inventory = require("../models/Inventory");
-const Product = require("../models/Product");
-const Category = require("../models/Category");
 
 // Get all inventory records
 router.get("/", async (req, res) => {
@@ -35,8 +33,17 @@ router.get("/by", async (req, res) => {
 // Create or update inventory record
 router.post("/", async (req, res) => {
   try {
-    const { product, category, quantity, costPrice, reorderLevel, lastRestocked } =
-      req.body;
+    const {
+      product,
+      category,
+      quantity,
+      costPrice,
+      reorderLevel,
+      lastRestocked,
+      productName,
+      description,
+      salePrice,
+    } = req.body;
     let record = await Inventory.findOne({ product, category });
     if (record) {
       record.quantity = quantity;
@@ -44,10 +51,23 @@ router.post("/", async (req, res) => {
       record.reorderLevel = reorderLevel;
       record.lastRestocked = lastRestocked;
       record.lastUpdated = new Date();
+      record.productName = productName;
+      record.description = description;
+      record.salePrice = salePrice;
       await record.save();
       return res.json({ success: true, data: record });
     } else {
-      const newRecord = new Inventory({ product, category, quantity, costPrice, reorderLevel, lastRestocked });
+      const newRecord = new Inventory({
+        product,
+        category,
+        quantity,
+        costPrice,
+        reorderLevel,
+        lastRestocked,
+        productName,
+        description,
+        salePrice,
+      });
       await newRecord.save();
       return res.status(201).json({ success: true, data: newRecord });
     }
@@ -61,9 +81,13 @@ router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-    const record = await Inventory.findByIdAndUpdate(id, updates, { new: true });
+    const record = await Inventory.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
     if (!record) {
-      return res.status(404).json({ success: false, message: "Inventory record not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Inventory record not found" });
     }
     res.json({ success: true, data: record });
   } catch (err) {

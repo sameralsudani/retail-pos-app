@@ -63,6 +63,17 @@ const transactionSchema = new mongoose.Schema(
       trim: true,
       maxlength: [100, "Product name cannot exceed 100 characters"],
     },
+    productQuantity: {
+      type: Number,
+      // required: true,
+      // min: [0, "Total cannot be negative"],
+    },
+    productCostPricePerUnit: {
+      type: Number,
+      // required: true,
+      // min: [0, "Total cannot be negative"],
+    },
+
     transactionType: {
       type: String,
       enum: ["sale", "debit", "capital"],
