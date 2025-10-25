@@ -28,36 +28,12 @@ const tenantSchema = new mongoose.Schema(
     language: { type: String, enum: ["en", "ar"], default: "en" },
     address: {
       type: String,
-      default: "123 Main Street, City, State 12345",
       trim: true,
       maxlength: [200, "Store address cannot exceed 200 characters"],
     },
     contact: {
       phone: String,
       email: String,
-      website: String,
-    },
-    subscription: {
-      plan: {
-        type: String,
-        enum: ["basic", "premium", "enterprise"],
-        default: "basic",
-      },
-      status: {
-        type: String,
-        enum: ["active", "suspended", "cancelled"],
-        default: "active",
-      },
-      startDate: {
-        type: Date,
-        default: Date.now,
-      },
-      endDate: Date,
-      limits: {
-        users: { type: Number, default: 5 },
-        products: { type: Number, default: 100 },
-        transactions: { type: Number, default: 1000 },
-      },
     },
     isActive: {
       type: Boolean,
